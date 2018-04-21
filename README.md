@@ -59,8 +59,11 @@ target.listen(3001, (err) => {
 
 #### `base`
 
-Set the base URL for all the forwarded requests.
+Set the base URL for all the forwarded requests. Will be required if `http2` is set to `true`
 Note that _every path will be discarded_.
+
+#### http2
+Set to `true` if target server is `http2` enabled.
 
 #### cacheURLs
 
@@ -96,7 +99,7 @@ Called when an http response is received from the source.
 The default behavior is `reply.send(res)`, which will be disabled if the
 option is specified.
 
-#### rewriteHeaders(res)
+#### rewriteHeaders(headers)
 
 Called to rewrite the headers of the response, before them being copied
 over to the outer response.
@@ -126,7 +129,6 @@ already overriding the [`body`][body].
 * [ ] forward the request id to the other peer might require some
       refacotring because we have to make the `req.id` unique
       (see [hyperid](http://npm.im/hyperid)).
-* [ ] support http2
 * [ ] benchmarks
 
 ## License

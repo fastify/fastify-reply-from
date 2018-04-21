@@ -1,28 +1,24 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const http = require('http')
-const https = require('https')
 const URL = require('url').URL
 const lru = require('tiny-lru')
 const querystring = require('querystring')
 const Stream = require('stream')
-const pump = require('pump')
-const requests = {
-  'http:': http,
-  'https:': https
-}
+const RequestAgent = require('./lib/request')
+const { filterPseudoHeaders, copyHeaders, stripHttp1ConnectionHeaders } = require('./lib/utils')
 
 module.exports = fp(function from (fastify, opts, next) {
-  const agents = {
-    // with a colon, so that it matches url.protocol
-    // and we can avoid string manipulation at runtime
-    'http:': new http.Agent(agentOption(opts)),
-    'https:': new https.Agent(agentOption(opts))
-  }
   const cache = lru(opts.cacheURLs || 100)
   const base = opts.base
-
+  const requestClient = new RequestAgent({
+    http2: !!opts.http2,
+    base,
+    keepAliveMsecs: opts.keepAliveMsecs,
+    maxFreeSockets: opts.maxFreeSockets,
+    maxSockets: opts.maxSockets,
+    rejectUnauthorized: opts.rejectUnauthorized
+  })
   fastify.decorateReply('from', function (source, opts) {
     opts = opts || {}
     const req = this.request.req
@@ -37,11 +33,11 @@ module.exports = fp(function from (fastify, opts, next) {
     const url = cache.get(source) || new URL(source, base)
     cache.set(source, url)
 
-    const isHttp2 = req.httpVersionMajor === 2
-    var headers = isHttp2 ? http2toHttp1Headers(req.headers) : req.headers
+    const sourceHttp2 = req.httpVersionMajor === 2
+    let headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : req.headers
     headers.host = url.hostname
-    const queryString = getQueryString(url.search, req.url, opts)
-    var body = ''
+    const qs = getQueryString(url.search, req.url, opts)
+    let body = ''
 
     if (opts.body) {
       if (typeof opts.body.pipe === 'function') {
@@ -55,10 +51,11 @@ module.exports = fp(function from (fastify, opts, next) {
         opts.contentType = 'application/json'
       }
 
-      headers = Object.assign(headers, {
+      headers = {
+        ...headers,
         'content-length': Buffer.byteLength(body),
         'content-type': opts.contentType
-      })
+      }
     } else if (this.request.body) {
       if (this.request.body instanceof Stream) {
         body = this.request.body
@@ -69,124 +66,36 @@ module.exports = fp(function from (fastify, opts, next) {
 
     req.log.info({ source }, 'fetching from remote server')
 
-    const details = {
-      method: req.method,
-      port: url.port,
-      path: url.pathname + queryString,
-      hostname: url.hostname,
-      headers,
-      agent: agents[url.protocol]
-    }
-
-    const internal = requests[url.protocol].request(details)
-
-    if (body instanceof Stream) {
-      pump(body, internal, (err) => {
-        if (err) {
-          this.send(err)
-        }
-      })
-    } else {
-      internal.end(body)
-    }
-
-    internal.on('error', (err) => {
-      req.log.warn(err, 'response errored')
-      this.send(err)
-    })
-
-    internal.on('response', (res) => {
-      req.log.info('response received')
-
-      if (isHttp2) {
-        copyHeadersHttp2(rewriteHeaders(res), this)
-      } else {
-        copyHeaders(rewriteHeaders(res), this)
+    requestClient.request({ method: req.method, url, qs, headers, body }, (err, res) => {
+      if (err) {
+        this.request.log.warn(err, 'response errored')
+        this.send(err)
+        return
       }
-
-      this.code(res.statusCode)
-
-      if (onResponse) {
-        onResponse(res)
+      this.request.log.info('response received')
+      if (sourceHttp2) {
+        copyHeaders(rewriteHeaders(stripHttp1ConnectionHeaders(res.headers)), this)
       } else {
-        this.send(res)
+        copyHeaders(rewriteHeaders(res.headers), this)
+      }
+      this.code(res.statusCode)
+      if (onResponse) {
+        onResponse(res.stream)
+      } else {
+        this.send(res.stream)
       }
     })
   })
 
   fastify.onClose((fastify, next) => {
-    agents['http:'].destroy()
-    agents['https:'].destroy()
+    requestClient.close()
     // let the event loop do a full run so that it can
     // actually destroy those sockets
     setImmediate(next)
   })
 
   next()
-}, '>= 0.39.0')
-
-function copyHeaders (headers, reply) {
-  const headersKeys = Object.keys(headers)
-
-  var i
-  var header
-
-  for (i = 0; i < headersKeys.length; i++) {
-    header = headersKeys[i]
-    reply.header(header, headers[header])
-  }
-}
-
-// HTTP2 version specific for copyHeaders
-// this handles headers with ':' in front
-function copyHeadersHttp2 (headers, reply) {
-  const headersKeys = Object.keys(headers)
-
-  var i
-  var header
-
-  for (i = 0; i < headersKeys.length; i++) {
-    header = headersKeys[i]
-
-    // TODO what other http1-specific headers exists?
-    switch (header) {
-      case 'connection':
-        break
-      // case 'date':
-      //   break
-      default:
-        reply.header(header, headers[header])
-        break
-    }
-  }
-}
-
-function http2toHttp1Headers (headers) {
-  const dest = {}
-  const headersKeys = Object.keys(headers)
-
-  var i
-  var header
-
-  for (i = 0; i < headersKeys.length; i++) {
-    header = headersKeys[i]
-    if (header.charCodeAt(0) !== 58) {  // fast path for indexOf(':') === 0
-      dest[header] = headers[header]
-    }
-  }
-
-  return dest
-}
-
-function agentOption (opts) {
-  return {
-    keepAlive: true,
-    keepAliveMsecs: opts.keepAliveMsecs || 60 * 1000, // 1 minute
-    maxSockets: opts.maxSockets || 2048,
-    maxFreeSockets: opts.maxFreeSockets || 2048,
-    rejectUnauthorized: opts.rejectUnauthorized
-  }
-}
+}, '>= 1.3.0')
 
 function getQueryString (search, reqUrl, opts) {
   if (search.length > 0) {
@@ -206,6 +115,6 @@ function getQueryString (search, reqUrl, opts) {
   return ''
 }
 
-function headersNoOp (res) {
-  return res.headers
+function headersNoOp (headers) {
+  return headers
 }
