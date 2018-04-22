@@ -129,6 +129,7 @@ already overriding the [`body`][body].
 * [ ] forward the request id to the other peer might require some
       refacotring because we have to make the `req.id` unique
       (see [hyperid](http://npm.im/hyperid)).
+* [ ] Support origin HTTP2 push
 * [ ] benchmarks
 
 ## License

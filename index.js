@@ -5,13 +5,13 @@ const URL = require('url').URL
 const lru = require('tiny-lru')
 const querystring = require('querystring')
 const Stream = require('stream')
-const RequestAgent = require('./lib/request')
+const buildRequest = require('./lib/request')
 const { filterPseudoHeaders, copyHeaders, stripHttp1ConnectionHeaders } = require('./lib/utils')
 
 module.exports = fp(function from (fastify, opts, next) {
   const cache = lru(opts.cacheURLs || 100)
   const base = opts.base
-  const requestClient = new RequestAgent({
+  const requestClient = buildRequest({
     http2: !!opts.http2,
     base,
     keepAliveMsecs: opts.keepAliveMsecs,
@@ -34,10 +34,10 @@ module.exports = fp(function from (fastify, opts, next) {
     cache.set(source, url)
 
     const sourceHttp2 = req.httpVersionMajor === 2
-    let headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : req.headers
+    var headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : req.headers
     headers.host = url.hostname
     const qs = getQueryString(url.search, req.url, opts)
-    let body = ''
+    var body = ''
 
     if (opts.body) {
       if (typeof opts.body.pipe === 'function') {
