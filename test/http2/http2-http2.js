@@ -3,12 +3,12 @@
 const h2url = require('h2url')
 const t = require('tap')
 const Fastify = require('fastify')
-const From = require('..')
+const From = require('../..')
 const fs = require('fs')
 const path = require('path')
 const certs = {
-  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.key')),
-  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))
+  key: fs.readFileSync(path.join(__dirname, '..', 'fixtures', 'fastify.key')),
+  cert: fs.readFileSync(path.join(__dirname, '..', 'fixtures', 'fastify.cert'))
 }
 
 const instance = Fastify({

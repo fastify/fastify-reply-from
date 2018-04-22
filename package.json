@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "coverage": "tap -j8 test/*.js --cov",
-    "test": "standard | snazzy && tap -j8 test/*.js"
+    "test": "standard | snazzy && tap -j8 test/*.js test/http2/http2.js"
   },
   "repository": {
     "type": "git",

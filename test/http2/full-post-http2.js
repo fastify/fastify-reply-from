@@ -2,7 +2,7 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
-const From = require('..')
+const From = require('../..')
 const got = require('got')
 
 const instance = Fastify()
