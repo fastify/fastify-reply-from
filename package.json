@@ -41,6 +41,7 @@
   "dependencies": {
     "end-of-stream": "^1.4.1",
     "fastify-plugin": "^1.0.0",
+    "semver": "^5.5.0",
     "tiny-lru": "^1.5.0"
   }
 }

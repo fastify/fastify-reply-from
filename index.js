@@ -11,7 +11,7 @@ const { filterPseudoHeaders, copyHeaders, stripHttp1ConnectionHeaders } = requir
 module.exports = fp(function from (fastify, opts, next) {
   const cache = lru(opts.cacheURLs || 100)
   const base = opts.base
-  const requestClient = buildRequest({
+  const { request, close } = buildRequest({
     http2: !!opts.http2,
     base,
     keepAliveMsecs: opts.keepAliveMsecs,
@@ -51,11 +51,8 @@ module.exports = fp(function from (fastify, opts, next) {
         opts.contentType = 'application/json'
       }
 
-      headers = {
-        ...headers,
-        'content-length': Buffer.byteLength(body),
-        'content-type': opts.contentType
-      }
+      headers['content-length'] = Buffer.byteLength(body)
+      headers['content-type'] = opts.contentType
     } else if (this.request.body) {
       if (this.request.body instanceof Stream) {
         body = this.request.body
@@ -66,7 +63,7 @@ module.exports = fp(function from (fastify, opts, next) {
 
     req.log.info({ source }, 'fetching from remote server')
 
-    requestClient.request({ method: req.method, url, qs, headers, body }, (err, res) => {
+    request({ method: req.method, url, qs, headers, body }, (err, res) => {
       if (err) {
         this.request.log.warn(err, 'response errored')
         this.send(err)
@@ -88,7 +85,7 @@ module.exports = fp(function from (fastify, opts, next) {
   })
 
   fastify.onClose((fastify, next) => {
-    requestClient.close()
+    close()
     // let the event loop do a full run so that it can
     // actually destroy those sockets
     setImmediate(next)
