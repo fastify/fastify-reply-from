@@ -1,5 +1,7 @@
 # fastify-reply-from
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/fastify/fastify-reply-from.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/fastify/fastify-reply-from.svg?branch=master)](https://travis-ci.org/fastify/fastify-reply-from)
 [![NPM version](https://img.shields.io/npm/v/fastify-reply-from.svg?style=flat)](https://www.npmjs.com/package/fastify-reply-fromm)
 
