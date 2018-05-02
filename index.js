@@ -66,7 +66,13 @@ module.exports = fp(function from (fastify, opts, next) {
     request({ method: req.method, url, qs, headers, body }, (err, res) => {
       if (err) {
         this.request.log.warn(err, 'response errored')
-        this.send(err)
+        if (!this.sent) {
+          if (err.code === 'ERR_HTTP2_STREAM_CANCEL') {
+            this.code(503).send(new Error('Service Unavailable'))
+          } else {
+            this.send(err)
+          }
+        }
         return
       }
       this.request.log.info('response received')
