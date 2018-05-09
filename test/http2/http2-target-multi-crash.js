@@ -9,40 +9,37 @@ const instance = Fastify()
 
 t.tearDown(instance.close.bind(instance))
 
-const target = Fastify({
-  http2: true
-})
-
-target.get('/', (request, reply) => {
-  t.pass('request proxied')
-  reply.code(200).send({
-    hello: 'world'
-  })
-})
-
 instance.get('/', (request, reply) => {
   reply.from()
 })
 
-t.tearDown(target.close.bind(target))
-
 async function run () {
-  await target.listen(0)
-
   instance.register(From, {
-    base: `http://localhost:${target.server.address().port}`,
+    base: `http://localhost:3128`,
     http2: true
   })
 
   await instance.listen(0)
 
-  t.test('http -> http2 crash', async (t) => {
+  t.test('http -> http2 crash multiple times', async (t) => {
     try {
+      let target = setupTarget()
+      await target.listen(3128)
+      await got(`http://localhost:${instance.server.address().port}`, {
+        rejectUnauthorized: false
+      })
+      await target.close()
+      target = setupTarget()
+      await target.listen(3128)
+      await got(`http://localhost:${instance.server.address().port}`, {
+        rejectUnauthorized: false
+      })
       await target.close()
       await got(`http://localhost:${instance.server.address().port}`, {
         rejectUnauthorized: false
       })
     } catch (err) {
+      console.error(err)
       t.equal(err.response.statusCode, 503)
       t.equal(err.response.headers['content-type'], 'application/json')
       t.deepEqual(JSON.parse(err.response.body), {
@@ -57,3 +54,17 @@ async function run () {
 }
 
 run()
+
+function setupTarget () {
+  const target = Fastify({
+    http2: true
+  })
+
+  target.get('/', (request, reply) => {
+    t.pass('request proxied')
+    reply.code(200).send({
+      hello: 'world'
+    })
+  })
+  return target
+}
