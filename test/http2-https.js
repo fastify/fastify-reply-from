@@ -55,7 +55,7 @@ async function run () {
 
     t.equal(headers[':status'], 404)
     t.equal(headers['x-my-header'], 'hello!')
-    t.equal(headers['content-type'], 'application/json')
+    t.match(headers['content-type'], /application\/json/)
     t.deepEqual(JSON.parse(body), { hello: 'world' })
   })
 
@@ -67,7 +67,7 @@ async function run () {
     } catch (err) {
       t.equal(err.response.statusCode, 404)
       t.equal(err.response.headers['x-my-header'], 'hello!')
-      t.equal(err.response.headers['content-type'], 'application/json')
+      t.match(err.response.headers['content-type'], /application\/json/)
       t.deepEqual(JSON.parse(err.response.body), { hello: 'world' })
       return
     }

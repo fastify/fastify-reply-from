@@ -45,7 +45,7 @@ async function run () {
       })
       t.equal(statusCode, 200)
       t.equal(headers['x-my-header'], 'hello!')
-      t.equal(headers['content-type'], 'application/json')
+      t.match(headers['content-type'], /application\/json/)
       t.deepEqual(body, { hello: 'world' })
     } catch (err) {
       t.error(err)

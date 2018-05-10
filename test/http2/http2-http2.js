@@ -53,7 +53,7 @@ async function run () {
 
     t.equal(headers[':status'], 404)
     t.equal(headers['x-my-header'], 'hello!')
-    t.equal(headers['content-type'], 'application/json')
+    t.match(headers['content-type'], /application\/json/)
     t.deepEqual(JSON.parse(body), { hello: 'world' })
   })
 }

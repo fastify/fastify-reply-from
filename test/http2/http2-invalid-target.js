@@ -28,7 +28,7 @@ async function run () {
       })
     } catch (err) {
       t.equal(err.response.statusCode, 503)
-      t.equal(err.response.headers['content-type'], 'application/json')
+      t.match(err.response.headers['content-type'], /application\/json/)
       t.deepEqual(JSON.parse(err.response.body), {
         statusCode: 503,
         error: 'Service Unavailable',

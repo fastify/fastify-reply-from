@@ -44,7 +44,7 @@ async function run () {
     } catch (err) {
       t.equal(err.response.statusCode, 404)
       t.equal(err.response.headers['x-my-header'], 'hello!')
-      t.equal(err.response.headers['content-type'], 'application/json')
+      t.match(err.response.headers['content-type'], /application\/json/)
       t.deepEqual(JSON.parse(err.response.body), { hello: 'world' })
       return
     }
