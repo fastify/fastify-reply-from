@@ -66,7 +66,7 @@ module.exports = fp(function from (fastify, opts, next) {
     // when proxy this request, we should reset the content-length to make it a valid http request
     // discussion: https://github.com/fastify/fastify/issues/953
     if (req.method === 'GET') {
-      headers['content-length'] = Buffer.byteLength(body)
+      headers['content-length'] = 0
     }
 
     req.log.info({ source }, 'fetching from remote server')
