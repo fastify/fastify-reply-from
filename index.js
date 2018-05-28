@@ -62,7 +62,7 @@ module.exports = fp(function from (fastify, opts, next) {
     }
 
     // according to https://tools.ietf.org/html/rfc2616#section-4.3
-    // fastify ignore message body when it's a GET request
+    // fastify ignore message body when it's a GET or HEAD request
     // when proxy this request, we should reset the content-length to make it a valid http request
     // discussion: https://github.com/fastify/fastify/issues/953
     if (req.method === 'GET' || req.method === 'HEAD') {
