@@ -66,6 +66,9 @@ module.exports = fp(function from (fastify, opts, next) {
     // when proxy this request, we should reset the content-length to make it a valid http request
     // discussion: https://github.com/fastify/fastify/issues/953
     if (req.method === 'GET' || req.method === 'HEAD') {
+      // body will be populated here only if opts.body is passed.
+      // if we are doing that with a GET or HEAD request is a programmer error
+      // and as such we can throw immediately.
       if (body) {
         throw new Error('Rewriting the body when doing a GET is not allowed')
       }
