@@ -65,7 +65,10 @@ module.exports = fp(function from (fastify, opts, next) {
     // fastify ignore message body when it's a GET request
     // when proxy this request, we should reset the content-length to make it a valid http request
     // discussion: https://github.com/fastify/fastify/issues/953
-    if (req.method === 'GET') {
+    if (req.method === 'GET' || req.method === 'HEAD') {
+      if (body) {
+        throw new Error('Rewriting the body when doing a GET is not allowed')
+      }
       headers['content-length'] = 0
     }
 
