@@ -115,12 +115,12 @@ module.exports = fp(function from (fastify, opts, next) {
 }, '>= 1.3.0')
 
 function getQueryString (search, reqUrl, opts) {
-  if (search.length > 0) {
-    return search
-  }
-
   if (opts.queryString) {
     return '?' + querystring.stringify(opts.queryString)
+  }
+
+  if (search.length > 0) {
+    return search
   }
 
   const queryIndex = reqUrl.indexOf('?')
