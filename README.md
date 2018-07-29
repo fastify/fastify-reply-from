@@ -67,6 +67,23 @@ Note that _every path will be discarded_.
 #### http2
 Set to `true` if target server is `http2` enabled.
 
+#### undici
+Set to `true` to use [undici](https://github.com/mcollina/undici)
+instead of `require('http')`. Enabling this flag should guarantee
+20-50% more throughput.
+
+This flag could controls the settings of the undici client, like so:
+
+```js
+proxy.register(require('fastify-reply-from'), {
+  base: 'http://localhost:3001/',
+  undici: {
+    connections: 100,
+    pipelining: 10
+  }
+})
+```
+
 #### cacheURLs
 
 The number of parsed URLs that will be cached. Default: 100.

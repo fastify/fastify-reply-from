@@ -17,7 +17,8 @@ module.exports = fp(function from (fastify, opts, next) {
     keepAliveMsecs: opts.keepAliveMsecs,
     maxFreeSockets: opts.maxFreeSockets,
     maxSockets: opts.maxSockets,
-    rejectUnauthorized: opts.rejectUnauthorized
+    rejectUnauthorized: opts.rejectUnauthorized,
+    undici: opts.undici
   })
   fastify.decorateReply('from', function (source, opts) {
     opts = opts || {}
