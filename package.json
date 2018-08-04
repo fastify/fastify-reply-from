@@ -28,7 +28,7 @@
   "homepage": "https://github.com/fastify/fastify-reply-from#readme",
   "devDependencies": {
     "fastify": "^1.9.0",
-    "got": "^8.3.2",
+    "got": "^9.0.0",
     "h2url": "^0.1.2",
     "msgpack5": "^4.2.0",
     "nock": "^9.4.3",
