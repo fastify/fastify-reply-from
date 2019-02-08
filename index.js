@@ -6,7 +6,11 @@ const lru = require('tiny-lru')
 const querystring = require('querystring')
 const Stream = require('stream')
 const buildRequest = require('./lib/request')
-const { filterPseudoHeaders, copyHeaders, stripHttp1ConnectionHeaders } = require('./lib/utils')
+const {
+  filterPseudoHeaders,
+  copyHeaders,
+  stripHttp1ConnectionHeaders
+} = require('./lib/utils')
 
 module.exports = fp(function from (fastify, opts, next) {
   const cache = lru(opts.cacheURLs || 100)
@@ -94,13 +98,16 @@ module.exports = fp(function from (fastify, opts, next) {
       }
       this.request.log.info('response received')
       if (sourceHttp2) {
-        copyHeaders(rewriteHeaders(stripHttp1ConnectionHeaders(res.headers)), this)
+        copyHeaders(
+          rewriteHeaders(stripHttp1ConnectionHeaders(res.headers)),
+          this
+        )
       } else {
         copyHeaders(rewriteHeaders(res.headers), this)
       }
       this.code(res.statusCode)
       if (onResponse) {
-        onResponse(res.stream)
+        onResponse(this.request.req, this, res.stream)
       } else {
         this.send(res.stream)
       }

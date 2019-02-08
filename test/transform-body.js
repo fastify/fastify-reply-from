@@ -24,31 +24,38 @@ const target = http.createServer((req, res) => {
 
 instance.get('/', (request, reply) => {
   reply.from(`http://localhost:${target.address().port}`, {
-    onResponse: (res) => {
-      reply.send(res.pipe(new Transform({
-        transform: function (chunk, enc, cb) {
-          this.push(chunk.toString().toUpperCase())
-          cb()
-        }
-      })))
+    onResponse: (request, reply, res) => {
+      reply.send(
+        res.pipe(
+          new Transform({
+            transform: function (chunk, enc, cb) {
+              this.push(chunk.toString().toUpperCase())
+              cb()
+            }
+          })
+        )
+      )
     }
   })
 })
 
 t.tearDown(target.close.bind(target))
 
-instance.listen(0, (err) => {
+instance.listen(0, err => {
   t.error(err)
 
-  target.listen(0, (err) => {
+  target.listen(0, err => {
     t.error(err)
 
-    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-      t.error(err)
-      t.equal(res.headers['content-type'], 'text/plain')
-      t.equal(res.headers['x-my-header'], 'hello!')
-      t.equal(res.statusCode, 205)
-      t.equal(data.toString(), 'HELLO WORLD')
-    })
+    get(
+      `http://localhost:${instance.server.address().port}`,
+      (err, res, data) => {
+        t.error(err)
+        t.equal(res.headers['content-type'], 'text/plain')
+        t.equal(res.headers['x-my-header'], 'hello!')
+        t.equal(res.statusCode, 205)
+        t.equal(data.toString(), 'HELLO WORLD')
+      }
+    )
   })
 })
