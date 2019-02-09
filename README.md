@@ -116,7 +116,7 @@ instance with a `from` method, which will reply to the original request
 __from the desired source__. The options allows to override any part of
 the request or response being sent or received to/from the source.
 
-#### onResponse(res)
+#### onResponse(request, reply, res)
 
 Called when an http response is received from the source.
 The default behavior is `reply.send(res)`, which will be disabled if the
