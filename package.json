@@ -43,7 +43,7 @@
     "end-of-stream": "^1.4.1",
     "fastify-plugin": "^1.5.0",
     "pump": "^3.0.0",
-    "semver": "^5.6.0",
+    "semver": "^6.0.0",
     "tiny-lru": "^6.0.1",
     "undici": "^0.3.3"
   }
