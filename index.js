@@ -15,7 +15,7 @@ const {
 module.exports = fp(function from (fastify, opts, next) {
   const cache = lru(opts.cacheURLs || 100)
   const base = opts.base
-  const { request, close } = buildRequest({
+  const { request: defaultRequest, close } = buildRequest({
     http2: !!opts.http2,
     base,
     keepAliveMsecs: opts.keepAliveMsecs,
@@ -24,11 +24,13 @@ module.exports = fp(function from (fastify, opts, next) {
     rejectUnauthorized: opts.rejectUnauthorized,
     undici: opts.undici
   })
+
   fastify.decorateReply('from', function (source, opts) {
-    opts = opts || {}
+    opts = Object.assign({ request: defaultRequest }, opts)
     const req = this.request.req
     const onResponse = opts.onResponse
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
+    const request = opts.request
 
     if (!source) {
       source = req.url
