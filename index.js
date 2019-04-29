@@ -23,17 +23,14 @@ module.exports = fp(function from (fastify, opts, next) {
     maxSockets: opts.maxSockets,
     rejectUnauthorized: opts.rejectUnauthorized,
     undici: opts.undici,
-    certificate: opts.certificate || null
+    certificate: opts.certificate || false
   })
   fastify.decorateReply('from', function (source, opts) {
     opts = opts || {}
     const req = this.request.req
     const onResponse = opts.onResponse
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
-    const certificate = {
-      cert: opts.cert,
-      key: opts.key
-    }
+    const certificate = opts.certificate || false
     if (!source) {
       source = req.url
     }
