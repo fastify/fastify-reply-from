@@ -29,7 +29,10 @@ module.exports = fp(function from (fastify, opts, next) {
     const req = this.request.req
     const onResponse = opts.onResponse
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
-
+    const certificate = {
+      cert: opts.cert,
+      key: opts.key
+    }
     if (!source) {
       source = req.url
     }
@@ -84,7 +87,7 @@ module.exports = fp(function from (fastify, opts, next) {
 
     req.log.info({ source }, 'fetching from remote server')
 
-    request({ method: req.method, url, qs, headers, body }, (err, res) => {
+    request({ method: req.method, url, qs, headers, body, certificate }, (err, res) => {
       if (err) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {
