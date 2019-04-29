@@ -22,14 +22,15 @@ module.exports = fp(function from (fastify, opts, next) {
     maxFreeSockets: opts.maxFreeSockets,
     maxSockets: opts.maxSockets,
     rejectUnauthorized: opts.rejectUnauthorized,
-    undici: opts.undici
+    undici: opts.undici,
+    certificate: opts.certificate || false
   })
   fastify.decorateReply('from', function (source, opts) {
     opts = opts || {}
     const req = this.request.req
     const onResponse = opts.onResponse
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
-
+    const certificate = opts.certificate || false
     if (!source) {
       source = req.url
     }
@@ -84,7 +85,7 @@ module.exports = fp(function from (fastify, opts, next) {
 
     req.log.info({ source }, 'fetching from remote server')
 
-    request({ method: req.method, url, qs, headers, body }, (err, res) => {
+    request({ method: req.method, url, qs, headers, body, certificate }, (err, res) => {
       if (err) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {
