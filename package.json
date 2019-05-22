@@ -45,7 +45,7 @@
     "pump": "^3.0.0",
     "semver": "^6.0.0",
     "tiny-lru": "^6.0.1",
-    "undici": "^0.3.3"
+    "undici": "^0.4.0"
   },
   "greenkeeper": {
     "ignore": [
