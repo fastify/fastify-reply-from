@@ -128,6 +128,11 @@ Called to rewrite the headers of the response, before them being copied
 over to the outer response.
 It must return the new headers object.
 
+#### rewriteRequestHeaders(originalReq, headers)
+
+Called to rewrite the headers of the request, before them being sent to the other server.
+It must return the new headers object.
+
 #### queryString
 
 Replaces the original querystring of the request with what is specified.
