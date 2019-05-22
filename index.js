@@ -29,6 +29,7 @@ module.exports = fp(function from (fastify, opts, next) {
     const req = this.request.req
     const onResponse = opts.onResponse
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
+    const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
 
     if (!source) {
       source = req.url
@@ -84,7 +85,9 @@ module.exports = fp(function from (fastify, opts, next) {
 
     req.log.info({ source }, 'fetching from remote server')
 
-    request({ method: req.method, url, qs, headers, body }, (err, res) => {
+    const requestHeaders = rewriteRequestHeaders(req, headers)
+
+    request({ method: req.method, url, qs, headers: requestHeaders, body }, (err, res) => {
       if (err) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {
@@ -143,5 +146,9 @@ function getQueryString (search, reqUrl, opts) {
 }
 
 function headersNoOp (headers) {
+  return headers
+}
+
+function requestHeadersNoOp (originalReq, headers) {
   return headers
 }
