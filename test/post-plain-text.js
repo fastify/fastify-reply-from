@@ -45,7 +45,7 @@ instance.listen(0, (err) => {
     get({
       url: `http://localhost:${instance.server.address().port}`,
       method: 'POST',
-      headers: {'content-type': 'text/plain'},
+      headers: { 'content-type': 'text/plain' },
       body: 'this is plain text'
     }, (err, res, data) => {
       t.error(err)
