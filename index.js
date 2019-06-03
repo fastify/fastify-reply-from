@@ -63,9 +63,11 @@ module.exports = fp(function from (fastify, opts, next) {
       if (this.request.body instanceof Stream) {
         body = this.request.body
       } else {
-        body = JSON.stringify(this.request.body)
+        // Per RFC 7231 §3.1.1.5 if this header is not present we MAY assume application/octet-stream
+        const contentType = req.headers['content-type'] || 'application/octet-stream'
+        body = contentType.toLowerCase() === 'application/json' ? JSON.stringify(this.request.body) : this.request.body
         headers['content-length'] = Buffer.byteLength(body)
-        headers['content-type'] = 'application/json'
+        headers['content-type'] = contentType
       }
     }
 
