@@ -65,7 +65,13 @@ module.exports = fp(function from (fastify, opts, next) {
       } else {
         // Per RFC 7231 §3.1.1.5 if this header is not present we MAY assume application/octet-stream
         const contentType = req.headers['content-type'] || 'application/octet-stream'
-        body = contentType.toLowerCase() === 'application/json' ? JSON.stringify(this.request.body) : this.request.body
+        // detect if body should be encoded as JSON
+        // supporting extended content-type header formats:
+        // - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+        const shouldEncodeJSON = contentType.toLowerCase().indexOf('application/json') === 0
+        // transparently support JSON encoding
+        body = shouldEncodeJSON ? JSON.stringify(this.request.body) : this.request.body
+        // update origin request headers after encoding
         headers['content-length'] = Buffer.byteLength(body)
         headers['content-type'] = contentType
       }
