@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "allowUnreachableCode": false,
+    "preserveWatchOutput": true,
+    "esModuleInterop": true,
+    "types": ["node"],
+    "allowSyntheticDefaultImports": true
+  },
+  "files": ["test/types.test.ts"]
+}
