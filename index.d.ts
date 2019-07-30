@@ -11,7 +11,7 @@ declare function fastifyReplyFrom<
   HttpServer = Server,
   HttpRequest = IncomingMessage,
   HttpResponse = ServerResponse,
-  T = any
+  T = unknown
 >(
   options?: fastifyReplyFrom.ReplyFromOptions
 ): fastify.Plugin<HttpServer, HttpRequest, HttpResponse, T>;
@@ -34,17 +34,17 @@ export = fastifyReplyFrom;
 declare module "fastify" {
   interface FastifyReply<HttpResponse> {
     from(
-      source: string,
-      opts: {
+      source?: string,
+      opts?: {
         queryString?: { [key: string]: unknown };
         contentType?: string;
         onResponse?: (
           request: FastifyRequest,
           reply: FastifyReply<HttpResponse>,
-          res: any
+          res: unknown
         ) => void;
 
-        body: any;
+        body?: unknown;
         // rewriteHeaders?: (headers: => Headers;
 
         rewriteRequestHeaders?: (
