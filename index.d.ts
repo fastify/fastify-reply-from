@@ -1,20 +1,16 @@
 /// <reference types="node" />
-import fastify, { FastifyRequest } from "fastify";
+import * as fastify from "fastify";
+import { IncomingMessage, IncomingHttpHeaders } from "http";
 import {
-  IncomingHttpHeaders,
-  Server,
-  ServerResponse,
-  IncomingMessage
-} from "http";
+  Http2ServerRequest,
+  IncomingHttpHeaders as Http2IncomingHttpHeaders
+} from "http2";
 
-declare function fastifyReplyFrom<
-  HttpServer = Server,
-  HttpRequest = IncomingMessage,
-  HttpResponse = ServerResponse,
-  T = unknown
->(
-  options?: fastifyReplyFrom.ReplyFromOptions
-): fastify.Plugin<HttpServer, HttpRequest, HttpResponse, T>;
+declare function fastifyReplyFrom<HttpServer, HttpRequest, HttpResponse>(
+  instance: fastify.FastifyInstance<HttpServer, HttpRequest, HttpResponse>,
+  opts: fastifyReplyFrom.ReplyFromOptions,
+  callback?: (err?: Error) => void
+): void;
 
 declare namespace fastifyReplyFrom {
   interface ReplyFromOptions {
@@ -45,12 +41,14 @@ declare module "fastify" {
         ) => void;
 
         body?: unknown;
-        // rewriteHeaders?: (headers: => Headers;
+        rewriteHeaders?: (
+          headers: Http2IncomingHttpHeaders
+        ) => Http2IncomingHttpHeaders;
 
         rewriteRequestHeaders?: (
-          req: IncomingMessage,
-          Headers: IncomingHttpHeaders
-        ) => IncomingHttpHeaders;
+          req: Http2ServerRequest | IncomingMessage,
+          headers: Http2IncomingHttpHeaders
+        ) => Http2IncomingHttpHeaders;
       }
     ): void;
   }
