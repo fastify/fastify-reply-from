@@ -2,7 +2,7 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
-const From = require('../..')
+const From = require('..')
 const got = require('got')
 
 test('http -> http2 crash multiple times', async (t) => {
@@ -15,8 +15,9 @@ test('http -> http2 crash multiple times', async (t) => {
   })
 
   instance.register(From, {
-    base: `http://localhost:3128`,
-    http2: true
+    base: 'http://localhost:3128',
+    http2: true,
+    sessionTimeout: 200
   })
 
   await instance.listen(0)

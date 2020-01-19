@@ -7,7 +7,7 @@
   "scripts": {
     "typescript": "tsc -p tsconfig.json",
     "coverage": "tap -j8 test/*.js --cov",
-    "test": "standard | snazzy && tap --no-esm -J test/*.js test/http2/http2.js && npm run typescript"
+    "test": "standard | snazzy && tap --no-esm -J test/*.js && npm run typescript"
   },
   "repository": {
     "type": "git",
@@ -31,15 +31,15 @@
   "devDependencies": {
     "@types/node": "^12.6.8",
     "fastify": "^2.6.0",
-    "got": "^9.6.0",
-    "h2url": "^0.1.2",
+    "got": "^10.0.0",
+    "h2url": "^0.2.0",
     "msgpack5": "^4.2.1",
-    "nock": "^10.0.6",
+    "nock": "^11.0.0",
     "pre-commit": "^1.2.2",
     "proxyquire": "^2.1.0",
     "simple-get": "^3.0.3",
     "snazzy": "^8.0.0",
-    "standard": "^13.0.1",
+    "standard": "^14.0.0",
     "tap": "^14.4.0",
     "typescript": "^3.5.1"
   },
@@ -47,8 +47,8 @@
     "end-of-stream": "^1.4.1",
     "fastify-plugin": "^1.6.0",
     "pump": "^3.0.0",
-    "semver": "^6.2.0",
-    "tiny-lru": "^6.0.1",
-    "undici": "^0.4.0"
+    "semver": "^7.0.0",
+    "tiny-lru": "^7.0.0",
+    "undici": "^0.5.0"
   }
 }

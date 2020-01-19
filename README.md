@@ -106,6 +106,11 @@ Defaults to `true`, passed down to [`https.Agent`][https-agent] instances.
 This needs to be set to `false` to reply from https servers with
 self-signed certificates.
 
+#### sessionTimeout
+
+The timeout value after which the HTTP2 client session is destroyed
+if there is no activity.
+
 ---
 
 ### reply.from(source, [opts])
