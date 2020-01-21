@@ -10,7 +10,7 @@ const instance = Fastify()
 
 nock('http://httpbin.org')
   .get('/ip')
-  .reply(function (uri, requestBody) {
+  .reply(200, function (uri, requestBody) {
     t.is(this.req.headers.host, 'httpbin.org')
     return { origin: '127.0.0.1' }
   })

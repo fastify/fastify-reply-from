@@ -2,7 +2,7 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
-const From = require('../..')
+const From = require('..')
 const got = require('got')
 
 test('http -> http2', async function (t) {
@@ -38,8 +38,9 @@ test('http -> http2', async function (t) {
   await instance.listen(0)
 
   const { headers, body, statusCode } = await got(`http://localhost:${instance.server.address().port}`, {
-    body: { something: 'else' },
-    json: true
+    method: 'POST',
+    json: { something: 'else' },
+    responseType: 'json'
   })
   t.equal(statusCode, 200)
   t.equal(headers['x-my-header'], 'hello!')

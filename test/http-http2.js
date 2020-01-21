@@ -2,7 +2,7 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
-const From = require('../..')
+const From = require('..')
 const got = require('got')
 
 test('http -> http2', async (t) => {

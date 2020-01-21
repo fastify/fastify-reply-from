@@ -22,6 +22,7 @@ module.exports = fp(function from (fastify, opts, next) {
     maxFreeSockets: opts.maxFreeSockets,
     maxSockets: opts.maxSockets,
     rejectUnauthorized: opts.rejectUnauthorized,
+    sessionTimeout: opts.sessionTimeout,
     undici: opts.undici
   })
   fastify.decorateReply('from', function (source, opts) {
