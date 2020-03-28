@@ -93,7 +93,7 @@ module.exports = fp(function from (fastify, opts, next) {
     }
 
     this.request.log.info({ source }, 'fetching from remote server')
-    
+
     const requestHeaders = rewriteRequestHeaders(req, headers)
 
     request({ method: req.method, url, qs, headers: requestHeaders, body }, (err, res) => {
