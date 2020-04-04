@@ -12,7 +12,7 @@ const {
   stripHttp1ConnectionHeaders
 } = require('./lib/utils')
 
-const { ERR_TIMED_OUT_CODE } = buildRequest
+const { TimeoutError } = buildRequest
 
 module.exports = fp(function from (fastify, opts, next) {
   const cache = lru(opts.cacheURLs || 100)
@@ -105,7 +105,7 @@ module.exports = fp(function from (fastify, opts, next) {
         if (!this.sent) {
           if (err.code === 'ERR_HTTP2_STREAM_CANCEL') {
             this.code(503).send(new Error('Service Unavailable'))
-          } else if (err.code === ERR_TIMED_OUT_CODE) {
+          } else if (err instanceof TimeoutError) {
             this.code(504).send('Gateway Timeout')
           } else {
             this.send(err)
