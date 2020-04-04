@@ -35,7 +35,12 @@ test('http2 request timeout', async (t) => {
     })
   } catch (err) {
     t.equal(err.response.statusCode, 504)
-    t.equal(err.response.body, 'Gateway Timeout')
+    t.match(err.response.headers['content-type'], /application\/json/)
+    t.deepEqual(JSON.parse(err.response.body), {
+      statusCode: 504,
+      error: 'Gateway Timeout',
+      message: 'Gateway Timeout'
+    })
 
     return
   }
@@ -73,7 +78,12 @@ test('http2 session timeout', async (t) => {
     })
   } catch (err) {
     t.equal(err.response.statusCode, 504)
-    t.equal(err.response.body, 'Gateway Timeout')
+    t.match(err.response.headers['content-type'], /application\/json/)
+    t.deepEqual(JSON.parse(err.response.body), {
+      statusCode: 504,
+      error: 'Gateway Timeout',
+      message: 'Gateway Timeout'
+    })
 
     return
   }
