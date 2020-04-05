@@ -65,7 +65,7 @@ This library has:
 - `timeout` for `http` set by default. The default value is 10 seconds (`10000`).
 - `requestTimeout` & `sessionTimeout` for `http2` set by default.
   - The default value for `requestTimeout` is 10 seconds (`10000`).
-  - The default value for `requestTimeout` is 60 seconds (`60000`).
+  - The default value for `sessionTimeout` is 60 seconds (`60000`).
 
 When a timeout happens, [`504 Gateway Timeout`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/504)
 will be returned to the client.
