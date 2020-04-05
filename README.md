@@ -59,17 +59,65 @@ target.listen(3001, (err) => {
 
 ## API
 
-### plugin options
+### Timeout
+
+This library has:
+- `timeout` for `http` set by default. The default value is 10 seconds (`10000`).
+- `requestTimeout` & `sessionTimeout` for `http2` set by default.
+  - The default value for `requestTimeout` is 10 seconds (`10000`).
+  - The default value for `requestTimeout` is 60 seconds (`60000`).
+
+When a timeout happens, [`504 Gateway Timeout`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/504)
+will be returned to the client.
+
+### Plugin options
 
 #### `base`
 
 Set the base URL for all the forwarded requests. Will be required if `http2` is set to `true`
 Note that _every path will be discarded_.
 
-#### http2
-Set to `true` if target server is `http2` enabled.
+#### `http`
+By default, Node's [`http.request`](https://nodejs.org/api/http.html#http_http_request_options_callback)
+will be used if you don't enable [`http2`](#http2) or [`undici`](#undici). To customize the `request`,
+you can pass in [`agentOptions`](https://nodejs.org/api/http.html#http_new_agent_options) and
+[`requestOptions`](https://nodejs.org/api/http.html#http_http_request_options_callback). To illustrate:
 
-#### undici
+```js
+proxy.register(require('fastify-reply-from'), {
+  base: 'http://localhost:3001/',
+  http: {
+    agentOptions: { // pass in any options from https://nodejs.org/api/http.html#http_new_agent_options
+      keepAliveMsecs: 10 * 60 * 1000
+    },
+    requestOptions: { // pass in any options from https://nodejs.org/api/http.html#http_http_request_options_callback
+      timeout: 5000 // timeout in msecs, defaults to 10000 (10 seconds)
+    }
+  }
+})
+```
+
+#### `http2`
+You can either set `http2` to `true` or set the settings object to connect to a HTTP/2 server.
+The `http2` settings object has the shape of:
+
+```js
+proxy.register(require('fastify-reply-from'), {
+  base: 'http://localhost:3001/',
+  http2: {
+    sessionTimeout: 10000, // HTTP/2 session timeout in msecs, defaults to 60000 (1 minute)
+    requestTimeout: 5000, // HTTP/2 request timeout in msecs, defaults to 10000 (10 seconds)
+    sessionOptions: { // HTTP/2 session connect options, pass in any options from https://nodejs.org/api/http2.html#http2_http2_connect_authority_options_listener
+      rejectUnauthorized: true
+    },
+    requestTimeout: { // HTTP/2 request options, pass in any options from https://nodejs.org/api/http2.html#http2_clienthttp2session_request_headers_options
+      endStream: true
+    }
+  }
+})
+```
+
+#### `undici`
 Set to `true` to use [undici](https://github.com/mcollina/undici)
 instead of `require('http')`. Enabling this flag should guarantee
 20-50% more throughput.
@@ -86,34 +134,40 @@ proxy.register(require('fastify-reply-from'), {
 })
 ```
 
-#### cacheURLs
+#### `cacheURLs`
 
-The number of parsed URLs that will be cached. Default: 100.
+The number of parsed URLs that will be cached. Default: `100`.
 
-#### keepAliveMsecs
+#### `keepAliveMsecs`
 
-Defaults to 1 minute, passed down to [`http.Agent`][http-agent] and
-[`https.Agent`][https-agent] instances.
+**(Deprecated)** Defaults to 1 minute (`60000`), passed down to [`http.Agent`][http-agent] and
+[`https.Agent`][https-agent] instances. Prefer to use [`http.agentOptions`](#http) instead.
 
-#### maxSockets
+#### `maxSockets`
 
-Defaults to 2048 sockets, passed down to [`http.Agent`][http-agent] and
-[`https.Agent`][https-agent] instances.
+**(Deprecated)** Defaults to `2048` sockets, passed down to [`http.Agent`][http-agent] and
+[`https.Agent`][https-agent] instances. Prefer to use [`http.agentOptions`](#http) instead.
 
-#### rejectUnauthorized
+#### `maxFreeSockets`
 
-Defaults to `true`, passed down to [`https.Agent`][https-agent] instances.
+**(Deprecated)** Defaults to `2048` free sockets, passed down to [`http.Agent`][http-agent] and
+[`https.Agent`][https-agent] instances. Prefer to use [`http.agentOptions`](#http) instead.
+
+#### `rejectUnauthorized`
+
+**(Deprecated)** Defaults to `false`, passed down to [`https.Agent`][https-agent] instances.
 This needs to be set to `false` to reply from https servers with
-self-signed certificates.
+self-signed certificates. Prefer to use [`http.requestOptions`](#http) or
+[`http2.sessionOptions`](#http2) instead.
 
-#### sessionTimeout
+#### `sessionTimeout`
 
-The timeout value after which the HTTP2 client session is destroyed
-if there is no activity.
+**(Deprecated)** The timeout value after which the HTTP2 client session is destroyed if there
+is no activity. Defaults to 1 minute (`60000`). Prefer to use [`http2.sessionTimeout`](#http2) instead.
 
 ---
 
-### reply.from(source, [opts])
+### `reply.from(source, [opts])`
 
 The plugin decores the
 [`Reply`](https://github.com/fastify/fastify/blob/master/docs/Reply.md)
@@ -121,37 +175,37 @@ instance with a `from` method, which will reply to the original request
 __from the desired source__. The options allows to override any part of
 the request or response being sent or received to/from the source.
 
-#### onResponse(request, reply, res)
+#### `onResponse(request, reply, res)`
 
 Called when an http response is received from the source.
 The default behavior is `reply.send(res)`, which will be disabled if the
 option is specified.
 
-#### rewriteHeaders(headers)
+#### `rewriteHeaders(headers)`
 
 Called to rewrite the headers of the response, before them being copied
 over to the outer response.
 It must return the new headers object.
 
-#### rewriteRequestHeaders(originalReq, headers)
+#### `rewriteRequestHeaders(originalReq, headers)`
 
 Called to rewrite the headers of the request, before them being sent to the other server.
 It must return the new headers object.
 
-#### queryString
+#### `queryString`
 
 Replaces the original querystring of the request with what is specified.
 This will get passed to
 [`querystring.stringify`](https://nodejs.org/api/querystring.html#querystring_querystring_stringify_obj_sep_eq_options).
 
-#### body
+#### `body`
 
 Replaces the original request body with what is specified. Unless
 [`contentType`][contentType] is specified, the content will be passed
 through `JSON.stringify()`.
 Setting this option will not verify if the http method allows for a body.
 
-#### contentType
+#### `contentType`
 
 Override the `'Content-Type'` header of the forwarded request, if we are
 already overriding the [`body`][body].
