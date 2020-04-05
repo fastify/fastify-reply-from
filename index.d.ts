@@ -20,7 +20,11 @@ import {
 
 declare function fastifyReplyFrom<HttpServer, HttpRequest, HttpResponse>(
   instance: fastify.FastifyInstance<HttpServer, HttpRequest, HttpResponse>,
-  opts?: fastifyReplyFrom.ReplyFromOptions,
+  opts: fastifyReplyFrom.ReplyFromOptions<
+    HttpServer,
+    HttpRequest,
+    HttpResponse
+  >,
   callback?: (err?: Error) => void
 ): void;
 
@@ -37,7 +41,8 @@ interface HttpOptions {
 }
 
 declare namespace fastifyReplyFrom {
-  interface ReplyFromOptions {
+  interface ReplyFromOptions<HttpServer, HttpRequest, HttpResponse>
+    extends fastify.RegisterOptions<HttpServer, HttpRequest, HttpResponse> {
     base?: string;
     cacheURLs?: number;
     http?: HttpOptions;
