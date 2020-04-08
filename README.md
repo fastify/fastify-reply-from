@@ -199,9 +199,7 @@ Setting this option will not verify if the http method allows for a body.
 Override the `'Content-Type'` header of the forwarded request, if we are
 already overriding the [`body`][body].
 
----
-
-#### Timeout
+### HTTP & HTTP2 timeouts
 
 This library has:
 - `timeout` for `http` set by default. The default value is 10 seconds (`10000`).
