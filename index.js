@@ -12,11 +12,14 @@ const {
   stripHttp1ConnectionHeaders
 } = require('./lib/utils')
 
+const { TimeoutError } = buildRequest
+
 module.exports = fp(function from (fastify, opts, next) {
   const cache = lru(opts.cacheURLs || 100)
   const base = opts.base
   const { request, close } = buildRequest({
-    http2: !!opts.http2,
+    http: opts.http,
+    http2: opts.http2,
     base,
     keepAliveMsecs: opts.keepAliveMsecs,
     maxFreeSockets: opts.maxFreeSockets,
@@ -102,6 +105,8 @@ module.exports = fp(function from (fastify, opts, next) {
         if (!this.sent) {
           if (err.code === 'ERR_HTTP2_STREAM_CANCEL') {
             this.code(503).send(new Error('Service Unavailable'))
+          } else if (err instanceof TimeoutError) {
+            this.code(504).send(new Error('Gateway Timeout'))
           } else {
             this.send(err)
           }
