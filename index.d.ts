@@ -1,10 +1,9 @@
 /// <reference types="node" />
-// import * as fastify from "fastify";
+
 import {
   FastifyRequest,
   FastifyReply,
   FastifyPlugin,
-  RawRequestDefaultExpression,
   RawReplyDefaultExpression,
   RawServerBase,
 } from 'fastify';
