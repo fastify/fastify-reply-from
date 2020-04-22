@@ -5,7 +5,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "typescript": "tsc -p tsconfig.json",
+    "typescript": "tsd",
     "coverage": "tap -j8 test/*.js --cov",
     "test": "standard | snazzy && tap --no-esm -J test/*.js && npm run typescript"
   },
@@ -30,7 +30,7 @@
   "homepage": "https://github.com/fastify/fastify-reply-from#readme",
   "devDependencies": {
     "@types/node": "^12.12.35",
-    "fastify": "^2.13.0",
+    "fastify": "github:fastify/fastify#master",
     "got": "^10.7.0",
     "h2url": "^0.2.0",
     "msgpack5": "^4.2.1",
@@ -41,14 +41,18 @@
     "snazzy": "^8.0.0",
     "standard": "^14.3.3",
     "tap": "^14.10.7",
+    "tsd": "^0.11.0",
     "typescript": "^3.8.3"
   },
   "dependencies": {
     "end-of-stream": "^1.4.1",
-    "fastify-plugin": "^1.6.1",
+    "fastify-plugin": "github:thomheymann/fastify-plugin#next",
     "pump": "^3.0.0",
     "semver": "^7.2.1",
     "tiny-lru": "^7.0.0",
     "undici": "^0.5.0"
+  },
+  "tsd": {
+    "directory": "test"
   }
 }

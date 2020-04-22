@@ -1,10 +1,12 @@
-import replyFrom, { ReplyFromOptions } from "../";
+import replyFrom, { FastifyReplyFromOptions } from "../";
 import fastify from "fastify";
 import { AddressInfo } from "net";
 import { IncomingHttpHeaders } from "http2";
-import { Server, IncomingMessage, ServerResponse } from "http";
+import { expectType } from 'tsd';
+import * as http from 'http';
+import * as http2 from 'http2';
 
-const fullOptions: ReplyFromOptions<Server, IncomingMessage, ServerResponse> = {
+const fullOptions: FastifyReplyFromOptions = {
   base: "http://example2.com",
   http: {
     agentOptions: {
@@ -54,6 +56,7 @@ server.get("/v3", (erquest, reply) => {
   reply.from("/v3", {
     body: { hello: "world" },
     rewriteRequestHeaders(req, headers) {
+      expectType<http.IncomingMessage | http2.Http2ServerRequest>(req);
       return headers;
     }
   });
