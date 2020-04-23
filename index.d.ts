@@ -70,6 +70,11 @@ declare module "fastify" {
           reply: FastifyReply<HttpResponse>,
           res: unknown
         ) => void;
+        onError?: (
+          request: FastifyRequest,
+          reply: FastifyReply<HttpResponse>,
+          err: unknown
+        ) => void;
 
         body?: unknown;
         rewriteHeaders?: (

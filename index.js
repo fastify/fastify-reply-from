@@ -32,6 +32,7 @@ module.exports = fp(function from (fastify, opts, next) {
     opts = opts || {}
     const req = this.request.req
     const onResponse = opts.onResponse
+    const onError = opts.onError
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
 
@@ -103,7 +104,9 @@ module.exports = fp(function from (fastify, opts, next) {
       if (err) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {
-          if (err.code === 'ERR_HTTP2_STREAM_CANCEL') {
+          if (onError) {
+            onError(this.request.req, this, err)
+          } else if (err.code === 'ERR_HTTP2_STREAM_CANCEL') {
             this.code(503).send(new Error('Service Unavailable'))
           } else if (err instanceof TimeoutError) {
             this.code(504).send(new Error('Gateway Timeout'))
