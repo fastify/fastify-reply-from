@@ -139,7 +139,7 @@ module.exports = fp(function from (fastify, opts, next) {
   })
 
   next()
-}, '>= 1.3.0')
+}, '>=3')
 
 function getQueryString (search, reqUrl, opts) {
   if (opts.queryString) {

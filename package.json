@@ -30,7 +30,7 @@
   "homepage": "https://github.com/fastify/fastify-reply-from#readme",
   "devDependencies": {
     "@types/node": "^12.12.35",
-    "fastify": "github:fastify/fastify#master",
+    "fastify": "^3.0.0-alpha.1",
     "got": "^10.7.0",
     "h2url": "^0.2.0",
     "msgpack5": "^4.2.1",
@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "end-of-stream": "^1.4.1",
-    "fastify-plugin": "github:thomheymann/fastify-plugin#next",
+    "fastify-plugin": "^2.0.0",
     "pump": "^3.0.0",
     "semver": "^7.2.1",
     "tiny-lru": "^7.0.0",
