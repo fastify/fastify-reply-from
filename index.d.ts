@@ -80,6 +80,13 @@ declare module "fastify" {
           req: Http2ServerRequest | IncomingMessage,
           headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
         ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
+
+        logProxyError?: (
+          err?: Error
+        ) => void;
+        logProxyRequest?: (source: string, requestConfig: unknown) => void;
+        logProxyResponse?: (res: HttpResponse) => void;
+
       }
     ): void;
   }

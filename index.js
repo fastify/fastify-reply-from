@@ -35,6 +35,10 @@ module.exports = fp(function from (fastify, opts, next) {
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
 
+    const logProxyError = opts.logProxyError || logProxyErrorDefault
+    const logProxyRequest = opts.logProxyRequest || logProxyRequestDefault
+    const logProxyResponse = opts.logProxyResponse || logProxyResponseDefault
+
     if (!source) {
       source = req.url
     }
@@ -95,13 +99,19 @@ module.exports = fp(function from (fastify, opts, next) {
       headers['content-length'] = 0
     }
 
-    this.request.log.info({ source }, 'fetching from remote server')
-
     const requestHeaders = rewriteRequestHeaders(req, headers)
 
-    request({ method: req.method, url, qs, headers: requestHeaders, body }, (err, res) => {
+    const requestConfig = { method: req.method, url, qs, headers: requestHeaders, body }
+
+    if (logProxyRequest) {
+      logProxyRequest.apply(this, [source, requestConfig])
+    }
+
+    request(requestConfig, (err, res) => {
       if (err) {
-        this.request.log.warn(err, 'response errored')
+        if (logProxyError) {
+          logProxyError.apply(this, [err])
+        }
         if (!this.sent) {
           if (err.code === 'ERR_HTTP2_STREAM_CANCEL') {
             this.code(503).send(new Error('Service Unavailable'))
@@ -113,7 +123,9 @@ module.exports = fp(function from (fastify, opts, next) {
         }
         return
       }
-      this.request.log.info('response received')
+      if (logProxyResponse) {
+        logProxyResponse.apply(this, [res])
+      }
       if (sourceHttp2) {
         copyHeaders(
           rewriteHeaders(stripHttp1ConnectionHeaders(res.headers)),
@@ -165,4 +177,16 @@ function headersNoOp (headers) {
 
 function requestHeadersNoOp (originalReq, headers) {
   return headers
+}
+
+function logProxyErrorDefault (err) {
+  this.request.log.warn(err, 'response errored')
+}
+
+function logProxyRequestDefault (source, requestConfig) {
+  this.request.log.info({ source }, 'fetching from remote server')
+}
+
+function logProxyResponseDefault (res) {
+  this.request.log.info('response received')
 }

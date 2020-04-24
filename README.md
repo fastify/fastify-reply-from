@@ -199,6 +199,18 @@ Setting this option will not verify if the http method allows for a body.
 Override the `'Content-Type'` header of the forwarded request, if we are
 already overriding the [`body`][body].
 
+#### `logProxyError(err)`
+
+Override the default logging of proxy errors, allowing the changing of format or addition of information. You may also disable by setting to `false`.
+
+#### `logProxyRequest(source, requestConfig)`
+
+Override the default logging of proxy requests, allowing the changing of format or addition of information. You may also disable by setting to `false`.
+
+#### `logProxyResponse(res)`
+
+Override the default logging of proxy responses, allowing the changing of format or addition of information. You may also disable by setting to `false`.
+
 ### HTTP & HTTP2 timeouts
 
 This library has:
