@@ -39,6 +39,7 @@
     "proxyquire": "^2.1.0",
     "simple-get": "^3.0.3",
     "snazzy": "^8.0.0",
+    "split2": "^3.1.1",
     "standard": "^14.3.3",
     "tap": "^14.10.7",
     "typescript": "^3.8.3"

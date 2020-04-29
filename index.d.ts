@@ -82,10 +82,11 @@ declare module "fastify" {
         ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
 
         logProxyError?: (
-          err?: Error
+          log: unknown,
+          err: Error
         ) => void;
-        logProxyRequest?: (source: string, requestConfig: unknown) => void;
-        logProxyResponse?: (res: HttpResponse) => void;
+        logProxyRequest?: (log: unknown, source: string, requestConfig: unknown) => void;
+        logProxyResponse?: (log: unknown, res: HttpResponse) => void;
 
       }
     ): void;

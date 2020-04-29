@@ -35,9 +35,9 @@ module.exports = fp(function from (fastify, opts, next) {
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
 
-    const logProxyError = opts.logProxyError || logProxyErrorDefault
-    const logProxyRequest = opts.logProxyRequest || logProxyRequestDefault
-    const logProxyResponse = opts.logProxyResponse || logProxyResponseDefault
+    const logProxyError = typeof opts.logProxyError !== 'undefined' ? opts.logProxyError : logProxyErrorDefault
+    const logProxyRequest = typeof opts.logProxyRequest !== 'undefined' ? opts.logProxyRequest : logProxyRequestDefault
+    const logProxyResponse = typeof opts.logProxyResponse !== 'undefined' ? opts.logProxyResponse : logProxyResponseDefault
 
     if (!source) {
       source = req.url
@@ -101,16 +101,16 @@ module.exports = fp(function from (fastify, opts, next) {
 
     const requestHeaders = rewriteRequestHeaders(req, headers)
 
-    const requestConfig = { method: req.method, url, qs, headers: requestHeaders, body }
+    const proxyRequestConfig = { method: req.method, url, qs, headers: requestHeaders, body }
 
     if (logProxyRequest) {
-      logProxyRequest.apply(this, [source, requestConfig])
+      logProxyRequest(this.request.log, source, proxyRequestConfig)
     }
 
-    request(requestConfig, (err, res) => {
+    request(proxyRequestConfig, (err, res) => {
       if (err) {
         if (logProxyError) {
-          logProxyError.apply(this, [err])
+          logProxyError(this.request.log, err)
         }
         if (!this.sent) {
           if (err.code === 'ERR_HTTP2_STREAM_CANCEL') {
@@ -124,7 +124,7 @@ module.exports = fp(function from (fastify, opts, next) {
         return
       }
       if (logProxyResponse) {
-        logProxyResponse.apply(this, [res])
+        logProxyResponse(this.request.log, res)
       }
       if (sourceHttp2) {
         copyHeaders(
@@ -179,14 +179,14 @@ function requestHeadersNoOp (originalReq, headers) {
   return headers
 }
 
-function logProxyErrorDefault (err) {
-  this.request.log.warn(err, 'response errored')
+function logProxyErrorDefault (log, err) {
+  log.warn(err, 'response errored')
 }
 
-function logProxyRequestDefault (source, requestConfig) {
-  this.request.log.info({ source }, 'fetching from remote server')
+function logProxyRequestDefault (log, source, requestConfig) {
+  log.info({ source }, 'fetching from remote server')
 }
 
-function logProxyResponseDefault (res) {
-  this.request.log.info('response received')
+function logProxyResponseDefault (log, res) {
+  log.info('response received')
 }
