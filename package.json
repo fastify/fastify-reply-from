@@ -30,7 +30,7 @@
   "homepage": "https://github.com/fastify/fastify-reply-from#readme",
   "devDependencies": {
     "@types/node": "^12.12.35",
-    "fastify": "^3.0.0-alpha.1",
+    "fastify": "^3.0.0-rc.1",
     "got": "^10.7.0",
     "h2url": "^0.2.0",
     "msgpack5": "^4.2.1",
