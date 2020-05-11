@@ -30,7 +30,7 @@ module.exports = fp(function from (fastify, opts, next) {
   })
   fastify.decorateReply('from', function (source, opts) {
     opts = opts || {}
-    const req = this.request.req
+    const req = this.request.raw
     const onResponse = opts.onResponse
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
@@ -124,7 +124,7 @@ module.exports = fp(function from (fastify, opts, next) {
       }
       this.code(res.statusCode)
       if (onResponse) {
-        onResponse(this.request.req, this, res.stream)
+        onResponse(this.request.raw, this, res.stream)
       } else {
         this.send(res.stream)
       }
@@ -139,7 +139,7 @@ module.exports = fp(function from (fastify, opts, next) {
   })
 
   next()
-}, '>= 1.3.0')
+}, '>=3')
 
 function getQueryString (search, reqUrl, opts) {
   if (opts.queryString) {
