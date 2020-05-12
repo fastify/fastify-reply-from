@@ -40,7 +40,7 @@ declare module "fastify" {
         ) => void;
         onError?: (
           request: FastifyRequest,
-          reply: FastifyReply<HttpResponse>,
+          reply: FastifyReply<RawServerBase>,
           err: unknown
         ) => void;
         body?: unknown;
