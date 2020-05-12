@@ -1,5 +1,13 @@
 /// <reference types="node" />
-import * as fastify from "fastify";
+
+import {
+  FastifyRequest,
+  FastifyReply,
+  FastifyPlugin,
+  RawReplyDefaultExpression,
+  RawServerBase,
+} from 'fastify';
+
 import {
   IncomingMessage,
   IncomingHttpHeaders,
@@ -18,15 +26,35 @@ import {
   SecureClientSessionOptions,
 } from "http2";
 
-declare function fastifyReplyFrom<HttpServer, HttpRequest, HttpResponse>(
-  instance: fastify.FastifyInstance<HttpServer, HttpRequest, HttpResponse>,
-  opts: fastifyReplyFrom.ReplyFromOptions<
-    HttpServer,
-    HttpRequest,
-    HttpResponse
-  >,
-  callback?: (err?: Error) => void
-): void;
+declare module "fastify" {
+  interface FastifyReplyInterface {
+    from(
+      source?: string,
+      opts?: {
+        queryString?: { [key: string]: unknown };
+        contentType?: string;
+        onResponse?: (
+          request: FastifyRequest<RawServerBase>,
+          reply: FastifyReply<RawServerBase>,
+          res: RawReplyDefaultExpression<RawServerBase>
+        ) => void;
+        onError?: (
+          request: FastifyRequest,
+          reply: FastifyReply<HttpResponse>,
+          err: unknown
+        ) => void;
+        body?: unknown;
+        rewriteHeaders?: (
+          headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
+        ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
+        rewriteRequestHeaders?: (
+          req: Http2ServerRequest | IncomingMessage,
+          headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
+        ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
+      }
+    ): void;
+  }
+}
 
 interface Http2Options {
   sessionTimeout?: number;
@@ -40,52 +68,18 @@ interface HttpOptions {
   requestOptions?: RequestOptions | SecureRequestOptions;
 }
 
-declare namespace fastifyReplyFrom {
-  interface ReplyFromOptions<HttpServer, HttpRequest, HttpResponse>
-    extends fastify.RegisterOptions<HttpServer, HttpRequest, HttpResponse> {
-    base?: string;
-    cacheURLs?: number;
-    http?: HttpOptions;
-    http2?: Http2Options | boolean;
-    undici?: unknown; // undici has no TS declarations yet
-    keepAliveMsecs?: number;
-    maxFreeSockets?: number;
-    maxSockets?: number;
-    rejectUnauthorized?: boolean;
-    sessionTimeout?: number;
-  }
+export interface FastifyReplyFromOptions {
+  base?: string;
+  cacheURLs?: number;
+  http?: HttpOptions;
+  http2?: Http2Options | boolean;
+  undici?: unknown; // undici has no TS declarations yet
+  keepAliveMsecs?: number;
+  maxFreeSockets?: number;
+  maxSockets?: number;
+  rejectUnauthorized?: boolean;
+  sessionTimeout?: number;
 }
 
-export = fastifyReplyFrom;
-
-declare module "fastify" {
-  interface FastifyReply<HttpResponse> {
-    from(
-      source?: string,
-      opts?: {
-        queryString?: { [key: string]: unknown };
-        contentType?: string;
-        onResponse?: (
-          request: FastifyRequest,
-          reply: FastifyReply<HttpResponse>,
-          res: unknown
-        ) => void;
-        onError?: (
-          request: FastifyRequest,
-          reply: FastifyReply<HttpResponse>,
-          err: unknown
-        ) => void;
-
-        body?: unknown;
-        rewriteHeaders?: (
-          headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
-        ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
-
-        rewriteRequestHeaders?: (
-          req: Http2ServerRequest | IncomingMessage,
-          headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
-        ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
-      }
-    ): void;
-  }
-}
+declare const fastifyReplyFrom: FastifyPlugin<FastifyReplyFromOptions>
+export default fastifyReplyFrom;

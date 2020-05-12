@@ -1,8 +1,6 @@
 # fastify-reply-from
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/fastify/fastify-reply-from.svg)](https://greenkeeper.io/)
-
-[![Build Status](https://travis-ci.org/fastify/fastify-reply-from.svg?branch=master)](https://travis-ci.org/fastify/fastify-reply-from)
+![CI](https://github.com/fastify/fastify-reply-from/workflows/CI/badge.svg)
 [![NPM version](https://img.shields.io/npm/v/fastify-reply-from.svg?style=flat)](https://www.npmjs.com/package/fastify-reply-fromm)
 
 fastify plugin to forward the current http request to another server.
