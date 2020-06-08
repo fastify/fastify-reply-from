@@ -64,6 +64,17 @@ target.listen(3001, (err) => {
 Set the base URL for all the forwarded requests. Will be required if `http2` is set to `true`
 Note that _every path will be discarded_.
 
+Custom URL protocols `unix+http:` and `unix+https:` can be used to forward requests to a unix
+socket server by using `querystring.escape(socketPath)` as the hostname.  This is not supported
+for http2 nor unidici.  To illustrate:
+
+```js
+const socketPath = require('querystring').escape('/run/http-daemon.socket')
+proxxy.register(require('fastify-reply-from'), {
+  base: 'unix+http://${socketPath}/'
+});
+```
+
 #### `http`
 By default, Node's [`http.request`](https://nodejs.org/api/http.html#http_http_request_options_callback)
 will be used if you don't enable [`http2`](#http2) or [`undici`](#undici). To customize the `request`,
