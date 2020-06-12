@@ -62,7 +62,9 @@ async function run () {
   t.test('https -> https', async (t) => {
     try {
       await got(`https://localhost:${instance.server.address().port}`, {
-        rejectUnauthorized: false
+        https: {
+          rejectUnauthorized: false
+        }
       })
     } catch (err) {
       t.equal(err.response.statusCode, 404)

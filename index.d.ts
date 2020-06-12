@@ -27,7 +27,7 @@ import {
 } from "http2";
 
 declare module "fastify" {
-  interface FastifyReplyInterface {
+  interface FastifyReply {
     from(
       source?: string,
       opts?: {

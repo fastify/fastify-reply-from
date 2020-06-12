@@ -25,19 +25,13 @@ test('http -> http2 crash multiple times', async (t) => {
   try {
     let target = setupTarget()
     await target.listen(3128)
-    await got(`http://localhost:${instance.server.address().port}`, {
-      rejectUnauthorized: false
-    })
+    await got(`http://localhost:${instance.server.address().port}`)
     await target.close()
     target = setupTarget()
     await target.listen(3128)
-    await got(`http://localhost:${instance.server.address().port}`, {
-      rejectUnauthorized: false
-    })
+    await got(`http://localhost:${instance.server.address().port}`)
     await target.close()
-    await got(`http://localhost:${instance.server.address().port}`, {
-      rejectUnauthorized: false
-    })
+    await got(`http://localhost:${instance.server.address().port}`)
   } catch (err) {
     t.equal(err.response.statusCode, 503)
     t.match(err.response.headers['content-type'], /application\/json/)
