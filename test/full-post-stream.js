@@ -12,8 +12,8 @@ instance.register(From)
 t.plan(8)
 t.tearDown(instance.close.bind(instance))
 
-instance.addContentTypeParser('application/octet-stream', function (req, done) {
-  done(null, req)
+instance.addContentTypeParser('application/octet-stream', function (req, payload, done) {
+  done(null, payload)
 })
 
 t.tearDown(instance.close.bind(instance))

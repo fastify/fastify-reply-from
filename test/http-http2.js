@@ -37,9 +37,7 @@ test('http -> http2', async (t) => {
   await instance.listen(0)
 
   try {
-    await got(`http://localhost:${instance.server.address().port}`, {
-      rejectUnauthorized: false
-    })
+    await got(`http://localhost:${instance.server.address().port}`)
   } catch (err) {
     t.equal(err.response.statusCode, 404)
     t.equal(err.response.headers['x-my-header'], 'hello!')
