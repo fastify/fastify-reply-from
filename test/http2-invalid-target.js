@@ -5,7 +5,7 @@ const Fastify = require('fastify')
 const From = require('..')
 const got = require('got')
 
-test('http -> http2', async (t) => {
+test('http2 invalid target', async (t) => {
   const instance = Fastify()
 
   t.tearDown(instance.close.bind(instance))
