@@ -2,20 +2,30 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
-const From = require('..')
 const got = require('got')
+const proxyquire = require('proxyquire')
 
-test('http2 invalid target', async (t) => {
+// Stub request to throw error 'foo'
+const From = proxyquire('..', {
+  './lib/request': function () {
+    return {
+      request: (opts, callback) => { callback(new Error('foo')) },
+      close: () => {}
+    }
+  }
+})
+
+test('unexpected error renders 500', async (t) => {
   const instance = Fastify()
 
   t.tearDown(instance.close.bind(instance))
 
   instance.get('/', (request, reply) => {
+    reply.code(201)
     reply.from()
   })
   instance.register(From, {
-    base: 'http://abc.xyz1',
-    http2: true
+    base: 'http://localhost'
   })
 
   await instance.listen(0)
@@ -23,12 +33,12 @@ test('http2 invalid target', async (t) => {
   try {
     await got(`http://localhost:${instance.server.address().port}`)
   } catch (err) {
-    t.equal(err.response.statusCode, 503)
+    t.equal(err.response.statusCode, 500)
     t.match(err.response.headers['content-type'], /application\/json/)
     t.deepEqual(JSON.parse(err.response.body), {
-      statusCode: 503,
-      error: 'Service Unavailable',
-      message: 'Service Unavailable'
+      statusCode: 500,
+      error: 'Internal Server Error',
+      message: 'foo'
     })
     return
   }
