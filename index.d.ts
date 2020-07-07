@@ -6,6 +6,7 @@ import {
   FastifyPlugin,
   RawReplyDefaultExpression,
   RawServerBase,
+  RequestGenericInterface
 } from 'fastify';
 
 import {
@@ -34,7 +35,7 @@ declare module "fastify" {
         queryString?: { [key: string]: unknown };
         contentType?: string;
         onResponse?: (
-          request: FastifyRequest<RawServerBase>,
+          request: FastifyRequest<RequestGenericInterface, RawServerBase>,
           reply: FastifyReply<RawServerBase>,
           res: RawReplyDefaultExpression<RawServerBase>
         ) => void;
