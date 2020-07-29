@@ -8,14 +8,13 @@ const get = require('simple-get').concat
 
 const instance = Fastify()
 
-t.plan(12)
+t.plan(11)
 t.tearDown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'GET')
   t.equal(req.url, '/')
-  t.equal(req.headers['content-length'], '0')
   t.equal(req.body, undefined)
   res.statusCode = 205
   res.setHeader('Content-Type', 'text/plain')
