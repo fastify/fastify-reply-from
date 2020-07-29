@@ -92,7 +92,6 @@ module.exports = fp(function from (fastify, opts, next) {
       if (body) {
         throw new Error('Rewriting the body when doing a GET is not allowed')
       }
-      // headers['content-length'] = 0
     }
 
     this.request.log.info({ source }, 'fetching from remote server')
