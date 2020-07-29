@@ -15,7 +15,7 @@ const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'HEAD')
   t.equal(req.url, '/')
-  t.equal(req.headers['content-length'], '0')
+  t.equal(req.headers['content-length'], '16')
   t.equal(req.body, undefined)
   res.statusCode = 205
   res.setHeader('Content-Type', 'text/plain')
