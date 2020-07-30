@@ -11,11 +11,9 @@ const instance = Fastify()
 t.plan(9)
 t.tearDown(instance.close.bind(instance))
 
-const bodyString = `{
-  "hello": "world"
-}`
+const bodyString = JSON.stringify({ hello: 'world' })
 
-const parsedLength = Buffer.byteLength(JSON.stringify(JSON.parse(bodyString)))
+const parsedLength = Buffer.byteLength(bodyString)
 
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
@@ -43,6 +41,10 @@ t.tearDown(target.close.bind(target))
 
 target.listen(0, (err) => {
   t.error(err)
+
+  instance.addContentTypeParser('application/json', function (req, payload, done) {
+    done(null, payload)
+  })
 
   instance.register(From, {
     base: `http://localhost:${target.address().port}`,

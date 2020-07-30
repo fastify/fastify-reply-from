@@ -8,13 +8,14 @@ const get = require('simple-get').concat
 
 const instance = Fastify()
 
-t.plan(10)
+t.plan(11)
 t.tearDown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'GET')
   t.equal(req.url, '/')
+  t.equal(req.headers.connection, 'keep-alive')
   res.statusCode = 205
   res.setHeader('Content-Type', 'text/plain')
   res.setHeader('x-my-header', 'hello!')
