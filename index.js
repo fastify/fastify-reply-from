@@ -104,7 +104,7 @@ module.exports = fp(function from (fastify, opts, next) {
         if (!this.sent) {
           if (err.code === 'ERR_HTTP2_STREAM_CANCEL' || err.code === 'ENOTFOUND') {
             this.code(503).send(new Error('Service Unavailable'))
-          } else if (err instanceof TimeoutError) {
+          } else if (err instanceof TimeoutError || err.code === 'UND_ERR_REQUEST_TIMEOUT') {
             this.code(504).send(new Error('Gateway Timeout'))
           } else {
             this.code(500).send(err)
