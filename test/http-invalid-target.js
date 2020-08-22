@@ -8,13 +8,16 @@ const got = require('got')
 test('http invalid target', async (t) => {
   const instance = Fastify()
 
+  const timeout = 1000 * 60 * 2
+  t.setTimeout(timeout)
   t.tearDown(instance.close.bind(instance))
 
   instance.get('/', (request, reply) => {
     reply.from()
   })
   instance.register(From, {
-    base: 'http://abc.xyz1'
+    base: 'http://abc.xyz1',
+    http: { requestOptions: { timeout } }
   })
 
   await instance.listen(0)

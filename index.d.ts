@@ -39,6 +39,11 @@ declare module "fastify" {
           reply: FastifyReply<RawServerBase>,
           res: RawReplyDefaultExpression<RawServerBase>
         ) => void;
+        onError?: (
+            reply: FastifyReply<RawServerBase>,
+            code: number,
+            error: string
+        ) => void;
         body?: unknown;
         rewriteHeaders?: (
           headers: Http2IncomingHttpHeaders | IncomingHttpHeaders

@@ -179,6 +179,12 @@ Called when an http response is received from the source.
 The default behavior is `reply.send(res)`, which will be disabled if the
 option is specified.
 
+#### `onError(reply, code, error)`
+
+Called when an http response is received with error from the source.
+The default behavior is `reply.code(code).send(error)`, which will be disabled if the
+option is specified.
+
 #### `rewriteHeaders(headers)`
 
 Called to rewrite the headers of the response, before them being copied

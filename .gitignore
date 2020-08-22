@@ -58,6 +58,7 @@ typings/
 .env
 
 .vscode/
+.idea/
 
 # lockfiles
 yarn.lock
