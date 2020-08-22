@@ -34,7 +34,7 @@ module.exports = fp(function from (fastify, opts, next) {
     const onResponse = opts.onResponse
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
-    const onError = opts.onError || onErrorNoOp
+    const onError = opts.onError || onErrorDefault
 
     if (!source) {
       source = req.url
@@ -167,6 +167,6 @@ function requestHeadersNoOp (originalReq, headers) {
   return headers
 }
 
-function onErrorNoOp (reply, code, error) {
+function onErrorDefault (reply, code, error) {
   reply.code(code).send(error)
 }

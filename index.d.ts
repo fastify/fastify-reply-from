@@ -42,7 +42,7 @@ declare module "fastify" {
         onError?: (
             reply: FastifyReply<RawServerBase>,
             code: number,
-            error: string
+            error: Error
         ) => void;
         body?: unknown;
         rewriteHeaders?: (
