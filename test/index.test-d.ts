@@ -1,5 +1,5 @@
 import replyFrom, { FastifyReplyFromOptions } from "../";
-import fastify from "fastify";
+import fastify, { FastifyReply, RawServerBase } from "fastify";
 import { AddressInfo } from "net";
 import { IncomingHttpHeaders } from "http2";
 import { expectType } from 'tsd';
@@ -78,6 +78,9 @@ instance.get("/http2", (request, reply) => {
     },
     rewriteRequestHeaders(req, headers: IncomingHttpHeaders) {
       return headers;
+    },
+    onError(reply: FastifyReply<RawServerBase>, code: number, error: Error) {
+      return reply.code(code).send(error);
     }
   });
 });
