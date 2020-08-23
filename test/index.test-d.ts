@@ -5,7 +5,7 @@ import { IncomingHttpHeaders } from "http2";
 import { expectType } from 'tsd';
 import * as http from 'http';
 import * as http2 from 'http2';
-import tap from 'tap'
+import * as tap from 'tap'
 
 const fullOptions: FastifyReplyFromOptions = {
   base: "http://example2.com",
