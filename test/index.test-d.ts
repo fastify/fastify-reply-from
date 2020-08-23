@@ -5,7 +5,8 @@ import { IncomingHttpHeaders } from "http2";
 import { expectType } from 'tsd';
 import * as http from 'http';
 import * as http2 from 'http2';
-import * as tap from 'tap'
+// @ts-ignore
+import tap from 'tap'
 
 const fullOptions: FastifyReplyFromOptions = {
   base: "http://example2.com",
@@ -39,7 +40,7 @@ const fullOptions: FastifyReplyFromOptions = {
     pipelining: 10
   }
 };
-tap.autoend(false)
+tap.autoend(false);
 
 async function main() {
   const server = fastify();
@@ -67,9 +68,11 @@ async function main() {
 
 // http2
   const instance = fastify({http2: true});
-  tap.tearDown(instance.close.bind(instance))
+  // @ts-ignore
+  tap.tearDown(instance.close.bind(instance));
   const target = fastify({http2: true});
-  tap.tearDown(target.close.bind(target))
+  // @ts-ignore
+  tap.tearDown(target.close.bind(target));
   instance.get("/", (request, reply) => {
       reply.from();
   });
@@ -97,8 +100,8 @@ async function main() {
   });
   await instance.listen(0);
 
-  tap.pass('request arrives')
-  tap.end()
+  tap.pass('done')
+  tap.end();
 }
 
 main();
