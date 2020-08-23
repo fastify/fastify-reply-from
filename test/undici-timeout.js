@@ -4,6 +4,10 @@ const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
 const got = require('got')
+const httpStatus = require('http-status')
+const FakeTimers = require('@sinonjs/fake-timers')
+
+const clock = FakeTimers.createClock()
 
 t.autoend(false)
 
@@ -13,10 +17,10 @@ t.tearDown(target.close.bind(target))
 target.get('/', (request, reply) => {
   t.pass('request arrives')
 
-  setTimeout(() => {
-    reply.status(200).send('hello world')
+  clock.setTimeout(() => {
+    reply.status(httpStatus.OK).send('hello world')
     t.end()
-  }, 1000)
+  }, 200)
 })
 
 async function main () {
@@ -41,14 +45,14 @@ async function main () {
   try {
     await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
   } catch (err) {
-    t.equal(err.response.statusCode, 504)
+    t.equal(err.response.statusCode, httpStatus.GATEWAY_TIMEOUT)
     t.match(err.response.headers['content-type'], /application\/json/)
     t.deepEqual(JSON.parse(err.response.body), {
-      statusCode: 504,
+      statusCode: httpStatus.GATEWAY_TIMEOUT,
       error: 'Gateway Timeout',
       message: 'Gateway Timeout'
     })
-
+    clock.tick(200)
     return
   }
 

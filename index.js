@@ -5,6 +5,7 @@ const URL = require('url').URL
 const lru = require('tiny-lru')
 const querystring = require('querystring')
 const Stream = require('stream')
+const httpStatus = require('http-status')
 const buildRequest = require('./lib/request')
 const {
   filterPseudoHeaders,
@@ -104,11 +105,11 @@ module.exports = fp(function from (fastify, opts, next) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {
           if (err.code === 'ERR_HTTP2_STREAM_CANCEL' || err.code === 'ENOTFOUND') {
-            onError(this, 503, new Error('Service Unavailable'))
+            onError(this, httpStatus.SERVICE_UNAVAILABLE, new Error('Service Unavailable'))
           } else if (err instanceof TimeoutError || err.code === 'UND_ERR_REQUEST_TIMEOUT') {
-            onError(this, 504, new Error('Gateway Timeout'))
+            onError(this, httpStatus.GATEWAY_TIMEOUT, new Error('Gateway Timeout'))
           } else {
-            onError(this, 500, err)
+            onError(this, httpStatus.INTERNAL_SERVER_ERROR, err)
           }
         }
         return
