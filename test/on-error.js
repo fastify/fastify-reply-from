@@ -20,7 +20,7 @@ target.get('/', (request, reply) => {
   clock.setTimeout(() => {
     reply.status(httpStatus.OK).send('hello world')
     t.end()
-  }, 200)
+  }, 1000)
 })
 
 async function main () {
@@ -53,7 +53,7 @@ async function main () {
       error: 'Gateway Timeout',
       message: 'Gateway Timeout'
     })
-    clock.tick(200)
+    clock.tick(1000)
     return
   }
 
