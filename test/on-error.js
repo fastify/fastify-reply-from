@@ -34,9 +34,9 @@ async function main () {
   instance.get('/', (request, reply) => {
     reply.from(`http://localhost:${target.server.address().port}/`,
       {
-        onError: (reply, code, error) => {
-          t.equal(code, httpStatus.GATEWAY_TIMEOUT)
-          reply.code(code).send(error)
+        onError: (reply, error) => {
+          t.equal(error.status, httpStatus.GATEWAY_TIMEOUT)
+          reply.code(error.status).send(error)
         }
       })
   })

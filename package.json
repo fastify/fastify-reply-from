@@ -44,7 +44,8 @@
     "standard": "^14.3.3",
     "tap": "^14.10.7",
     "tsd": "^0.13.1",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "http-status": "^1.4.2"
   },
   "dependencies": {
     "end-of-stream": "^1.4.1",
@@ -53,7 +54,7 @@
     "semver": "^7.2.1",
     "tiny-lru": "^7.0.0",
     "undici": "^1.0.0",
-    "http-status": "^1.4.2"
+    "http-errors": "^1.8.0"
   },
   "tsd": {
     "directory": "test"
