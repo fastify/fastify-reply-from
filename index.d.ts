@@ -27,27 +27,29 @@ import {
   SecureClientSessionOptions,
 } from "http2";
 
+export interface FastifyReplyFromHooks {
+  queryString?: { [key: string]: unknown };
+  contentType?: string;
+  onResponse?: (
+    request: FastifyRequest<RequestGenericInterface, RawServerBase>,
+    reply: FastifyReply<RawServerBase>,
+    res: RawReplyDefaultExpression<RawServerBase>
+  ) => void;
+  body?: unknown;
+  rewriteHeaders?: (
+    headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
+  ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
+  rewriteRequestHeaders?: (
+    req: Http2ServerRequest | IncomingMessage,
+    headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
+  ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
+}
+
 declare module "fastify" {
   interface FastifyReply {
     from(
       source?: string,
-      opts?: {
-        queryString?: { [key: string]: unknown };
-        contentType?: string;
-        onResponse?: (
-          request: FastifyRequest<RequestGenericInterface, RawServerBase>,
-          reply: FastifyReply<RawServerBase>,
-          res: RawReplyDefaultExpression<RawServerBase>
-        ) => void;
-        body?: unknown;
-        rewriteHeaders?: (
-          headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
-        ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
-        rewriteRequestHeaders?: (
-          req: Http2ServerRequest | IncomingMessage,
-          headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
-        ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
-      }
+      opts?: FastifyReplyFromHooks
     ): void;
   }
 }
