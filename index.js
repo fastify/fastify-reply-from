@@ -169,5 +169,5 @@ function requestHeadersNoOp (originalReq, headers) {
 }
 
 function onErrorDefault (reply, error) {
-  reply.code(error.status).send(error)
+  reply.send(error)
 }
