@@ -105,11 +105,11 @@ module.exports = fp(function from (fastify, opts, next) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {
           if (err.code === 'ERR_HTTP2_STREAM_CANCEL' || err.code === 'ENOTFOUND') {
-            onError(this, new createError.ServiceUnavailable())
+            onError(this, { error: new createError.ServiceUnavailable() })
           } else if (err instanceof TimeoutError || err.code === 'UND_ERR_REQUEST_TIMEOUT') {
-            onError(this, new createError.GatewayTimeout())
+            onError(this, { error: new createError.GatewayTimeout() })
           } else {
-            onError(this, createError(500, err))
+            onError(this, { error: createError(500, err) })
           }
         }
         return
@@ -168,6 +168,6 @@ function requestHeadersNoOp (originalReq, headers) {
   return headers
 }
 
-function onErrorDefault (reply, error) {
+function onErrorDefault (reply, { error }) {
   reply.send(error)
 }

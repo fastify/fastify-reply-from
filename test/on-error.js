@@ -33,7 +33,7 @@ async function main () {
   instance.get('/', (request, reply) => {
     reply.from(`http://localhost:${target.server.address().port}/`,
       {
-        onError: (reply, error) => {
+        onError: (reply, { error }) => {
           t.equal(error.status, 504)
           reply.code(error.status).send(error)
         }
