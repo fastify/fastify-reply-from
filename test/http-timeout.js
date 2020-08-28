@@ -4,6 +4,9 @@ const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
 const got = require('got')
+const FakeTimers = require('@sinonjs/fake-timers')
+
+const clock = FakeTimers.createClock()
 
 t.autoend(false)
 
@@ -13,10 +16,10 @@ t.tearDown(target.close.bind(target))
 target.get('/', (request, reply) => {
   t.pass('request arrives')
 
-  setTimeout(() => {
+  clock.setTimeout(() => {
     reply.status(200).send('hello world')
     t.end()
-  }, 1000)
+  }, 200)
 })
 
 async function main () {
@@ -43,7 +46,7 @@ async function main () {
       error: 'Gateway Timeout',
       message: 'Gateway Timeout'
     })
-
+    clock.tick(200)
     return
   }
 

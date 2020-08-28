@@ -5,6 +5,7 @@ const URL = require('url').URL
 const lru = require('tiny-lru')
 const querystring = require('querystring')
 const Stream = require('stream')
+const createError = require('http-errors')
 const buildRequest = require('./lib/request')
 const {
   filterPseudoHeaders,
@@ -34,6 +35,7 @@ module.exports = fp(function from (fastify, opts, next) {
     const onResponse = opts.onResponse
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
+    const onError = opts.onError || onErrorDefault
 
     if (!source) {
       source = req.url
@@ -103,11 +105,11 @@ module.exports = fp(function from (fastify, opts, next) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {
           if (err.code === 'ERR_HTTP2_STREAM_CANCEL' || err.code === 'ENOTFOUND') {
-            this.code(503).send(new Error('Service Unavailable'))
+            onError(this, { error: new createError.ServiceUnavailable() })
           } else if (err instanceof TimeoutError || err.code === 'UND_ERR_REQUEST_TIMEOUT') {
-            this.code(504).send(new Error('Gateway Timeout'))
+            onError(this, { error: new createError.GatewayTimeout() })
           } else {
-            this.code(500).send(err)
+            onError(this, { error: createError(500, err) })
           }
         }
         return
@@ -164,4 +166,8 @@ function headersNoOp (headers) {
 
 function requestHeadersNoOp (originalReq, headers) {
   return headers
+}
+
+function onErrorDefault (reply, { error }) {
+  reply.send(error)
 }

@@ -28,15 +28,16 @@ async function main () {
   const instance = Fastify()
   t.tearDown(instance.close.bind(instance))
 
-  instance.register(From, {
-    base: `http://localhost:${target.server.address().port}`,
-    undici: {
-      requestTimeout: 100
-    }
-  })
+  instance.register(From, { http: { requestOptions: { timeout: 100 } } })
 
   instance.get('/', (request, reply) => {
-    reply.from()
+    reply.from(`http://localhost:${target.server.address().port}/`,
+      {
+        onError: (reply, { error }) => {
+          t.equal(error.status, 504)
+          reply.code(error.status).send(error)
+        }
+      })
   })
 
   await instance.listen(0)

@@ -35,6 +35,10 @@ export interface FastifyReplyFromHooks {
     reply: FastifyReply<RawServerBase>,
     res: RawReplyDefaultExpression<RawServerBase>
   ) => void;
+  onError?: (
+      reply: FastifyReply<RawServerBase>,
+      error: { error: Error }
+  ) => void;
   body?: unknown;
   rewriteHeaders?: (
     headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
