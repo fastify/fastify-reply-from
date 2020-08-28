@@ -53,10 +53,10 @@ async function main() {
 
   server.register(replyFrom, fullOptions);
 
-  server.get("/v1", (erquest, reply) => {
+  server.get("/v1", (request, reply) => {
       reply.from();
   });
-  server.get("/v3", (erquest, reply) => {
+  server.get("/v3", (request, reply) => {
       reply.from("/v3", {
           body: {hello: "world"},
           rewriteRequestHeaders(req, headers) {
@@ -85,8 +85,8 @@ async function main() {
           rewriteRequestHeaders(req, headers: IncomingHttpHeaders) {
               return headers;
           },
-          onError(reply: FastifyReply<RawServerBase>, code: number, error: Error) {
-              return reply.code(code).send(error);
+          onError(reply: FastifyReply<RawServerBase>, error) {
+              return reply.send(error.error);
           }
       });
   });
