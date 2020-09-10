@@ -130,6 +130,7 @@ module.exports = fp(function from (fastify, opts, next) {
         this.send(res.stream)
       }
     })
+    return this
   })
 
   fastify.onClose((fastify, next) => {
