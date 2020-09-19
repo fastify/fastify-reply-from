@@ -167,7 +167,7 @@ is no activity. Defaults to 1 minute (`60000`). Prefer to use [`http2.sessionTim
 
 ### `reply.from(source, [opts])`
 
-The plugin decores the
+The plugin decorates the
 [`Reply`](https://github.com/fastify/fastify/blob/master/docs/Reply.md)
 instance with a `from` method, which will reply to the original request
 __from the desired source__. The options allows to override any part of
