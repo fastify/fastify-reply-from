@@ -179,6 +179,18 @@ Called when an http response is received from the source.
 The default behavior is `reply.send(res)`, which will be disabled if the
 option is specified.
 
+When replying with a body of a different length it is necessary to remove
+the `content-length` header.
+
+```js
+{
+  onResponse: (request, reply, res) => {
+    reply.removeHeader('content-length');
+    reply.send('New body of different length');
+  }
+}
+```
+
 #### `onError(reply, error)`
 
 Called when an http response is received with error from the source.
