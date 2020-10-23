@@ -95,6 +95,22 @@ proxy.register(require('fastify-reply-from'), {
 })
 ```
 
+You can also pass a custom http agents. If you pass the agents, then the http.agentOptions will be ignored. To illustrate:
+```js
+proxy.register(require('fastify-reply-from'), {
+  base: 'http://localhost:3001/',
+  http: {
+    agents: { 
+      'http:': new http.Agent({ keepAliveMsecs: 10 * 60 * 1000 }), // pass in any options from https://nodejs.org/api/http.html#http_new_agent_options
+      'https:': new https.Agent({ keepAliveMsecs: 10 * 60 * 1000 })
+               
+    },
+    requestOptions: { // pass in any options from https://nodejs.org/api/http.html#http_http_request_options_callback
+      timeout: 5000 // timeout in msecs, defaults to 10000 (10 seconds)
+    }
+  }
+})
+```
 #### `http2`
 You can either set `http2` to `true` or set the settings object to connect to a HTTP/2 server.
 The `http2` settings object has the shape of:
