@@ -17,7 +17,7 @@ const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'POST')
   t.equal(req.headers['content-type'], 'application/msgpack')
-  var data = []
+  const data = []
   req.on('data', (d) => {
     data.push(d)
   })

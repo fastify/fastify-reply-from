@@ -46,10 +46,10 @@ module.exports = fp(function from (fastify, opts, next) {
     cache.set(source, url)
 
     const sourceHttp2 = req.httpVersionMajor === 2
-    var headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : req.headers
+    const headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : req.headers
     headers.host = url.hostname
     const qs = getQueryString(url.search, req.url, opts)
-    var body = ''
+    let body = ''
 
     if (opts.body) {
       if (typeof opts.body.pipe === 'function') {

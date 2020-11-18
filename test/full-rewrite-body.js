@@ -17,7 +17,7 @@ const target = http.createServer((req, res) => {
   t.equal(req.method, 'POST')
   t.equal(req.headers['content-type'], 'application/json')
   t.equal(req.headers['content-length'], '20')
-  var data = ''
+  let data = ''
   req.setEncoding('utf8')
   req.on('data', (d) => {
     data += d

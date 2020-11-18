@@ -7,6 +7,7 @@
   "scripts": {
     "typescript": "tsd",
     "coverage": "tap -j8 test/*.js --cov",
+    "lint:fix": "standard --fix",
     "test": "standard | snazzy && tap --ts test/* && npm run typescript"
   },
   "repository": {
