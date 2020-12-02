@@ -8,16 +8,15 @@ const From = require('..')
 const http = require('http')
 const get = require('simple-get').concat
 const FormData = require('form-data')
+const Multipart = require('fastify-multipart')
 
 const instance = Fastify()
+
+instance.register(Multipart)
 instance.register(From)
 
 t.plan(11)
 t.tearDown(instance.close.bind(instance))
-
-instance.addContentTypeParser('application/octet-stream', function (req, payload, done) {
-  done(null, payload)
-})
 
 t.tearDown(instance.close.bind(instance))
 
@@ -42,10 +41,6 @@ const target = http.createServer((req, res) => {
     res.statusCode = 200
     res.end(JSON.stringify({ something: 'else' }))
   })
-})
-
-instance.addContentTypeParser('multipart/form-data', function (req, payload, done) {
-  done(null, payload)
 })
 
 instance.post('/', (request, reply) => {
