@@ -56,7 +56,7 @@ instance.post('/', (request, reply) => {
 
 t.tearDown(target.close.bind(target))
 
-instance.listen(0, async (err) => {
+instance.listen(0, (err) => {
   t.error(err)
 
   logStream.on('data', (log) => {
