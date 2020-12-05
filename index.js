@@ -133,6 +133,13 @@ module.exports = fp(function from (fastify, opts, next) {
     return this
   })
 
+  fastify.addHook('onReady', (done) => {
+    if (isFastifyMultipartRegistered(fastify)) {
+      fastify.log.warn('fastify-reply-from might not behave as expected when used with fastify-multipart')
+    }
+    done()
+  })
+
   fastify.onClose((fastify, next) => {
     close()
     // let the event loop do a full run so that it can
@@ -171,4 +178,8 @@ function requestHeadersNoOp (originalReq, headers) {
 
 function onErrorDefault (reply, { error }) {
   reply.send(error)
+}
+
+function isFastifyMultipartRegistered (fastify) {
+  return fastify.hasContentTypeParser('multipart') && fastify.hasRequestDecorator('multipart')
 }

@@ -5,18 +5,25 @@ const path = require('path')
 const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
+const Multipart = require('fastify-multipart')
 const http = require('http')
 const get = require('simple-get').concat
 const FormData = require('form-data')
-const Multipart = require('fastify-multipart')
 
-const instance = Fastify()
+const split = require('split2')
+const logStream = split(JSON.parse)
+
+const instance = Fastify({
+  logger: {
+    level: 'warn',
+    stream: logStream
+  }
+})
 
 instance.register(Multipart)
 instance.register(From)
 
-t.plan(11)
-t.tearDown(instance.close.bind(instance))
+t.plan(12)
 
 t.tearDown(instance.close.bind(instance))
 
@@ -33,10 +40,10 @@ const target = http.createServer((req, res) => {
     data += d
   })
   req.on('end', () => {
-    t.match(data, 'Content-Disposition: form-data; name="key"')
-    t.match(data, 'value')
-    t.match(data, 'Content-Disposition: form-data; name="file"')
-    t.match(data, fileContent)
+    t.notMatch(data, 'Content-Disposition: form-data; name="key"')
+    t.notMatch(data, 'value')
+    t.notMatch(data, 'Content-Disposition: form-data; name="file"')
+    t.notMatch(data, fileContent)
     res.setHeader('content-type', 'application/json')
     res.statusCode = 200
     res.end(JSON.stringify({ something: 'else' }))
@@ -49,8 +56,17 @@ instance.post('/', (request, reply) => {
 
 t.tearDown(target.close.bind(target))
 
-instance.listen(0, (err) => {
+instance.listen(0, async (err) => {
   t.error(err)
+
+  logStream.on('data', (log) => {
+    if (
+      log.level === 40 &&
+      log.msg.match(/fastify-reply-from might not behave as expected when used with fastify-multipart/)
+    ) {
+      t.pass('incompatibility warn message logged')
+    }
+  })
 
   target.listen(0, (err) => {
     t.error(err)
