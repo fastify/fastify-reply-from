@@ -70,7 +70,7 @@ Note that _every path will be discarded_.
 
 Custom URL protocols `unix+http:` and `unix+https:` can be used to forward requests to a unix
 socket server by using `querystring.escape(socketPath)` as the hostname.  This is not supported
-for http2 nor unidici.  To illustrate:
+for http2 nor undici.  To illustrate:
 
 ```js
 const socketPath = require('querystring').escape('/run/http-daemon.socket')
