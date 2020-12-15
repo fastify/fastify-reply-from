@@ -74,7 +74,7 @@ for http2 nor undici.  To illustrate:
 
 ```js
 const socketPath = require('querystring').escape('/run/http-daemon.socket')
-proxxy.register(require('fastify-reply-from'), {
+proxy.register(require('fastify-reply-from'), {
   base: 'unix+http://${socketPath}/'
 });
 ```
