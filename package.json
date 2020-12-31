@@ -38,7 +38,7 @@
     "form-data": "^3.0.0",
     "got": "^11.8.0",
     "h2url": "^0.2.0",
-    "msgpack5": "^4.2.1",
+    "msgpack5": "^5.0.0",
     "nock": "^13.0.4",
     "pre-commit": "^1.2.2",
     "proxyquire": "^2.1.3",
