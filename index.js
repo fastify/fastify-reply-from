@@ -1,7 +1,6 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const URL = require('url').URL
 const lru = require('tiny-lru')
 const querystring = require('querystring')
 const Stream = require('stream')
@@ -10,7 +9,8 @@ const buildRequest = require('./lib/request')
 const {
   filterPseudoHeaders,
   copyHeaders,
-  stripHttp1ConnectionHeaders
+  stripHttp1ConnectionHeaders,
+  buildURL
 } = require('./lib/utils')
 
 const { TimeoutError } = buildRequest
@@ -42,7 +42,7 @@ module.exports = fp(function from (fastify, opts, next) {
     }
 
     // we leverage caching to avoid parsing the destination URL
-    const url = cache.get(source) || new URL(source, base)
+    const url = cache.get(source) || buildURL(source, base)
     cache.set(source, url)
 
     const sourceHttp2 = req.httpVersionMajor === 2

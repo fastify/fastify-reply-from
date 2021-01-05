@@ -63,3 +63,5 @@ typings/
 # lockfiles
 yarn.lock
 package-lock.json
+
+.vscode
