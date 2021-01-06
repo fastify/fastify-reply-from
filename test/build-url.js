@@ -9,38 +9,34 @@ test('should produce valid URL', (t) => {
   t.equal(url.href, 'http://localhost/hi')
 })
 
-test('should return same source when base not specified', (t) => {
+test('should produce valid URL', (t) => {
+  t.plan(1)
+  const url = buildURL('http://localhost/hi', 'http://localhost')
+  t.equal(url.href, 'http://localhost/hi')
+})
+
+test('should return same source when base is not specified', (t) => {
   t.plan(1)
   const url = buildURL('http://localhost/hi')
   t.equal(url.href, 'http://localhost/hi')
 })
 
-test('should sanitize invalid source', (t) => {
-  t.plan(1)
-  const url = buildURL('//10.0.0.10/hi', 'http://localhost')
-  t.equal(url.href, 'http://localhost/10.0.0.10/hi')
-})
+const errorInputs = [
+  { source: '//10.0.0.10/hi', base: 'http://localhost' },
+  { source: 'http://10.0.0.10/hi', base: 'http://localhost' },
+  { source: 'https://10.0.0.10/hi', base: 'http://localhost' },
+  { source: 'blah://10.0.0.10/hi', base: 'http://localhost' },
+  { source: '//httpbin.org/hi', base: 'http://localhost' },
+  { source: 'urn:foo:bar', base: 'http://localhost' }
+]
 
-test('should sanitize invalid source', (t) => {
-  t.plan(1)
-  const url = buildURL('http://10.0.0.10/hi', 'http://localhost')
-  t.equal(url.href, 'http://localhost/10.0.0.10/hi')
-})
+test('should throw when trying to override base', (t) => {
+  t.plan(errorInputs.length)
 
-test('should sanitize invalid source', (t) => {
-  t.plan(1)
-  const url = buildURL('https://10.0.0.10/hi', 'http://localhost')
-  t.equal(url.href, 'http://localhost/10.0.0.10/hi')
-})
-
-test('should sanitize invalid source', (t) => {
-  t.plan(1)
-  const url = buildURL('blah://10.0.0.10/hi', 'http://localhost')
-  t.equal(url.href, 'http://localhost/10.0.0.10/hi')
-})
-
-test('should sanitize invalid source', (t) => {
-  t.plan(1)
-  const url = buildURL('//httpbin.org/hi', 'http://localhost')
-  t.equal(url.href, 'http://localhost/httpbin.org/hi')
+  errorInputs.forEach(({ source, base }) => {
+    t.test(source, (t) => {
+      t.plan(1)
+      t.throws(() => buildURL(source, base))
+    })
+  })
 })
