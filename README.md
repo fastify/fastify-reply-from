@@ -14,7 +14,7 @@ npm i fastify-reply-from
 
 ## Compatibility with fastify-multipart
 `fastify-reply-from` and [`fastify-multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor shold be registered in plugins which have a parent-child relationship.<br> The two plugins are incompatible, in the sense that the behavior of `fastify-reply-from` might not be the expected one when the above-mentioned conditions are not respected.<br> This is due to the fact that `fastify-multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `fastify-reply-from`.<br>
-However, the two plugins may be used within the same fastify instance, at the condition that they belong to disjoint branches of the fastify plugins hierarchy tree. 
+However, the two plugins may be used within the same fastify instance, at the condition that they belong to disjoint branches of the fastify plugins hierarchy tree.
 
 ## Usage
 
@@ -104,10 +104,10 @@ You can also pass a custom http agents. If you pass the agents, then the http.ag
 proxy.register(require('fastify-reply-from'), {
   base: 'http://localhost:3001/',
   http: {
-    agents: { 
+    agents: {
       'http:': new http.Agent({ keepAliveMsecs: 10 * 60 * 1000 }), // pass in any options from https://nodejs.org/api/http.html#http_new_agent_options
       'https:': new https.Agent({ keepAliveMsecs: 10 * 60 * 1000 })
-               
+
     },
     requestOptions: { // pass in any options from https://nodejs.org/api/http.html#http_http_request_options_callback
       timeout: 5000 // timeout in msecs, defaults to 10000 (10 seconds)
@@ -192,6 +192,8 @@ The plugin decorates the
 instance with a `from` method, which will reply to the original request
 __from the desired source__. The options allows to override any part of
 the request or response being sent or received to/from the source.
+
+**Note: If `base` is specified in plugin options, the `source` here should not override the host/origin.**
 
 #### `onResponse(request, reply, res)`
 
