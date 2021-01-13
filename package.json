@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/fastify/fastify-reply-from#readme",
   "devDependencies": {
-    "@sinonjs/fake-timers": "^6.0.1",
+    "@sinonjs/fake-timers": "^7.0.0",
     "@types/node": "^14.14.2",
     "@types/tap": "^14.10.1",
     "fastify": "^3.7.0",
