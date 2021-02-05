@@ -5,10 +5,11 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "typescript": "tsd",
     "coverage": "tap -j8 test/*.js --cov",
     "lint:fix": "standard --fix",
-    "test": "standard | snazzy && tap --ts test/* && npm run typescript"
+    "test": "standard | snazzy && tap --ts test/* && npm run typescript",
+    "test:ci": "standard | snazzy && tap --ts test/* --coverage-report=lcovonly && npm run typescript",
+    "typescript": "tsd"
   },
   "repository": {
     "type": "git",
