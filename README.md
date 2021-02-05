@@ -1,7 +1,7 @@
 # fastify-reply-from
 
 ![CI](https://github.com/fastify/fastify-reply-from/workflows/CI/badge.svg)
-[![NPM version](https://img.shields.io/npm/v/fastify-reply-from.svg?style=flat)](https://www.npmjs.com/package/fastify-reply-fromm)
+[![NPM version](https://img.shields.io/npm/v/fastify-reply-from.svg?style=flat)](https://www.npmjs.com/package/fastify-reply-from)
 [![Coverage Status](https://coveralls.io/repos/github/fastify/fastify-reply-from/badge.svg?branch=master)](https://coveralls.io/github/fastify/fastify-reply-from?branch=master)
 
 fastify plugin to forward the current http request to another server.
@@ -266,7 +266,7 @@ will be returned to the client.
 * [ ] support overriding the body with a stream
 * [ ] forward the request id to the other peer might require some
       refacotring because we have to make the `req.id` unique
-      (see [hyperid](http://npm.im/hyperid)).
+      (see [hyperid](https://npm.im/hyperid)).
 * [ ] Support origin HTTP2 push
 * [x] benchmarks
 
