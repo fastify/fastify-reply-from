@@ -1,7 +1,10 @@
 # fastify-reply-from
 
 ![CI](https://github.com/fastify/fastify-reply-from/workflows/CI/badge.svg)
-[![NPM version](https://img.shields.io/npm/v/fastify-reply-from.svg?style=flat)](https://www.npmjs.com/package/fastify-reply-fromm)
+[![NPM version](https://img.shields.io/npm/v/fastify-reply-from.svg?style=flat)](https://www.npmjs.com/package/fastify-reply-from)
+[![Known Vulnerabilities](https://snyk.io/test/github/fastify/fastify-reply-from/badge.svg)](https://snyk.io/test/github/fastify/fastify-reply-from)
+[![Coverage Status](https://coveralls.io/repos/github/fastify/fastify-reply-from/badge.svg?branch=master)](https://coveralls.io/github/fastify/fastify-reply-from?branch=master)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
 fastify plugin to forward the current http request to another server.
 HTTP2 to HTTP is supported too.
@@ -13,7 +16,7 @@ npm i fastify-reply-from
 ```
 
 ## Compatibility with fastify-multipart
-`fastify-reply-from` and [`fastify-multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor shold be registered in plugins which have a parent-child relationship.<br> The two plugins are incompatible, in the sense that the behavior of `fastify-reply-from` might not be the expected one when the above-mentioned conditions are not respected.<br> This is due to the fact that `fastify-multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `fastify-reply-from`.<br>
+`fastify-reply-from` and [`fastify-multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor should they be registered in plugins which have a parent-child relationship.<br> The two plugins are incompatible, in the sense that the behavior of `fastify-reply-from` might not be the expected one when the above-mentioned conditions are not respected.<br> This is due to the fact that `fastify-multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `fastify-reply-from`.<br>
 However, the two plugins may be used within the same fastify instance, at the condition that they belong to disjoint branches of the fastify plugins hierarchy tree.
 
 ## Usage
@@ -81,7 +84,7 @@ proxy.register(require('fastify-reply-from'), {
 
 #### `http`
 By default, Node's [`http.request`](https://nodejs.org/api/http.html#http_http_request_options_callback)
-will be used if you don't enable [`http2`](#http2) or [`undici`](#undici). To customize the `request`,
+will be used if you do not enable [`http2`](#http2) or [`undici`](#undici). To customize the `request`,
 you can pass in [`agentOptions`](https://nodejs.org/api/http.html#http_new_agent_options) and
 [`requestOptions`](https://nodejs.org/api/http.html#http_http_request_options_callback). To illustrate:
 
@@ -99,7 +102,7 @@ proxy.register(require('fastify-reply-from'), {
 })
 ```
 
-You can also pass a custom http agents. If you pass the agents, then the http.agentOptions will be ignored. To illustrate:
+You can also pass custom http agents. If you pass the agents, then the http.agentOptions will be ignored. To illustrate:
 ```js
 proxy.register(require('fastify-reply-from'), {
   base: 'http://localhost:3001/',
@@ -234,7 +237,7 @@ It must return the new headers object.
 #### `queryString`
 
 Replaces the original querystring of the request with what is specified.
-This will get passed to
+This will be passed to
 [`querystring.stringify`](https://nodejs.org/api/querystring.html#querystring_querystring_stringify_obj_sep_eq_options).
 
 #### `body`
@@ -264,8 +267,8 @@ will be returned to the client.
 
 * [ ] support overriding the body with a stream
 * [ ] forward the request id to the other peer might require some
-      refacotring because we have to make the `req.id` unique
-      (see [hyperid](http://npm.im/hyperid)).
+      refactoring because we have to make the `req.id` unique
+      (see [hyperid](https://npm.im/hyperid)).
 * [ ] Support origin HTTP2 push
 * [x] benchmarks
 
