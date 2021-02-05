@@ -2,7 +2,9 @@
 
 ![CI](https://github.com/fastify/fastify-reply-from/workflows/CI/badge.svg)
 [![NPM version](https://img.shields.io/npm/v/fastify-reply-from.svg?style=flat)](https://www.npmjs.com/package/fastify-reply-from)
+[![Known Vulnerabilities](https://snyk.io/test/github/fastify/fastify-reply-from/badge.svg)](https://snyk.io/test/github/fastify/fastify-reply-from)
 [![Coverage Status](https://coveralls.io/repos/github/fastify/fastify-reply-from/badge.svg?branch=master)](https://coveralls.io/github/fastify/fastify-reply-from?branch=master)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
 fastify plugin to forward the current http request to another server.
 HTTP2 to HTTP is supported too.
