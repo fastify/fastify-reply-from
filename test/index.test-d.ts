@@ -105,7 +105,7 @@ async function main() {
   });
   await instance.listen(0);
 
-  tap.pass('done')
+  tap.pass('done');
   tap.end();
 }
 
