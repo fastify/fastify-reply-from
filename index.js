@@ -152,7 +152,7 @@ module.exports = fp(function from (fastify, opts, next) {
 
 function getQueryString (search, reqUrl, opts) {
   if (opts.queryString) {
-    return '?' + querystring.stringify(opts.queryString)
+    return `?${querystring.stringify(opts.queryString)}`
   }
 
   if (search.length > 0) {
