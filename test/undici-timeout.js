@@ -31,7 +31,7 @@ async function main () {
   instance.register(From, {
     base: `http://localhost:${target.server.address().port}`,
     undici: {
-      requestTimeout: 100
+      headersTimeout: 100
     }
   })
 
