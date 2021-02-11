@@ -2,9 +2,11 @@ name: CI
 on:
   push:
     paths-ignore:
+      - 'docs/**'
       - '*.md'
   pull_request:
     paths-ignore:
+      - 'docs/**'
       - '*.md'
 jobs:
   test:
@@ -21,8 +23,8 @@ jobs:
         uses: actions/setup-node@v2.1.4
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Install
-        run: npm i
+      - name: Install Dependencies
+        run: npm install --ignore-scripts
       - name: Tests
         run: npm run test:ci
       - name: Coveralls Parallel
