@@ -10,8 +10,8 @@ class Agent {
   constructor (opts) {
     t.strictDeepEqual(opts, {
       connections: 42,
-      pipeling: 24,
-      timeout: 4242,
+      pipelining: 24,
+      keepAliveTimeout: 4242,
       tls: {
         rejectUnauthorized: false
       }
@@ -38,8 +38,8 @@ instance.register(From, {
   base: 'http://path/to/somewhere',
   undici: {
     connections: 42,
-    pipeling: 24,
-    timeout: 4242
+    pipelining: 24,
+    keepAliveTimeout: 4242
   }
 })
 

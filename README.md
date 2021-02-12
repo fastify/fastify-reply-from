@@ -66,7 +66,6 @@ target.listen(3001, (err) => {
 
 ### Plugin options
 
-
 #### `base`
 
 Set the base URL for all the forwarded requests. Will be required if `http2` is set to `true`
@@ -94,9 +93,14 @@ This flag could controls the settings of the undici client, like so:
 ```js
 proxy.register(require('fastify-reply-from'), {
   base: 'http://localhost:3001/',
+  // default settings
   undici: {
-    connections: 100,
-    pipelining: 10
+    connections: 128,
+    pipelining: 1,
+    keepAliveTimeout: 60 * 1000,
+    tls: {
+      rejectUnauthorized: false
+    }
   }
 })
 ```
@@ -166,33 +170,6 @@ proxy.register(require('fastify-reply-from'), {
 #### `cacheURLs`
 
 The number of parsed URLs that will be cached. Default: `100`.
-
-#### `keepAliveMsecs`
-
-**(Deprecated)** Defaults to 1 minute (`60000`), passed down to [`http.Agent`][http-agent] and
-[`https.Agent`][https-agent] instances. Prefer to use [`http.agentOptions`](#http) instead.
-
-#### `maxSockets`
-
-**(Deprecated)** Defaults to `2048` sockets, passed down to [`http.Agent`][http-agent] and
-[`https.Agent`][https-agent] instances. Prefer to use [`http.agentOptions`](#http) instead.
-
-#### `maxFreeSockets`
-
-**(Deprecated)** Defaults to `2048` free sockets, passed down to [`http.Agent`][http-agent] and
-[`https.Agent`][https-agent] instances. Prefer to use [`http.agentOptions`](#http) instead.
-
-#### `rejectUnauthorized`
-
-**(Deprecated)** Defaults to `false`, passed down to [`https.Agent`][https-agent] instances.
-This needs to be set to `false` to reply from https servers with
-self-signed certificates. Prefer to use [`http.requestOptions`](#http) or
-[`http2.sessionOptions`](#http2) instead.
-
-#### `sessionTimeout`
-
-**(Deprecated)** The timeout value after which the HTTP2 client session is destroyed if there
-is no activity. Defaults to 1 minute (`60000`). Prefer to use [`http2.sessionTimeout`](#http2) instead.
 
 ---
 
