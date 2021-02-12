@@ -106,7 +106,7 @@ module.exports = fp(function from (fastify, opts, next) {
         if (!this.sent) {
           if (err.code === 'ERR_HTTP2_STREAM_CANCEL' || err.code === 'ENOTFOUND') {
             onError(this, { error: new createError.ServiceUnavailable() })
-          } else if (err instanceof TimeoutError || err.code === 'UND_ERR_HEADERS_TIMEOUT' || err.code === 'UND_ERR_BODY_TIMEOUT') {
+          } else if (err instanceof TimeoutError || err.code === 'UND_ERR_HEADERS_TIMEOUT') {
             onError(this, { error: new createError.GatewayTimeout() })
           } else {
             onError(this, { error: createError(500, err) })
