@@ -23,7 +23,8 @@ instance.get('*', (request, reply) => {
 })
 
 instance.register(From, {
-  base: 'http://httpbin.org'
+  base: 'http://httpbin.org',
+  http: {} // force the use of Node.js core
 })
 
 instance.listen(0, (err) => {

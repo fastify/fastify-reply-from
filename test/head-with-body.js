@@ -8,7 +8,7 @@ const get = require('simple-get').concat
 
 const instance = Fastify()
 
-t.plan(12)
+t.plan(13)
 t.tearDown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
@@ -24,6 +24,7 @@ const target = http.createServer((req, res) => {
 })
 
 instance.head('/', (request, reply) => {
+  t.pass('head received')
   reply.from()
 })
 
@@ -33,7 +34,9 @@ target.listen(0, (err) => {
   t.error(err)
 
   instance.register(From, {
-    base: `http://localhost:${target.address().port}`
+    base: `http://localhost:${target.address().port}`,
+    // Use node core HTTP, Undici requires spec compliance
+    http: {}
   })
 
   instance.listen(0, (err) => {

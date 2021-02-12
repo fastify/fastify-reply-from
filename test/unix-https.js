@@ -21,7 +21,9 @@ if (process.platform === 'win32') {
 const instance = Fastify({
   https: certs
 })
-instance.register(From)
+instance.register(From, {
+  http: true
+})
 
 t.plan(10)
 t.tearDown(instance.close.bind(instance))

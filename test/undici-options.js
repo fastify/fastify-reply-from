@@ -4,15 +4,17 @@ const t = require('tap')
 const Fastify = require('fastify')
 const proxyquire = require('proxyquire')
 
-t.plan(2)
+t.plan(1)
 
-class Pool {
-  constructor (url, opts) {
-    t.strictEqual(url, 'http://path/to/somewhere')
+class Agent {
+  constructor (opts) {
     t.strictDeepEqual(opts, {
       connections: 42,
       pipeling: 24,
-      timeout: 4242
+      timeout: 4242,
+      tls: {
+        rejectUnauthorized: false
+      }
     })
   }
 }
@@ -20,7 +22,7 @@ class Pool {
 // original setup in the undici module
 // needed to test a bug
 function undici () {}
-undici.Pool = Pool
+undici.Agent = Agent
 
 const buildRequest = proxyquire('../lib/request.js', {
   undici

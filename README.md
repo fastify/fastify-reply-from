@@ -66,6 +66,7 @@ target.listen(3001, (err) => {
 
 ### Plugin options
 
+
 #### `base`
 
 Set the base URL for all the forwarded requests. Will be required if `http2` is set to `true`
@@ -82,9 +83,31 @@ proxy.register(require('fastify-reply-from'), {
 });
 ```
 
+#### `undici`
+
+By default, [undici](https://github.com/mcollina/undici) will be used to perform the HTTP/1.1
+requests. Enabling this flag should guarantee
+20-50% more throughput.
+
+This flag could controls the settings of the undici client, like so:
+
+```js
+proxy.register(require('fastify-reply-from'), {
+  base: 'http://localhost:3001/',
+  undici: {
+    connections: 100,
+    pipelining: 10
+  }
+})
+```
+
+See undici own options for more configurations.
+
 #### `http`
-By default, Node's [`http.request`](https://nodejs.org/api/http.html#http_http_request_options_callback)
-will be used if you do not enable [`http2`](#http2) or [`undici`](#undici). To customize the `request`,
+
+Set the `http` option to `true` or to an Object to use 
+Node's [`http.request`](https://nodejs.org/api/http.html#http_http_request_options_callback)
+will be used if you do not enable [`http2`](#http2). To customize the `request`,
 you can pass in [`agentOptions`](https://nodejs.org/api/http.html#http_new_agent_options) and
 [`requestOptions`](https://nodejs.org/api/http.html#http_http_request_options_callback). To illustrate:
 
@@ -118,7 +141,9 @@ proxy.register(require('fastify-reply-from'), {
   }
 })
 ```
+
 #### `http2`
+
 You can either set `http2` to `true` or set the settings object to connect to a HTTP/2 server.
 The `http2` settings object has the shape of:
 
@@ -134,23 +159,6 @@ proxy.register(require('fastify-reply-from'), {
     requestTimeout: { // HTTP/2 request options, pass in any options from https://nodejs.org/api/http2.html#http2_clienthttp2session_request_headers_options
       endStream: true
     }
-  }
-})
-```
-
-#### `undici`
-Set to `true` to use [undici](https://github.com/mcollina/undici)
-instead of `require('http')`. Enabling this flag should guarantee
-20-50% more throughput.
-
-This flag could controls the settings of the undici client, like so:
-
-```js
-proxy.register(require('fastify-reply-from'), {
-  base: 'http://localhost:3001/',
-  undici: {
-    connections: 100,
-    pipelining: 10
   }
 })
 ```

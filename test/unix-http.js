@@ -14,7 +14,11 @@ if (process.platform === 'win32') {
 }
 
 const instance = Fastify()
-instance.register(From)
+instance.register(From, {
+  // Use node core http, unix sockets are not
+  // supported yet.
+  http: true
+})
 
 t.plan(10)
 t.tearDown(instance.close.bind(instance))

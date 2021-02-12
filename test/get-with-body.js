@@ -32,7 +32,9 @@ target.listen(0, (err) => {
   t.error(err)
 
   instance.register(From, {
-    base: `http://localhost:${target.address().port}`
+    base: `http://localhost:${target.address().port}`,
+    // Use node core HTTP, Undici requires spec compliance
+    http: {}
   })
 
   instance.listen(0, (err) => {
