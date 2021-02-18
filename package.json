@@ -1,6 +1,6 @@
 {
   "name": "fastify-reply-from",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "forward your HTTP request to another server, for fastify",
   "main": "index.js",
   "types": "index.d.ts",
