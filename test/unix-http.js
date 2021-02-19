@@ -13,13 +13,14 @@ if (process.platform === 'win32') {
   process.exit(0)
 }
 
+const socketPath = `${__filename}.socket`
+const upstream = `unix+http://${querystring.escape(socketPath)}/`
+
 const instance = Fastify()
-instance.register(From)
+instance.register(From, { base: upstream })
 
 t.plan(10)
 t.tearDown(instance.close.bind(instance))
-
-const socketPath = `${__filename}.socket`
 
 try {
   fs.unlinkSync(socketPath)
@@ -37,7 +38,7 @@ const target = http.createServer((req, res) => {
 })
 
 instance.get('/', (request, reply) => {
-  reply.from(`unix+http://${querystring.escape(socketPath)}/hello`)
+  reply.from('hello')
 })
 
 t.tearDown(target.close.bind(target))
