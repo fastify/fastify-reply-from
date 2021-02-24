@@ -3,10 +3,15 @@
 const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
+const https = require('https')
+const get = require('simple-get').concat
 const fs = require('fs')
 const querystring = require('querystring')
-const http = require('http')
-const get = require('simple-get').concat
+const path = require('path')
+const certs = {
+  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.key')),
+  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))
+}
 
 if (process.platform === 'win32') {
   t.pass()
@@ -14,22 +19,23 @@ if (process.platform === 'win32') {
 }
 
 const socketPath = `${__filename}.socket`
-const upstream = `unix+http://${querystring.escape(socketPath)}/`
-
-const instance = Fastify()
-instance.register(From, {
-  base: upstream
-})
-
-t.plan(10)
-t.tearDown(instance.close.bind(instance))
 
 try {
   fs.unlinkSync(socketPath)
 } catch (_) {
 }
 
-const target = http.createServer((req, res) => {
+const instance = Fastify({
+  https: certs
+})
+instance.register(From, {
+  base: `unix+https://${querystring.escape(socketPath)}`
+})
+
+t.plan(10)
+t.tearDown(instance.close.bind(instance))
+
+const target = https.createServer(certs, (req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'GET')
   t.equal(req.url, '/hello')
@@ -51,7 +57,10 @@ instance.listen(0, (err) => {
   target.listen(socketPath, (err) => {
     t.error(err)
 
-    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
+    get({
+      url: `https://localhost:${instance.server.address().port}`,
+      rejectUnauthorized: false
+    }, (err, res, data) => {
       t.error(err)
       t.equal(res.headers['content-type'], 'text/plain')
       t.equal(res.headers['x-my-header'], 'hello!')
