@@ -82,9 +82,36 @@ proxy.register(require('fastify-reply-from'), {
 });
 ```
 
+#### `undici`
+
+By default, [undici](https://github.com/mcollina/undici) will be used to perform the HTTP/1.1
+requests. Enabling this flag should guarantee
+20-50% more throughput.
+
+This flag could controls the settings of the undici client, like so:
+
+```js
+proxy.register(require('fastify-reply-from'), {
+  base: 'http://localhost:3001/',
+  // default settings
+  undici: {
+    connections: 128,
+    pipelining: 1,
+    keepAliveTimeout: 60 * 1000,
+    tls: {
+      rejectUnauthorized: false
+    }
+  }
+})
+```
+
+See undici own options for more configurations.
+
 #### `http`
-By default, Node's [`http.request`](https://nodejs.org/api/http.html#http_http_request_options_callback)
-will be used if you do not enable [`http2`](#http2) or [`undici`](#undici). To customize the `request`,
+
+Set the `http` option to `true` or to an Object to use 
+Node's [`http.request`](https://nodejs.org/api/http.html#http_http_request_options_callback)
+will be used if you do not enable [`http2`](#http2). To customize the `request`,
 you can pass in [`agentOptions`](https://nodejs.org/api/http.html#http_new_agent_options) and
 [`requestOptions`](https://nodejs.org/api/http.html#http_http_request_options_callback). To illustrate:
 
@@ -118,7 +145,9 @@ proxy.register(require('fastify-reply-from'), {
   }
 })
 ```
+
 #### `http2`
+
 You can either set `http2` to `true` or set the settings object to connect to a HTTP/2 server.
 The `http2` settings object has the shape of:
 
@@ -138,53 +167,9 @@ proxy.register(require('fastify-reply-from'), {
 })
 ```
 
-#### `undici`
-Set to `true` to use [undici](https://github.com/mcollina/undici)
-instead of `require('http')`. Enabling this flag should guarantee
-20-50% more throughput.
-
-This flag could controls the settings of the undici client, like so:
-
-```js
-proxy.register(require('fastify-reply-from'), {
-  base: 'http://localhost:3001/',
-  undici: {
-    connections: 100,
-    pipelining: 10
-  }
-})
-```
-
 #### `cacheURLs`
 
 The number of parsed URLs that will be cached. Default: `100`.
-
-#### `keepAliveMsecs`
-
-**(Deprecated)** Defaults to 1 minute (`60000`), passed down to [`http.Agent`][http-agent] and
-[`https.Agent`][https-agent] instances. Prefer to use [`http.agentOptions`](#http) instead.
-
-#### `maxSockets`
-
-**(Deprecated)** Defaults to `2048` sockets, passed down to [`http.Agent`][http-agent] and
-[`https.Agent`][https-agent] instances. Prefer to use [`http.agentOptions`](#http) instead.
-
-#### `maxFreeSockets`
-
-**(Deprecated)** Defaults to `2048` free sockets, passed down to [`http.Agent`][http-agent] and
-[`https.Agent`][https-agent] instances. Prefer to use [`http.agentOptions`](#http) instead.
-
-#### `rejectUnauthorized`
-
-**(Deprecated)** Defaults to `false`, passed down to [`https.Agent`][https-agent] instances.
-This needs to be set to `false` to reply from https servers with
-self-signed certificates. Prefer to use [`http.requestOptions`](#http) or
-[`http2.sessionOptions`](#http2) instead.
-
-#### `sessionTimeout`
-
-**(Deprecated)** The timeout value after which the HTTP2 client session is destroyed if there
-is no activity. Defaults to 1 minute (`60000`). Prefer to use [`http2.sessionTimeout`](#http2) instead.
 
 ---
 

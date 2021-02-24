@@ -3,19 +3,36 @@
 const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
+const fs = require('fs')
+const querystring = require('querystring')
 const http = require('http')
 const get = require('simple-get').concat
 
-const instance = Fastify()
+if (process.platform === 'win32') {
+  t.pass()
+  process.exit(0)
+}
 
-t.plan(11)
+const socketPath = `${__filename}.socket`
+const upstream = `unix+http://${querystring.escape(socketPath)}/`
+
+const instance = Fastify()
+instance.register(From, {
+  base: upstream
+})
+
+t.plan(10)
 t.tearDown(instance.close.bind(instance))
+
+try {
+  fs.unlinkSync(socketPath)
+} catch (_) {
+}
 
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'GET')
-  t.equal(req.url, '/')
-  t.equal(req.body, undefined)
+  t.equal(req.url, '/hello')
   res.statusCode = 205
   res.setHeader('Content-Type', 'text/plain')
   res.setHeader('x-my-header', 'hello!')
@@ -23,28 +40,18 @@ const target = http.createServer((req, res) => {
 })
 
 instance.get('/', (request, reply) => {
-  reply.from()
+  reply.from('hello')
 })
 
 t.tearDown(target.close.bind(target))
 
-target.listen(0, (err) => {
+instance.listen(0, (err) => {
   t.error(err)
 
-  instance.register(From, {
-    base: `http://localhost:${target.address().port}`,
-    // Use node core HTTP, Undici requires spec compliance
-    http: {}
-  })
-
-  instance.listen(0, (err) => {
+  target.listen(socketPath, (err) => {
     t.error(err)
 
-    get({
-      url: `http://localhost:${instance.server.address().port}`,
-      method: 'GET',
-      body: 'this is get body'
-    }, (err, res, data) => {
+    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
       t.error(err)
       t.equal(res.headers['content-type'], 'text/plain')
       t.equal(res.headers['x-my-header'], 'hello!')

@@ -22,11 +22,6 @@ module.exports = fp(function from (fastify, opts, next) {
     http: opts.http,
     http2: opts.http2,
     base,
-    keepAliveMsecs: opts.keepAliveMsecs,
-    maxFreeSockets: opts.maxFreeSockets,
-    maxSockets: opts.maxSockets,
-    rejectUnauthorized: opts.rejectUnauthorized,
-    sessionTimeout: opts.sessionTimeout,
     undici: opts.undici
   })
   fastify.decorateReply('from', function (source, opts) {

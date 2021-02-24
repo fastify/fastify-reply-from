@@ -22,7 +22,8 @@ test('hostname', async (t) => {
   })
 
   instance.register(From, {
-    base: 'http://httpbin.org'
+    base: 'http://httpbin.org',
+    http: {} // force the use of Node.js core
   })
 
   await instance.listen(0)
@@ -46,12 +47,13 @@ test('hostname and port', async (t) => {
       return { origin: '127.0.0.1' }
     })
 
-  instance.get('*', (request, reply) => {
-    reply.from()
+  instance.register(From, {
+    base: 'http://httpbin.org:8080',
+    http: true
   })
 
-  instance.register(From, {
-    base: 'http://httpbin.org:8080'
+  instance.get('*', (request, reply) => {
+    reply.from()
   })
 
   await instance.listen(0)
