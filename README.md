@@ -230,7 +230,8 @@ This will be passed to
 Replaces the original request body with what is specified. Unless
 [`contentType`][contentType] is specified, the content will be passed
 through `JSON.stringify()`.
-Setting this option will not verify if the http method allows for a body.
+Setting this option for GET, HEAD requests will throw an error "Rewriting the body when doing a {GET|HEAD} is not allowed".
+
 
 #### `contentType`
 
