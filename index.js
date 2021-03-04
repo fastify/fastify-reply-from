@@ -87,7 +87,7 @@ module.exports = fp(function from (fastify, opts, next) {
       // if we are doing that with a GET or HEAD request is a programmer error
       // and as such we can throw immediately.
       if (body) {
-        throw new Error('Rewriting the body when doing a GET is not allowed')
+        throw new Error(`Rewriting the body when doing a ${req.method} is not allowed`)
       }
     }
 
