@@ -219,6 +219,12 @@ It must return the new headers object.
 Called to rewrite the headers of the request, before them being sent to the other server.
 It must return the new headers object.
 
+#### `getUpstream(originalReq, base)`
+
+Called to get upstream destination, before the request is being sent. Useful when you want to decide which target server to call based on the request data.
+Helpful for a gradual rollout of new services.
+It must return the upstream destination.
+
 #### `queryString`
 
 Replaces the original querystring of the request with what is specified.
