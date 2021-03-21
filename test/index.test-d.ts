@@ -67,6 +67,10 @@ async function main() {
           rewriteRequestHeaders(req, headers) {
               expectType<http.IncomingMessage | http2.Http2ServerRequest>(req);
               return headers;
+          },
+          getUpstream(req, base) {
+              expectType<http.IncomingMessage | http2.Http2ServerRequest>(req);
+              return base;
           }
       });
   });
@@ -89,6 +93,9 @@ async function main() {
           },
           rewriteRequestHeaders(req, headers: IncomingHttpHeaders) {
               return headers;
+          },
+          getUpstream(req, base) {
+              return base;
           },
           onError(reply: FastifyReply<RawServerBase>, error) {
               return reply.send(error.error);

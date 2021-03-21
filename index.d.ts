@@ -49,6 +49,10 @@ export interface FastifyReplyFromHooks {
     req: Http2ServerRequest | IncomingMessage,
     headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
   ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
+  getUpstream?: (
+      req: Http2ServerRequest | IncomingMessage,
+      base: string
+  ) => string;
 }
 
 declare module "fastify" {

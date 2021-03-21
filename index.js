@@ -16,7 +16,7 @@ const {
 const { TimeoutError } = buildRequest
 
 module.exports = fp(function from (fastify, opts, next) {
-  const cache = lru(opts.cacheURLs || 100)
+  const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
   const base = opts.base
   const { request, close } = buildRequest({
     http: opts.http,
@@ -30,6 +30,7 @@ module.exports = fp(function from (fastify, opts, next) {
     const onResponse = opts.onResponse
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
+    const getUpstream = opts.getUpstream || upstreamNoOp
     const onError = opts.onError || onErrorDefault
 
     if (!source) {
@@ -37,8 +38,14 @@ module.exports = fp(function from (fastify, opts, next) {
     }
 
     // we leverage caching to avoid parsing the destination URL
-    const url = cache.get(source) || buildURL(source, base)
-    cache.set(source, url)
+    const dest = getUpstream(req, base)
+    let url
+    if (cache) {
+      url = cache.get(source) || buildURL(source, dest)
+      cache.set(source, url)
+    } else {
+      url = buildURL(source, dest)
+    }
 
     const sourceHttp2 = req.httpVersionMajor === 2
     const headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : req.headers
@@ -169,6 +176,10 @@ function headersNoOp (headers) {
 
 function requestHeadersNoOp (originalReq, headers) {
   return headers
+}
+
+function upstreamNoOp (req, base) {
+  return base
 }
 
 function onErrorDefault (reply, { error }) {
