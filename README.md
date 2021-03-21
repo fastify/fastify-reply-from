@@ -1,7 +1,10 @@
 # fastify-reply-from
 
 ![CI](https://github.com/fastify/fastify-reply-from/workflows/CI/badge.svg)
-[![NPM version](https://img.shields.io/npm/v/fastify-reply-from.svg?style=flat)](https://www.npmjs.com/package/fastify-reply-fromm)
+[![NPM version](https://img.shields.io/npm/v/fastify-reply-from.svg?style=flat)](https://www.npmjs.com/package/fastify-reply-from)
+[![Known Vulnerabilities](https://snyk.io/test/github/fastify/fastify-reply-from/badge.svg)](https://snyk.io/test/github/fastify/fastify-reply-from)
+[![Coverage Status](https://coveralls.io/repos/github/fastify/fastify-reply-from/badge.svg?branch=master)](https://coveralls.io/github/fastify/fastify-reply-from?branch=master)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
 fastify plugin to forward the current http request to another server.
 HTTP2 to HTTP is supported too.
@@ -11,6 +14,10 @@ HTTP2 to HTTP is supported too.
 ```
 npm i fastify-reply-from
 ```
+
+## Compatibility with fastify-multipart
+`fastify-reply-from` and [`fastify-multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor should they be registered in plugins which have a parent-child relationship.<br> The two plugins are incompatible, in the sense that the behavior of `fastify-reply-from` might not be the expected one when the above-mentioned conditions are not respected.<br> This is due to the fact that `fastify-multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `fastify-reply-from`.<br>
+However, the two plugins may be used within the same fastify instance, at the condition that they belong to disjoint branches of the fastify plugins hierarchy tree.
 
 ## Usage
 
@@ -66,18 +73,45 @@ Note that _every path will be discarded_.
 
 Custom URL protocols `unix+http:` and `unix+https:` can be used to forward requests to a unix
 socket server by using `querystring.escape(socketPath)` as the hostname.  This is not supported
-for http2 nor unidici.  To illustrate:
+for http2 nor undici.  To illustrate:
 
 ```js
 const socketPath = require('querystring').escape('/run/http-daemon.socket')
-proxxy.register(require('fastify-reply-from'), {
+proxy.register(require('fastify-reply-from'), {
   base: 'unix+http://${socketPath}/'
 });
 ```
 
+#### `undici`
+
+By default, [undici](https://github.com/mcollina/undici) will be used to perform the HTTP/1.1
+requests. Enabling this flag should guarantee
+20-50% more throughput.
+
+This flag could controls the settings of the undici client, like so:
+
+```js
+proxy.register(require('fastify-reply-from'), {
+  base: 'http://localhost:3001/',
+  // default settings
+  undici: {
+    connections: 128,
+    pipelining: 1,
+    keepAliveTimeout: 60 * 1000,
+    tls: {
+      rejectUnauthorized: false
+    }
+  }
+})
+```
+
+See undici own options for more configurations.
+
 #### `http`
-By default, Node's [`http.request`](https://nodejs.org/api/http.html#http_http_request_options_callback)
-will be used if you don't enable [`http2`](#http2) or [`undici`](#undici). To customize the `request`,
+
+Set the `http` option to `true` or to an Object to use 
+Node's [`http.request`](https://nodejs.org/api/http.html#http_http_request_options_callback)
+will be used if you do not enable [`http2`](#http2). To customize the `request`,
 you can pass in [`agentOptions`](https://nodejs.org/api/http.html#http_new_agent_options) and
 [`requestOptions`](https://nodejs.org/api/http.html#http_http_request_options_callback). To illustrate:
 
@@ -95,7 +129,25 @@ proxy.register(require('fastify-reply-from'), {
 })
 ```
 
+You can also pass custom http agents. If you pass the agents, then the http.agentOptions will be ignored. To illustrate:
+```js
+proxy.register(require('fastify-reply-from'), {
+  base: 'http://localhost:3001/',
+  http: {
+    agents: {
+      'http:': new http.Agent({ keepAliveMsecs: 10 * 60 * 1000 }), // pass in any options from https://nodejs.org/api/http.html#http_new_agent_options
+      'https:': new https.Agent({ keepAliveMsecs: 10 * 60 * 1000 })
+
+    },
+    requestOptions: { // pass in any options from https://nodejs.org/api/http.html#http_http_request_options_callback
+      timeout: 5000 // timeout in msecs, defaults to 10000 (10 seconds)
+    }
+  }
+})
+```
+
 #### `http2`
+
 You can either set `http2` to `true` or set the settings object to connect to a HTTP/2 server.
 The `http2` settings object has the shape of:
 
@@ -115,53 +167,9 @@ proxy.register(require('fastify-reply-from'), {
 })
 ```
 
-#### `undici`
-Set to `true` to use [undici](https://github.com/mcollina/undici)
-instead of `require('http')`. Enabling this flag should guarantee
-20-50% more throughput.
-
-This flag could controls the settings of the undici client, like so:
-
-```js
-proxy.register(require('fastify-reply-from'), {
-  base: 'http://localhost:3001/',
-  undici: {
-    connections: 100,
-    pipelining: 10
-  }
-})
-```
-
 #### `cacheURLs`
 
 The number of parsed URLs that will be cached. Default: `100`.
-
-#### `keepAliveMsecs`
-
-**(Deprecated)** Defaults to 1 minute (`60000`), passed down to [`http.Agent`][http-agent] and
-[`https.Agent`][https-agent] instances. Prefer to use [`http.agentOptions`](#http) instead.
-
-#### `maxSockets`
-
-**(Deprecated)** Defaults to `2048` sockets, passed down to [`http.Agent`][http-agent] and
-[`https.Agent`][https-agent] instances. Prefer to use [`http.agentOptions`](#http) instead.
-
-#### `maxFreeSockets`
-
-**(Deprecated)** Defaults to `2048` free sockets, passed down to [`http.Agent`][http-agent] and
-[`https.Agent`][https-agent] instances. Prefer to use [`http.agentOptions`](#http) instead.
-
-#### `rejectUnauthorized`
-
-**(Deprecated)** Defaults to `false`, passed down to [`https.Agent`][https-agent] instances.
-This needs to be set to `false` to reply from https servers with
-self-signed certificates. Prefer to use [`http.requestOptions`](#http) or
-[`http2.sessionOptions`](#http2) instead.
-
-#### `sessionTimeout`
-
-**(Deprecated)** The timeout value after which the HTTP2 client session is destroyed if there
-is no activity. Defaults to 1 minute (`60000`). Prefer to use [`http2.sessionTimeout`](#http2) instead.
 
 ---
 
@@ -172,6 +180,8 @@ The plugin decorates the
 instance with a `from` method, which will reply to the original request
 __from the desired source__. The options allows to override any part of
 the request or response being sent or received to/from the source.
+
+**Note: If `base` is specified in plugin options, the `source` here should not override the host/origin.**
 
 #### `onResponse(request, reply, res)`
 
@@ -212,7 +222,7 @@ It must return the new headers object.
 #### `queryString`
 
 Replaces the original querystring of the request with what is specified.
-This will get passed to
+This will be passed to
 [`querystring.stringify`](https://nodejs.org/api/querystring.html#querystring_querystring_stringify_obj_sep_eq_options).
 
 #### `body`
@@ -220,7 +230,8 @@ This will get passed to
 Replaces the original request body with what is specified. Unless
 [`contentType`][contentType] is specified, the content will be passed
 through `JSON.stringify()`.
-Setting this option will not verify if the http method allows for a body.
+Setting this option for GET, HEAD requests will throw an error "Rewriting the body when doing a {GET|HEAD} is not allowed".
+
 
 #### `contentType`
 
@@ -242,8 +253,8 @@ will be returned to the client.
 
 * [ ] support overriding the body with a stream
 * [ ] forward the request id to the other peer might require some
-      refacotring because we have to make the `req.id` unique
-      (see [hyperid](http://npm.im/hyperid)).
+      refactoring because we have to make the `req.id` unique
+      (see [hyperid](https://npm.im/hyperid)).
 * [ ] Support origin HTTP2 push
 * [x] benchmarks
 

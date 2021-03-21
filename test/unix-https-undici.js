@@ -18,22 +18,22 @@ if (process.platform === 'win32') {
   process.exit(0)
 }
 
-const instance = Fastify({
-  https: certs
-})
-instance.register(From, {
-  http: true
-})
-
-t.plan(10)
-t.tearDown(instance.close.bind(instance))
-
 const socketPath = `${__filename}.socket`
 
 try {
   fs.unlinkSync(socketPath)
 } catch (_) {
 }
+
+const instance = Fastify({
+  https: certs
+})
+instance.register(From, {
+  base: `unix+https://${querystring.escape(socketPath)}`
+})
+
+t.plan(10)
+t.tearDown(instance.close.bind(instance))
 
 const target = https.createServer(certs, (req, res) => {
   t.pass('request proxied')
@@ -46,7 +46,7 @@ const target = https.createServer(certs, (req, res) => {
 })
 
 instance.get('/', (request, reply) => {
-  reply.from(`unix+https://${querystring.escape(socketPath)}/hello`)
+  reply.from('hello')
 })
 
 t.tearDown(target.close.bind(target))

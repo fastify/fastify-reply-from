@@ -4,6 +4,7 @@ import { AddressInfo } from "net";
 import { IncomingHttpHeaders } from "http2";
 import { expectType } from 'tsd';
 import * as http from 'http';
+import * as https from 'https';
 import * as http2 from 'http2';
 // @ts-ignore
 import tap from 'tap'
@@ -18,6 +19,10 @@ const fullOptions: FastifyReplyFromOptions = {
     },
     requestOptions: {
       timeout: 1000
+    },
+    agents: {
+      'http:': new http.Agent({}),
+      'https:': new https.Agent({})
     }
   },
   http2: {
@@ -100,7 +105,7 @@ async function main() {
   });
   await instance.listen(0);
 
-  tap.pass('done')
+  tap.pass('done');
   tap.end();
 }
 
