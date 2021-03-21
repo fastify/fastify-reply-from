@@ -8,24 +8,22 @@ const get = require('simple-get').concat
 
 const instance = Fastify()
 
-t.plan(13)
+t.plan(7)
 t.tearDown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
-  t.pass('request proxied')
-  t.equal(req.method, 'HEAD')
-  t.equal(req.url, '/')
-  t.equal(req.headers['content-length'], '16')
-  t.equal(req.body, undefined)
-  res.statusCode = 205
-  res.setHeader('Content-Type', 'text/plain')
-  res.setHeader('x-my-header', 'hello!')
+  t.fail('this should never get called')
   res.end('hello world')
 })
 
 instance.head('/', (request, reply) => {
-  t.pass('head received')
-  reply.from()
+  try {
+    reply.from(null, { body: 'this is the new body' })
+  } catch (e) {
+    t.strictEqual(e.message, 'Rewriting the body when doing a HEAD is not allowed')
+    reply.header('x-http-error', '1')
+    reply.send('hello world')
+  }
 })
 
 t.tearDown(target.close.bind(target))
@@ -34,9 +32,7 @@ target.listen(0, (err) => {
   t.error(err)
 
   instance.register(From, {
-    base: `http://localhost:${target.address().port}`,
-    // Use node core HTTP, Undici requires spec compliance
-    http: {}
+    base: `http://localhost:${target.address().port}`
   })
 
   instance.listen(0, (err) => {
@@ -44,13 +40,11 @@ target.listen(0, (err) => {
 
     get({
       url: `http://localhost:${instance.server.address().port}`,
-      method: 'HEAD',
-      body: 'this is get body'
+      method: 'HEAD'
     }, (err, res, data) => {
       t.error(err)
-      t.equal(res.headers['content-type'], 'text/plain')
-      t.equal(res.headers['x-my-header'], 'hello!')
-      t.equal(res.statusCode, 205)
+      t.equal(res.statusCode, 200)
+      t.equal(res.headers['x-http-error'], '1')
       t.equal(data.toString(), '')
     })
   })

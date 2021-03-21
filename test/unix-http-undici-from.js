@@ -13,19 +13,13 @@ if (process.platform === 'win32') {
   process.exit(0)
 }
 
-const socketPath = `${__filename}.socket`
-const upstream = `unix+http://${querystring.escape(socketPath)}/`
-
 const instance = Fastify()
-instance.register(From, {
-  // Use node core http, unix sockets are not
-  // supported yet.
-  http: true,
-  base: upstream
-})
+instance.register(From)
 
-t.plan(10)
+t.plan(4)
 t.tearDown(instance.close.bind(instance))
+
+const socketPath = `${__filename}.socket`
 
 try {
   fs.unlinkSync(socketPath)
@@ -33,17 +27,12 @@ try {
 }
 
 const target = http.createServer((req, res) => {
-  t.pass('request proxied')
-  t.equal(req.method, 'GET')
-  t.equal(req.url, '/hello')
-  res.statusCode = 205
-  res.setHeader('Content-Type', 'text/plain')
-  res.setHeader('x-my-header', 'hello!')
-  res.end('hello world')
+  t.fail('no response')
+  res.end()
 })
 
 instance.get('/', (request, reply) => {
-  reply.from('hello')
+  reply.from(`unix+http://${querystring.escape(socketPath)}/hello`)
 })
 
 t.tearDown(target.close.bind(target))
@@ -56,10 +45,7 @@ instance.listen(0, (err) => {
 
     get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
       t.error(err)
-      t.equal(res.headers['content-type'], 'text/plain')
-      t.equal(res.headers['x-my-header'], 'hello!')
-      t.equal(res.statusCode, 205)
-      t.equal(data.toString(), 'hello world')
+      t.equal(res.statusCode, 500)
     })
   })
 })

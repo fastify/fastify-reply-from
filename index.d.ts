@@ -14,10 +14,12 @@ import {
   IncomingHttpHeaders,
   RequestOptions,
   AgentOptions,
+  Agent,
 } from "http";
 import {
   RequestOptions as SecureRequestOptions,
   AgentOptions as SecureAgentOptions,
+  Agent as SecureAgent
 } from "https";
 import {
   Http2ServerRequest,
@@ -68,6 +70,7 @@ interface Http2Options {
 interface HttpOptions {
   agentOptions?: AgentOptions | SecureAgentOptions;
   requestOptions?: RequestOptions | SecureRequestOptions;
+  agents?: { 'http:': Agent, 'https:': SecureAgent }
 }
 
 export interface FastifyReplyFromOptions {

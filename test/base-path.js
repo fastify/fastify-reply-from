@@ -22,7 +22,9 @@ instance.get('/', (request, reply) => {
   reply.from('http://httpbin.org/ip')
 })
 
-instance.register(From)
+instance.register(From, {
+  undici: false
+})
 
 instance.listen(0, (err) => {
   t.error(err)

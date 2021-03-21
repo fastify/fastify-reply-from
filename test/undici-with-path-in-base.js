@@ -14,8 +14,8 @@ t.tearDown(instance.close.bind(instance))
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'GET')
-  t.equal(req.url, '/')
-  t.equal(req.body, undefined)
+  t.equal(req.url, '/hello')
+  t.equal(req.headers.connection, 'keep-alive')
   res.statusCode = 205
   res.setHeader('Content-Type', 'text/plain')
   res.setHeader('x-my-header', 'hello!')
@@ -23,7 +23,7 @@ const target = http.createServer((req, res) => {
 })
 
 instance.get('/', (request, reply) => {
-  reply.from()
+  reply.from('/hello')
 })
 
 t.tearDown(target.close.bind(target))
@@ -32,19 +32,14 @@ target.listen(0, (err) => {
   t.error(err)
 
   instance.register(From, {
-    base: `http://localhost:${target.address().port}`,
-    // Use node core HTTP, Undici requires spec compliance
-    http: {}
+    base: `http://localhost:${target.address().port}/hello`,
+    undici: true
   })
 
   instance.listen(0, (err) => {
     t.error(err)
 
-    get({
-      url: `http://localhost:${instance.server.address().port}`,
-      method: 'GET',
-      body: 'this is get body'
-    }, (err, res, data) => {
+    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
       t.error(err)
       t.equal(res.headers['content-type'], 'text/plain')
       t.equal(res.headers['x-my-header'], 'hello!')

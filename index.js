@@ -1,7 +1,6 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const URL = require('url').URL
 const lru = require('tiny-lru')
 const querystring = require('querystring')
 const Stream = require('stream')
@@ -10,7 +9,8 @@ const buildRequest = require('./lib/request')
 const {
   filterPseudoHeaders,
   copyHeaders,
-  stripHttp1ConnectionHeaders
+  stripHttp1ConnectionHeaders,
+  buildURL
 } = require('./lib/utils')
 
 const { TimeoutError } = buildRequest
@@ -22,11 +22,6 @@ module.exports = fp(function from (fastify, opts, next) {
     http: opts.http,
     http2: opts.http2,
     base,
-    keepAliveMsecs: opts.keepAliveMsecs,
-    maxFreeSockets: opts.maxFreeSockets,
-    maxSockets: opts.maxSockets,
-    rejectUnauthorized: opts.rejectUnauthorized,
-    sessionTimeout: opts.sessionTimeout,
     undici: opts.undici
   })
   fastify.decorateReply('from', function (source, opts) {
@@ -42,14 +37,14 @@ module.exports = fp(function from (fastify, opts, next) {
     }
 
     // we leverage caching to avoid parsing the destination URL
-    const url = cache.get(source) || new URL(source, base)
+    const url = cache.get(source) || buildURL(source, base)
     cache.set(source, url)
 
     const sourceHttp2 = req.httpVersionMajor === 2
-    var headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : req.headers
-    headers.host = url.hostname
+    const headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : req.headers
+    headers.host = url.host
     const qs = getQueryString(url.search, req.url, opts)
-    var body = ''
+    let body = ''
 
     if (opts.body) {
       if (typeof opts.body.pipe === 'function') {
@@ -92,7 +87,7 @@ module.exports = fp(function from (fastify, opts, next) {
       // if we are doing that with a GET or HEAD request is a programmer error
       // and as such we can throw immediately.
       if (body) {
-        throw new Error('Rewriting the body when doing a GET is not allowed')
+        throw new Error(`Rewriting the body when doing a ${req.method} is not allowed`)
       }
     }
 
@@ -106,7 +101,7 @@ module.exports = fp(function from (fastify, opts, next) {
         if (!this.sent) {
           if (err.code === 'ERR_HTTP2_STREAM_CANCEL' || err.code === 'ENOTFOUND') {
             onError(this, { error: new createError.ServiceUnavailable() })
-          } else if (err instanceof TimeoutError || err.code === 'UND_ERR_REQUEST_TIMEOUT') {
+          } else if (err instanceof TimeoutError || err.code === 'UND_ERR_HEADERS_TIMEOUT') {
             onError(this, { error: new createError.GatewayTimeout() })
           } else {
             onError(this, { error: createError(500, err) })
@@ -131,6 +126,13 @@ module.exports = fp(function from (fastify, opts, next) {
       }
     })
     return this
+  })
+
+  fastify.addHook('onReady', (done) => {
+    if (isFastifyMultipartRegistered(fastify)) {
+      fastify.log.warn('fastify-reply-from might not behave as expected when used with fastify-multipart')
+    }
+    done()
   })
 
   fastify.onClose((fastify, next) => {
@@ -171,4 +173,8 @@ function requestHeadersNoOp (originalReq, headers) {
 
 function onErrorDefault (reply, { error }) {
   reply.send(error)
+}
+
+function isFastifyMultipartRegistered (fastify) {
+  return fastify.hasContentTypeParser('multipart') && fastify.hasRequestDecorator('multipart')
 }

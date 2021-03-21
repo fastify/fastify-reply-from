@@ -16,7 +16,7 @@ const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'POST')
   t.equal(req.headers['content-type'], 'text/plain')
-  var data = ''
+  let data = ''
   req.setEncoding('utf8')
   req.on('data', (d) => {
     data += d

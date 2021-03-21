@@ -7,30 +7,37 @@ const http = require('http')
 const get = require('simple-get').concat
 
 const instance = Fastify()
-instance.register(From)
+instance.register(From, {
+  http: true
+})
 
-t.plan(8)
+t.plan(9)
 t.tearDown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'POST')
   t.equal(req.headers['content-type'], 'application/json')
+  t.equal(req.headers['content-length'], '20')
   let data = ''
   req.setEncoding('utf8')
   req.on('data', (d) => {
     data += d
   })
   req.on('end', () => {
-    t.deepEqual(JSON.parse(data), { hello: 'world' })
+    t.deepEqual(JSON.parse(data), { something: 'else' })
     res.statusCode = 200
     res.setHeader('content-type', 'application/json')
-    res.end(JSON.stringify({ something: 'else' }))
+    res.end(JSON.stringify({ hello: 'fastify' }))
   })
 })
 
 instance.post('/', (request, reply) => {
-  reply.from(`http://localhost:${target.address().port}`)
+  reply.from(`http://localhost:${target.address().port}`, {
+    body: {
+      something: 'else'
+    }
+  })
 })
 
 t.tearDown(target.close.bind(target))
@@ -50,7 +57,7 @@ instance.listen(0, (err) => {
       }
     }, (err, res, data) => {
       t.error(err)
-      t.deepEqual(data, { something: 'else' })
+      t.deepEqual(data, { hello: 'fastify' })
     })
   })
 })
