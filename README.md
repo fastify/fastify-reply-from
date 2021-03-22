@@ -171,6 +171,12 @@ proxy.register(require('fastify-reply-from'), {
 
 The number of parsed URLs that will be cached. Default: `100`.
 
+#### `disableCache`
+
+This option will disable the URL caching. 
+This cache is dedicated to reduce the amount of URL object generation.
+Generating URLs is a main bottleneck of this module, please disable this cache with caution.
+
 ---
 
 ### `reply.from(source, [opts])`
@@ -218,6 +224,12 @@ It must return the new headers object.
 
 Called to rewrite the headers of the request, before them being sent to the other server.
 It must return the new headers object.
+
+#### `getUpstream(originalReq, base)`
+
+Called to get upstream destination, before the request is being sent. Useful when you want to decide which target server to call based on the request data.
+Helpful for a gradual rollout of new services.
+It must return the upstream destination.
 
 #### `queryString`
 

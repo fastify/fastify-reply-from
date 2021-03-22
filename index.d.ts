@@ -49,6 +49,10 @@ export interface FastifyReplyFromHooks {
     req: Http2ServerRequest | IncomingMessage,
     headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
   ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
+  getUpstream?: (
+      req: Http2ServerRequest | IncomingMessage,
+      base: string
+  ) => string;
 }
 
 declare module "fastify" {
@@ -76,6 +80,7 @@ interface HttpOptions {
 export interface FastifyReplyFromOptions {
   base?: string;
   cacheURLs?: number;
+  disableCache?: boolean;
   http?: HttpOptions;
   http2?: Http2Options | boolean;
   undici?: unknown; // undici has no TS declarations yet

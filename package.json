@@ -5,7 +5,7 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "coverage": "tap -j8 test/*.js --cov",
+    "coverage": "tap -j8 test/*.js --cov --coverage-report=html",
     "lint:fix": "standard --fix",
     "test": "standard | snazzy && tap --ts test/* && npm run typescript",
     "test:ci": "standard | snazzy && tap --ts test/* --coverage-report=lcovonly && npm run typescript",
