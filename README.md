@@ -171,6 +171,12 @@ proxy.register(require('fastify-reply-from'), {
 
 The number of parsed URLs that will be cached. Default: `100`.
 
+#### `disableCache`
+
+This option will disable the URL caching. 
+This cache is dedicated to reduce the amount of URL object generation.
+Generating URLs is a main bottleneck of this module, please disable this cache with caution.
+
 ---
 
 ### `reply.from(source, [opts])`

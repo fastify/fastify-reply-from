@@ -36,6 +36,7 @@ const fullOptions: FastifyReplyFromOptions = {
     }
   },
   cacheURLs: 100,
+  disableCache: false,
   keepAliveMsecs: 60 * 1000,
   maxFreeSockets: 2048,
   maxSockets: 2048,
