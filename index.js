@@ -76,7 +76,13 @@ module.exports = fp(function from (fastify, opts, next) {
         // detect if body should be encoded as JSON
         // supporting extended content-type header formats:
         // - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
-        const shouldEncodeJSON = contentType.toLowerCase().indexOf('application/json') === 0
+        const contentTypesNotToEncode = [
+          'application/json',
+          'application/x-www-form-urlencoded'
+        ]
+        const shouldEncodeJSON = contentTypesNotToEncode.some(type =>
+          contentType.toLowerCase().indexOf(type) === 0
+        )
         // transparently support JSON encoding
         body = shouldEncodeJSON ? JSON.stringify(this.request.body) : this.request.body
         // update origin request headers after encoding
