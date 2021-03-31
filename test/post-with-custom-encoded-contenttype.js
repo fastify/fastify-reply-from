@@ -8,7 +8,9 @@ const get = require('simple-get').concat
 const { parse } = require('querystring')
 
 const instance = Fastify()
-instance.register(From)
+instance.register(From, {
+  contentTypesToEncode: ['application/x-www-form-urlencoded']
+})
 
 instance.addContentTypeParser(
   'application/x-www-form-urlencoded',
@@ -38,9 +40,7 @@ const target = http.createServer((req, res) => {
 })
 
 instance.post('/', (request, reply) => {
-  reply.from(`http://localhost:${target.address().port}`, {
-    contentTypesToEncode: ['application/x-www-form-urlencoded']
-  })
+  reply.from(`http://localhost:${target.address().port}`)
 })
 
 t.tearDown(target.close.bind(target))

@@ -177,6 +177,18 @@ This option will disable the URL caching.
 This cache is dedicated to reduce the amount of URL object generation.
 Generating URLs is a main bottleneck of this module, please disable this cache with caution.
 
+#### `contentTypesToEncode`
+
+An array of content types whose response body will be passed through `JSON.stringify()`. 
+This only applies when a custom [`body`](#body) is not passed in. Defaults to:
+
+```js
+[ 
+  'application/json',
+  'application/x-www-form-urlencoded'
+]
+```
+
 ---
 
 ### `reply.from(source, [opts])`
@@ -249,18 +261,6 @@ Setting this option for GET, HEAD requests will throw an error "Rewriting the bo
 
 Override the `'Content-Type'` header of the forwarded request, if we are
 already overriding the [`body`](#body).
-
-#### `contentTypesToEncode`
-
-An array of content types whose response body will be passed through `JSON.stringify()`. 
-This only applies when a custom [`body`](#body) is not passed in. Defaults to:
-
-```js
-[ 
-  'application/json',
-  'application/x-www-form-urlencoded'
-]
-```
 
 ### Combining with [fastify-formbody](https://github.com/fastify/fastify-formbody)
 

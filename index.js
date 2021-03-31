@@ -16,6 +16,10 @@ const {
 const { TimeoutError } = buildRequest
 
 module.exports = fp(function from (fastify, opts, next) {
+  const contentTypesToEncode = new Set([
+    'application/json',
+    ...(opts.contentTypesToEncode || [])
+  ])
   const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
   const base = opts.base
   const { request, close } = buildRequest({
@@ -76,10 +80,6 @@ module.exports = fp(function from (fastify, opts, next) {
         // detect if body should be encoded as JSON
         // supporting extended content-type header formats:
         // - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
-        const contentTypesToEncode = new Set([
-          'application/json',
-          ...(opts.contentTypesToEncode || [])
-        ])
         const lowerCaseContentType = contentType.toLowerCase()
         const plainContentType = lowerCaseContentType.indexOf(';') > -1
           ? lowerCaseContentType.slice(0, lowerCaseContentType.indexOf(';'))
