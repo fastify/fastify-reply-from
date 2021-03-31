@@ -240,7 +240,7 @@ This will be passed to
 #### `body`
 
 Replaces the original request body with what is specified. Unless
-[`contentType`][contentType] is specified, the content will be passed
+[`contentType`](#contentType) is specified, the content will be passed
 through `JSON.stringify()`.
 Setting this option for GET, HEAD requests will throw an error "Rewriting the body when doing a {GET|HEAD} is not allowed".
 
@@ -248,7 +248,25 @@ Setting this option for GET, HEAD requests will throw an error "Rewriting the bo
 #### `contentType`
 
 Override the `'Content-Type'` header of the forwarded request, if we are
-already overriding the [`body`][body].
+already overriding the [`body`](#body).
+
+#### `contentTypesToEncode`
+
+An array of content types whose response body will be passed through `JSON.stringify()`. 
+This only applies when a custom [`body`](#body) is not passed in. Defaults to:
+
+```js
+[ 
+  'application/json',
+  'application/x-www-form-urlencoded'
+]
+```
+
+### Combining with [fastify-formbody](https://github.com/fastify/fastify-formbody)
+
+`formbody` expects the body to be returned as a string and not an object. 
+Use the [`contentTypesToEncode`](#contentTypesToEncode) option to pass in `['application/x-www-form-urlencoded']`
+
 
 ### HTTP & HTTP2 timeouts
 

@@ -5,10 +5,16 @@ const Fastify = require('fastify')
 const From = require('..')
 const http = require('http')
 const get = require('simple-get').concat
+const { parse } = require('querystring')
 
 const instance = Fastify()
 instance.register(From)
-instance.register(require('fastify-formbody'))
+
+instance.addContentTypeParser(
+  'application/x-www-form-urlencoded',
+  { parseAs: 'buffer', bodyLimit: 1000 },
+  (req, body, done) => done(null, parse(body.toString()))
+)
 
 t.plan(9)
 t.tearDown(instance.close.bind(instance))

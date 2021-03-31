@@ -32,6 +32,10 @@ module.exports = fp(function from (fastify, opts, next) {
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
     const getUpstream = opts.getUpstream || upstreamNoOp
     const onError = opts.onError || onErrorDefault
+    const contentTypesToEncode = new Set([
+      'application/json',
+      ...(opts.contentTypesToEncode || [])
+    ])
 
     if (!source) {
       source = req.url
@@ -76,13 +80,8 @@ module.exports = fp(function from (fastify, opts, next) {
         // detect if body should be encoded as JSON
         // supporting extended content-type header formats:
         // - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
-        const contentTypesNotToEncode = [
-          'application/json',
-          'application/x-www-form-urlencoded'
-        ]
-        const shouldEncodeJSON = contentTypesNotToEncode.some(type =>
-          contentType.toLowerCase().indexOf(type) === 0
-        )
+        const plainContentType = contentType.toLowerCase().split(';')[0]
+        const shouldEncodeJSON = contentTypesToEncode.has(plainContentType)
         // transparently support JSON encoding
         body = shouldEncodeJSON ? JSON.stringify(this.request.body) : this.request.body
         // update origin request headers after encoding
