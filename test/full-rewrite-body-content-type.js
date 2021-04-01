@@ -11,7 +11,7 @@ const instance = Fastify()
 instance.register(From)
 
 t.plan(8)
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
@@ -22,7 +22,7 @@ const target = http.createServer((req, res) => {
     data.push(d)
   })
   req.on('end', () => {
-    t.deepEqual(msgpack.decode(Buffer.concat(data)), { hello: 'world' })
+    t.same(msgpack.decode(Buffer.concat(data)), { hello: 'world' })
     res.statusCode = 200
     res.setHeader('content-type', 'application/json')
     res.end(JSON.stringify({ something: 'else' }))
@@ -36,7 +36,7 @@ instance.post('/', (request, reply) => {
   })
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 instance.listen(0, (err) => {
   t.error(err)
@@ -53,7 +53,7 @@ instance.listen(0, (err) => {
       }
     }, (err, res, data) => {
       t.error(err)
-      t.deepEqual(data, { something: 'else' })
+      t.same(data, { something: 'else' })
     })
   })
 })

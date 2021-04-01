@@ -29,8 +29,8 @@ async function main () {
   await target.listen(0)
 
   const instance = Fastify()
-  t.tearDown(instance.close.bind(instance))
-  t.tearDown(target.close.bind(target))
+  t.teardown(instance.close.bind(instance))
+  t.teardown(target.close.bind(target))
 
   instance.register(From, {
     base: `http://localhost:${target.address().port}`,

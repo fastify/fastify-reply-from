@@ -10,13 +10,13 @@ const instance = Fastify()
 instance.register(From)
 
 t.plan(8)
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 instance.addContentTypeParser('application/octet-stream', function (req, payload, done) {
   done(null, payload)
 })
 
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
@@ -28,7 +28,7 @@ const target = http.createServer((req, res) => {
     data += d
   })
   req.on('end', () => {
-    t.deepEqual(JSON.parse(data), { hello: 'world' })
+    t.same(JSON.parse(data), { hello: 'world' })
     res.statusCode = 200
     res.setHeader('content-type', 'application/octet-stream')
     res.end(JSON.stringify({ something: 'else' }))
@@ -39,7 +39,7 @@ instance.post('/', (request, reply) => {
   reply.from(`http://localhost:${target.address().port}`)
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 instance.listen(0, (err) => {
   t.error(err)
@@ -58,7 +58,7 @@ instance.listen(0, (err) => {
       })
     }, (err, res, data) => {
       t.error(err)
-      t.deepEqual(JSON.parse(data), { something: 'else' })
+      t.same(JSON.parse(data), { something: 'else' })
     })
   })
 })

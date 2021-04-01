@@ -8,7 +8,7 @@ const got = require('got')
 test('http -> http2 crash multiple times', async (t) => {
   const instance = Fastify()
 
-  t.tearDown(instance.close.bind(instance))
+  t.teardown(instance.close.bind(instance))
 
   instance.get('/', (request, reply) => {
     reply.from()
@@ -35,7 +35,7 @@ test('http -> http2 crash multiple times', async (t) => {
   } catch (err) {
     t.equal(err.response.statusCode, 503)
     t.match(err.response.headers['content-type'], /application\/json/)
-    t.deepEqual(JSON.parse(err.response.body), {
+    t.same(JSON.parse(err.response.body), {
       statusCode: 503,
       error: 'Service Unavailable',
       message: 'Service Unavailable'

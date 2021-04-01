@@ -20,8 +20,8 @@ instanceWithoutBase.register(From, {
 })
 
 t.plan(13)
-t.tearDown(instance.close.bind(instance))
-t.tearDown(instanceWithoutBase.close.bind(instanceWithoutBase))
+t.teardown(instance.close.bind(instance))
+t.teardown(instanceWithoutBase.close.bind(instanceWithoutBase))
 
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
@@ -47,7 +47,7 @@ instanceWithoutBase.get('/test2', (request, reply) => {
   })
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 instance.listen(0, (err) => {
   t.error(err)

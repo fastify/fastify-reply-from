@@ -10,7 +10,7 @@ const instance = Fastify()
 instance.register(From)
 
 t.plan(9)
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
@@ -23,7 +23,7 @@ const target = http.createServer((req, res) => {
   })
   req.on('end', () => {
     const str = data.toString()
-    t.deepEqual(str, 'this is plain text')
+    t.same(str, 'this is plain text')
     res.statusCode = 200
     res.setHeader('content-type', 'text/plain')
     res.end(str)
@@ -34,7 +34,7 @@ instance.post('/', (request, reply) => {
   reply.from(`http://localhost:${target.address().port}`)
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 instance.listen(0, (err) => {
   t.error(err)
@@ -50,7 +50,7 @@ instance.listen(0, (err) => {
     }, (err, res, data) => {
       t.error(err)
       t.equal(res.headers['content-type'], 'text/plain')
-      t.deepEqual(data.toString(), 'this is plain text')
+      t.same(data.toString(), 'this is plain text')
     })
   })
 })

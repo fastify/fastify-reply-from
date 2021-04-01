@@ -9,7 +9,7 @@ const get = require('simple-get').concat
 const instance = Fastify()
 
 t.plan(11)
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
@@ -23,11 +23,11 @@ const target = http.createServer((req, res) => {
 
 instance.get('/', async (request, reply) => {
   const p = reply.from()
-  t.is(p, reply)
+  t.equal(p, reply)
   return p
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 target.listen(0, (err) => {
   t.error(err)
