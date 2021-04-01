@@ -8,7 +8,7 @@ const got = require('got')
 test('http -> http2', async function (t) {
   const instance = Fastify()
 
-  t.tearDown(instance.close.bind(instance))
+  t.teardown(instance.close.bind(instance))
 
   const target = Fastify({
     http2: true
@@ -16,7 +16,7 @@ test('http -> http2', async function (t) {
 
   target.post('/', (request, reply) => {
     t.pass('request proxied')
-    t.deepEqual(request.body, { something: 'else' })
+    t.same(request.body, { something: 'else' })
     reply.code(200).header('x-my-header', 'hello!').send({
       hello: 'world'
     })
@@ -26,7 +26,7 @@ test('http -> http2', async function (t) {
     reply.from()
   })
 
-  t.tearDown(target.close.bind(target))
+  t.teardown(target.close.bind(target))
 
   await target.listen(0)
 
@@ -45,5 +45,5 @@ test('http -> http2', async function (t) {
   t.equal(statusCode, 200)
   t.equal(headers['x-my-header'], 'hello!')
   t.match(headers['content-type'], /application\/json/)
-  t.deepEqual(body, { hello: 'world' })
+  t.same(body, { hello: 'world' })
 })

@@ -8,7 +8,7 @@ t.plan(1)
 
 class Agent {
   constructor (opts) {
-    t.strictDeepEqual(opts, {
+    t.strictSame(opts, {
       connections: 42,
       pipelining: 24,
       keepAliveTimeout: 4242,

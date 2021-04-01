@@ -9,7 +9,7 @@ const get = require('simple-get').concat
 const instance = Fastify()
 
 t.plan(9)
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 const bodyString = JSON.stringify({ hello: 'world' })
 
@@ -37,7 +37,7 @@ instance.post('/', (request, reply) => {
   reply.from(`http://localhost:${target.address().port}`)
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 target.listen(0, (err) => {
   t.error(err)
@@ -64,7 +64,7 @@ target.listen(0, (err) => {
     }, (err, res, data) => {
       t.error(err)
       const parsed = JSON.parse(data)
-      t.deepEqual(parsed, { something: 'else' })
+      t.same(parsed, { something: 'else' })
     })
   })
 })

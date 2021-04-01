@@ -11,7 +11,7 @@ const instance = Fastify()
 instance.register(From)
 
 t.plan(5)
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
   t.fail('the target server should never be called')
@@ -35,7 +35,7 @@ instance.post('/', (request, reply) => {
   reply.code(500).send({ an: 'error' })
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 instance.listen(0, (err) => {
   t.error(err)

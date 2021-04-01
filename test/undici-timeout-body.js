@@ -27,8 +27,8 @@ async function main () {
   await target.listen(0)
 
   const instance = Fastify()
-  t.tearDown(instance.close.bind(instance))
-  t.tearDown(target.close.bind(target))
+  t.teardown(instance.close.bind(instance))
+  t.teardown(target.close.bind(target))
 
   instance.register(From, {
     base: `http://localhost:${target.address().port}`,
@@ -47,7 +47,7 @@ async function main () {
     await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
   } catch (err) {
     t.equal(err.response.statusCode, 500)
-    t.deepEqual(JSON.parse(err.response.body), {
+    t.same(JSON.parse(err.response.body), {
       statusCode: 500,
       code: 'UND_ERR_BODY_TIMEOUT',
       error: 'Internal Server Error',

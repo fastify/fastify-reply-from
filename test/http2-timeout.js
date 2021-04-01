@@ -7,7 +7,7 @@ const got = require('got')
 
 test('http2 request timeout', async (t) => {
   const target = Fastify({ http2: true, sessionTimeout: 0 })
-  t.tearDown(target.close.bind(target))
+  t.teardown(target.close.bind(target))
 
   target.get('/', () => {
     t.pass('request arrives')
@@ -16,7 +16,7 @@ test('http2 request timeout', async (t) => {
   await target.listen(0)
 
   const instance = Fastify()
-  t.tearDown(instance.close.bind(instance))
+  t.teardown(instance.close.bind(instance))
 
   instance.register(From, {
     base: `http://localhost:${target.server.address().port}`,
@@ -36,7 +36,7 @@ test('http2 request timeout', async (t) => {
   } catch (err) {
     t.equal(err.response.statusCode, 504)
     t.match(err.response.headers['content-type'], /application\/json/)
-    t.deepEqual(JSON.parse(err.response.body), {
+    t.same(JSON.parse(err.response.body), {
       statusCode: 504,
       error: 'Gateway Timeout',
       message: 'Gateway Timeout'
@@ -50,7 +50,7 @@ test('http2 request timeout', async (t) => {
 
 test('http2 session timeout', async (t) => {
   const target = Fastify({ http2: true, sessionTimeout: 0 })
-  t.tearDown(target.close.bind(target))
+  t.teardown(target.close.bind(target))
 
   target.get('/', () => {
     t.pass('request arrives')
@@ -59,7 +59,7 @@ test('http2 session timeout', async (t) => {
   await target.listen(0)
 
   const instance = Fastify()
-  t.tearDown(instance.close.bind(instance))
+  t.teardown(instance.close.bind(instance))
 
   instance.register(From, {
     base: `http://localhost:${target.server.address().port}`,
@@ -79,7 +79,7 @@ test('http2 session timeout', async (t) => {
   } catch (err) {
     t.equal(err.response.statusCode, 504)
     t.match(err.response.headers['content-type'], /application\/json/)
-    t.deepEqual(JSON.parse(err.response.body), {
+    t.same(JSON.parse(err.response.body), {
       statusCode: 504,
       error: 'Gateway Timeout',
       message: 'Gateway Timeout'

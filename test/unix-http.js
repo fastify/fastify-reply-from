@@ -25,7 +25,7 @@ instance.register(From, {
 })
 
 t.plan(10)
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 try {
   fs.unlinkSync(socketPath)
@@ -46,7 +46,7 @@ instance.get('/', (request, reply) => {
   reply.from('hello')
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 instance.listen(0, (err) => {
   t.error(err)

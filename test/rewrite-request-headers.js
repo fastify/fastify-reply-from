@@ -10,7 +10,7 @@ const instance = Fastify()
 instance.register(From)
 
 t.plan(9)
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
@@ -29,7 +29,7 @@ instance.get('/', (request, reply) => {
   })
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 instance.listen(0, (err) => {
   t.error(err)

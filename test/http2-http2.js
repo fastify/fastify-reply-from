@@ -17,7 +17,7 @@ t.test('http2 -> http2', async (t) => {
     https: certs
   })
 
-  t.tearDown(instance.close.bind(instance))
+  t.teardown(instance.close.bind(instance))
 
   const target = Fastify({
     http2: true
@@ -34,7 +34,7 @@ t.test('http2 -> http2', async (t) => {
     reply.from()
   })
 
-  t.tearDown(target.close.bind(target))
+  t.teardown(target.close.bind(target))
 
   await target.listen(0)
 
@@ -53,5 +53,5 @@ t.test('http2 -> http2', async (t) => {
   t.equal(headers[':status'], 404)
   t.equal(headers['x-my-header'], 'hello!')
   t.match(headers['content-type'], /application\/json/)
-  t.deepEqual(JSON.parse(body), { hello: 'world' })
+  t.same(JSON.parse(body), { hello: 'world' })
 })

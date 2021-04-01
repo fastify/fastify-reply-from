@@ -26,7 +26,7 @@ instance.register(From, {
 })
 
 t.plan(10)
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 const socketPath = `${__filename}.socket`
 
@@ -49,7 +49,7 @@ instance.get('/', (request, reply) => {
   reply.from(`unix+https://${querystring.escape(socketPath)}/hello`)
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 instance.listen(0, (err) => {
   t.error(err)

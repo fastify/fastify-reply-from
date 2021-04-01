@@ -10,7 +10,7 @@ const instance = Fastify()
 instance.register(From)
 
 t.plan(9)
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 const bodyString = `{
   "hello": "world"
@@ -40,7 +40,7 @@ instance.post('/', (request, reply) => {
   reply.from(`http://localhost:${target.address().port}`)
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 instance.listen(0, (err) => {
   t.error(err)
@@ -58,7 +58,7 @@ instance.listen(0, (err) => {
     }, (err, res, data) => {
       t.error(err)
       const parsed = JSON.parse(data)
-      t.deepEqual(parsed, { something: 'else' })
+      t.same(parsed, { something: 'else' })
     })
   })
 })

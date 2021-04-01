@@ -18,7 +18,7 @@ const From = proxyquire('..', {
 test('unexpected error renders 500', async (t) => {
   const instance = Fastify()
 
-  t.tearDown(instance.close.bind(instance))
+  t.teardown(instance.close.bind(instance))
 
   instance.get('/', (request, reply) => {
     reply.code(201)
@@ -35,7 +35,7 @@ test('unexpected error renders 500', async (t) => {
   } catch (err) {
     t.equal(err.response.statusCode, 500)
     t.match(err.response.headers['content-type'], /application\/json/)
-    t.deepEqual(JSON.parse(err.response.body), {
+    t.same(JSON.parse(err.response.body), {
       statusCode: 500,
       error: 'Internal Server Error',
       message: 'foo'

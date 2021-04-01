@@ -19,7 +19,7 @@ const instance = Fastify({
 })
 
 t.plan(4)
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 const target = Fastify({
   https: certs
@@ -36,7 +36,7 @@ instance.get('/', (request, reply) => {
   reply.from()
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 async function run () {
   await target.listen(0)
@@ -56,7 +56,7 @@ async function run () {
     t.equal(headers[':status'], 404)
     t.equal(headers['x-my-header'], 'hello!')
     t.match(headers['content-type'], /application\/json/)
-    t.deepEqual(JSON.parse(body), { hello: 'world' })
+    t.same(JSON.parse(body), { hello: 'world' })
   })
 
   t.test('https -> https', async (t) => {
@@ -70,7 +70,7 @@ async function run () {
       t.equal(err.response.statusCode, 404)
       t.equal(err.response.headers['x-my-header'], 'hello!')
       t.match(err.response.headers['content-type'], /application\/json/)
-      t.deepEqual(JSON.parse(err.response.body), { hello: 'world' })
+      t.same(JSON.parse(err.response.body), { hello: 'world' })
       return
     }
     t.fail()

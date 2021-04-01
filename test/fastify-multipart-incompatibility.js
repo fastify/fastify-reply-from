@@ -25,7 +25,7 @@ instance.register(From)
 
 t.plan(12)
 
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 const filetPath = path.join(__dirname, 'fixtures', 'file.txt')
 const fileContent = fs.readFileSync(filetPath, { encoding: 'utf-8' })
@@ -54,7 +54,7 @@ instance.post('/', (request, reply) => {
   reply.from(`http://localhost:${target.address().port}`)
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 instance.listen(0, (err) => {
   t.error(err)
@@ -84,7 +84,7 @@ instance.listen(0, (err) => {
       body: form
     }, (err, res, data) => {
       t.error(err)
-      t.deepEqual(JSON.parse(data), { something: 'else' })
+      t.same(JSON.parse(data), { something: 'else' })
     })
   })
 })

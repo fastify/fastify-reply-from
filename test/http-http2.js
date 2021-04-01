@@ -8,7 +8,7 @@ const got = require('got')
 test('http -> http2', async (t) => {
   const instance = Fastify()
 
-  t.tearDown(instance.close.bind(instance))
+  t.teardown(instance.close.bind(instance))
 
   const target = Fastify({
     http2: true
@@ -25,7 +25,7 @@ test('http -> http2', async (t) => {
     reply.from()
   })
 
-  t.tearDown(target.close.bind(target))
+  t.teardown(target.close.bind(target))
 
   await target.listen(0)
 
@@ -42,7 +42,7 @@ test('http -> http2', async (t) => {
     t.equal(err.response.statusCode, 404)
     t.equal(err.response.headers['x-my-header'], 'hello!')
     t.match(err.response.headers['content-type'], /application\/json/)
-    t.deepEqual(JSON.parse(err.response.body), { hello: 'world' })
+    t.same(JSON.parse(err.response.body), { hello: 'world' })
     return
   }
 

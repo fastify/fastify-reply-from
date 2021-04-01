@@ -9,7 +9,7 @@ const get = require('simple-get').concat
 const instance = Fastify()
 
 t.plan(7)
-t.tearDown(instance.close.bind(instance))
+t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
   t.fail('this should never get called')
@@ -20,13 +20,13 @@ instance.head('/', (request, reply) => {
   try {
     reply.from(null, { body: 'this is the new body' })
   } catch (e) {
-    t.strictEqual(e.message, 'Rewriting the body when doing a HEAD is not allowed')
+    t.equal(e.message, 'Rewriting the body when doing a HEAD is not allowed')
     reply.header('x-http-error', '1')
     reply.send('hello world')
   }
 })
 
-t.tearDown(target.close.bind(target))
+t.teardown(target.close.bind(target))
 
 target.listen(0, (err) => {
   t.error(err)
