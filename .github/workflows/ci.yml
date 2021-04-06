@@ -10,27 +10,33 @@ on:
       - '*.md'
 jobs:
   test:
-    name: ${{ matrix.node-version }} ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+
     strategy:
-      fail-fast: false
       matrix:
-        os: [macOS-latest, ubuntu-latest, windows-latest]
-        node-version: [10, 12, 14]
+        node-version: [10.x, 12.x, 14.x]
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
+
+      - name: Use Node.js
         uses: actions/setup-node@v2.1.5
         with:
           node-version: ${{ matrix.node-version }}
+
       - name: Install Dependencies
-        run: npm install --ignore-scripts
-      - name: Tests
-        run: npm run test:ci
+        run: |
+          npm install --ignore-scripts
+
+      - name: Run Tests
+        run: |
+          npm run test:ci
+
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@v1.1.2
         with:
-          github-token: ${{ secrets.github_token }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
           flag-name: run-${{ matrix.node-version }}-${{ matrix.os }}
 
@@ -49,6 +55,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: fastify/github-action-merge-dependabot@v2.0.0
-        if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' }}
         with:
-          github-token: ${{secrets.github_token}}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
