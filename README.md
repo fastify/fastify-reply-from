@@ -6,7 +6,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/fastify/fastify-reply-from/badge.svg?branch=master)](https://coveralls.io/github/fastify/fastify-reply-from?branch=master)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
-fastify plugin to forward the current http request to another server.
+Fastify plugin to forward the current HTTP request to another server.
 HTTP2 to HTTP is supported too.
 
 ## Install
@@ -21,8 +21,8 @@ However, the two plugins may be used within the same fastify instance, at the co
 
 ## Usage
 
-The following example set up two fastify servers and forward the request
-from one to the other.
+The following example set up two Fastify servers and forward the request
+from one to the other:
 
 ```js
 'use strict'
@@ -129,7 +129,7 @@ proxy.register(require('fastify-reply-from'), {
 })
 ```
 
-You can also pass custom http agents. If you pass the agents, then the http.agentOptions will be ignored. To illustrate:
+You can also pass custom HTTP agents. If you pass the agents, then the http.agentOptions will be ignored. To illustrate:
 ```js
 proxy.register(require('fastify-reply-from'), {
   base: 'http://localhost:3001/',
@@ -203,7 +203,7 @@ the request or response being sent or received to/from the source.
 
 #### `onResponse(request, reply, res)`
 
-Called when an http response is received from the source.
+Called when a HTTP response is received from the source.
 The default behavior is `reply.send(res)`, which will be disabled if the
 option is specified.
 
@@ -221,7 +221,7 @@ the `content-length` header.
 
 #### `onError(reply, error)`
 
-Called when an http response is received with error from the source.
+Called when a HTTP response is received with error from the source.
 The default behavior is `reply.send(error)`, which will be disabled if the
 option is specified.
 It must reply the error.
