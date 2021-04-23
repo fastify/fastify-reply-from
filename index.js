@@ -28,6 +28,34 @@ module.exports = fp(function from (fastify, opts, next) {
     base,
     undici: opts.undici
   })
+
+  function createRetryRequest (requestImpl, reply, retriesCount) {
+    function requestRetry (req, cb) {
+      let retries = 0
+
+      function run () {
+        requestImpl(req, function (err, res) {
+          if (err && !reply.sent && retriesCount > retries) {
+            const contentLength = req.headers['content-type']
+
+            if (err.code === 'ECONNRESET' && !Number(contentLength)) {
+              retries += 1
+
+              run()
+              return
+            }
+          }
+
+          cb(err, res)
+        })
+      }
+
+      run()
+    }
+
+    return requestRetry
+  }
+
   fastify.decorateReply('from', function (source, opts) {
     opts = opts || {}
     const req = this.request.raw
@@ -36,6 +64,7 @@ module.exports = fp(function from (fastify, opts, next) {
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
     const getUpstream = opts.getUpstream || upstreamNoOp
     const onError = opts.onError || onErrorDefault
+    const retriesCount = opts.retriesCount || 0
 
     if (!source) {
       source = req.url
@@ -109,8 +138,15 @@ module.exports = fp(function from (fastify, opts, next) {
     this.request.log.info({ source }, 'fetching from remote server')
 
     const requestHeaders = rewriteRequestHeaders(req, headers)
+    let requestImpl
 
-    request({ method: req.method, url, qs, headers: requestHeaders, body }, (err, res) => {
+    if (retriesCount) {
+      requestImpl = createRetryRequest(request, this, retriesCount)
+    } else {
+      requestImpl = request
+    }
+
+    requestImpl({ method: req.method, url, qs, headers: requestHeaders, body }, (err, res) => {
       if (err) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {
