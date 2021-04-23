@@ -20,6 +20,11 @@ module.exports = fp(function from (fastify, opts, next) {
     'application/json',
     ...(opts.contentTypesToEncode || [])
   ])
+
+  const retryMethods = new Set(opts.retryMethods || [
+    'GET', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE'
+  ]);
+
   const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
   const base = opts.base
   const { request, close } = buildRequest({
@@ -29,33 +34,6 @@ module.exports = fp(function from (fastify, opts, next) {
     undici: opts.undici
   })
 
-  function createRetryRequest (requestImpl, reply, retriesCount) {
-    function requestRetry (req, cb) {
-      let retries = 0
-
-      function run () {
-        requestImpl(req, function (err, res) {
-          if (err && !reply.sent && retriesCount > retries) {
-            const contentLength = req.headers['content-type']
-
-            if (err.code === 'ECONNRESET' && !Number(contentLength)) {
-              retries += 1
-
-              run()
-              return
-            }
-          }
-
-          cb(err, res)
-        })
-      }
-
-      run()
-    }
-
-    return requestRetry
-  }
-
   fastify.decorateReply('from', function (source, opts) {
     opts = opts || {}
     const req = this.request.raw
@@ -64,7 +42,7 @@ module.exports = fp(function from (fastify, opts, next) {
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
     const getUpstream = opts.getUpstream || upstreamNoOp
     const onError = opts.onError || onErrorDefault
-    const retriesCount = opts.retriesCount || 0
+    const retriesCount = opts.retriesCount || 0;
 
     if (!source) {
       source = req.url
@@ -140,8 +118,8 @@ module.exports = fp(function from (fastify, opts, next) {
     const requestHeaders = rewriteRequestHeaders(req, headers)
     let requestImpl
 
-    if (retriesCount) {
-      requestImpl = createRetryRequest(request, this, retriesCount)
+    if (retriesCount && retryMethods.has(req.method)) {
+      requestImpl = createRequestRetry(request, this, retriesCount)
     } else {
       requestImpl = request
     }
@@ -232,4 +210,29 @@ function onErrorDefault (reply, { error }) {
 
 function isFastifyMultipartRegistered (fastify) {
   return fastify.hasContentTypeParser('multipart') && fastify.hasRequestDecorator('multipart')
+}
+
+function createRequestRetry(requestImpl, reply, retriesCount) {
+  function requestRetry(req, cb) {
+    let retries = 0
+
+    function run() {
+      requestImpl(req, function (err, res) {
+        if (err && !reply.sent && retriesCount > retries) {
+          if (err.code === 'ECONNRESET') {
+            retries += 1
+
+            run()
+            return
+          }
+        }
+
+        cb(err, res)
+      })
+    }
+
+    run()
+  }
+
+  return requestRetry
 }
