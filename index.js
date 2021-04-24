@@ -23,7 +23,7 @@ module.exports = fp(function from (fastify, opts, next) {
 
   const retryMethods = new Set(opts.retryMethods || [
     'GET', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE'
-  ]);
+  ])
 
   const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
   const base = opts.base
@@ -42,7 +42,7 @@ module.exports = fp(function from (fastify, opts, next) {
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
     const getUpstream = opts.getUpstream || upstreamNoOp
     const onError = opts.onError || onErrorDefault
-    const retriesCount = opts.retriesCount || 0;
+    const retriesCount = opts.retriesCount || 0
 
     if (!source) {
       source = req.url
@@ -116,9 +116,10 @@ module.exports = fp(function from (fastify, opts, next) {
     this.request.log.info({ source }, 'fetching from remote server')
 
     const requestHeaders = rewriteRequestHeaders(req, headers)
+    const contentLength = requestHeaders['content-length']
     let requestImpl
 
-    if (retriesCount && retryMethods.has(req.method)) {
+    if (retriesCount && retryMethods.has(req.method) && !contentLength) {
       requestImpl = createRequestRetry(request, this, retriesCount)
     } else {
       requestImpl = request
@@ -212,11 +213,11 @@ function isFastifyMultipartRegistered (fastify) {
   return fastify.hasContentTypeParser('multipart') && fastify.hasRequestDecorator('multipart')
 }
 
-function createRequestRetry(requestImpl, reply, retriesCount) {
-  function requestRetry(req, cb) {
+function createRequestRetry (requestImpl, reply, retriesCount) {
+  function requestRetry (req, cb) {
     let retries = 0
 
-    function run() {
+    function run () {
       requestImpl(req, function (err, res) {
         if (err && !reply.sent && retriesCount > retries) {
           if (err.code === 'ECONNRESET') {
