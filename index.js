@@ -27,7 +27,7 @@ module.exports = fp(function from (fastify, opts, next) {
 
   const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
   const base = opts.base
-  const { request, close } = buildRequest({
+  const { request, close, retryOnError } = buildRequest({
     http: opts.http,
     http2: opts.http2,
     base,
@@ -120,7 +120,7 @@ module.exports = fp(function from (fastify, opts, next) {
     let requestImpl
 
     if (retriesCount && retryMethods.has(req.method) && !contentLength) {
-      requestImpl = createRequestRetry(request, this, retriesCount)
+      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError)
     } else {
       requestImpl = request
     }
@@ -213,14 +213,14 @@ function isFastifyMultipartRegistered (fastify) {
   return fastify.hasContentTypeParser('multipart') && fastify.hasRequestDecorator('multipart')
 }
 
-function createRequestRetry (requestImpl, reply, retriesCount) {
+function createRequestRetry (requestImpl, reply, retriesCount, retryOnError) {
   function requestRetry (req, cb) {
     let retries = 0
 
     function run () {
       requestImpl(req, function (err, res) {
         if (err && !reply.sent && retriesCount > retries) {
-          if (err.code === 'ECONNRESET') {
+          if (err.code === retryOnError) {
             retries += 1
 
             run()
