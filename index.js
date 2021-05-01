@@ -22,7 +22,7 @@ module.exports = fp(function from (fastify, opts, next) {
   ])
 
   const retryMethods = new Set(opts.retryMethods || [
-    'GET', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE'
+    'GET', 'HEAD', 'OPTIONS', 'TRACE'
   ])
 
   const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
