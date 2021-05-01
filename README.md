@@ -191,8 +191,9 @@ This only applies when a custom [`body`](#body) is not passed in. Defaults to:
 
 #### `retryMethods`
 
-On which methods should the connection be retried in case of socket hang up.
-*Be aware* that setting here not idempotent method may lead to unexpected results on target.
+On which methods should the connection be retried in case of socket hang up.  
+**Be aware** that setting here not idempotent method may lead to unexpected results on target.
+
 By default: `GET`, `HEAD`, `OPTIONS`, `TRACE` 
 
 ---
@@ -264,9 +265,10 @@ Setting this option for GET, HEAD requests will throw an error "Rewriting the bo
 
 #### `retriesCount`
 
-How many times it will try to pick another connection on socket hangup (`ECONNRESET` error)
-Useful when keeping the connection open (KeepAlive).
+How many times it will try to pick another connection on socket hangup (`ECONNRESET` error).  
+Useful when keeping the connection open (KeepAlive).  
 This number should be a function of the number of connections and the number of instances of a target.
+
 By default: 0 (disabled)
 
 #### `contentType`
