@@ -194,7 +194,7 @@ This only applies when a custom [`body`](#body) is not passed in. Defaults to:
 On which methods should the connection be retried in case of socket hang up.  
 **Be aware** that setting here not idempotent method may lead to unexpected results on target.
 
-By default: `GET`, `HEAD`, `OPTIONS`, `TRACE` 
+By default: `['GET', 'HEAD', 'OPTIONS', 'TRACE' ]`
 
 ---
 
