@@ -20,14 +20,20 @@ module.exports = fp(function from (fastify, opts, next) {
     'application/json',
     ...(opts.contentTypesToEncode || [])
   ])
+
+  const retryMethods = new Set(opts.retryMethods || [
+    'GET', 'HEAD', 'OPTIONS', 'TRACE'
+  ])
+
   const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
   const base = opts.base
-  const { request, close } = buildRequest({
+  const { request, close, retryOnError } = buildRequest({
     http: opts.http,
     http2: opts.http2,
     base,
     undici: opts.undici
   })
+
   fastify.decorateReply('from', function (source, opts) {
     opts = opts || {}
     const req = this.request.raw
@@ -36,6 +42,7 @@ module.exports = fp(function from (fastify, opts, next) {
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
     const getUpstream = opts.getUpstream || upstreamNoOp
     const onError = opts.onError || onErrorDefault
+    const retriesCount = opts.retriesCount || 0
 
     if (!source) {
       source = req.url
@@ -109,8 +116,16 @@ module.exports = fp(function from (fastify, opts, next) {
     this.request.log.info({ source }, 'fetching from remote server')
 
     const requestHeaders = rewriteRequestHeaders(req, headers)
+    const contentLength = requestHeaders['content-length']
+    let requestImpl
 
-    request({ method: req.method, url, qs, headers: requestHeaders, body }, (err, res) => {
+    if (retriesCount && retryMethods.has(req.method) && !contentLength) {
+      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError)
+    } else {
+      requestImpl = request
+    }
+
+    requestImpl({ method: req.method, url, qs, headers: requestHeaders, body }, (err, res) => {
       if (err) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {
@@ -196,4 +211,29 @@ function onErrorDefault (reply, { error }) {
 
 function isFastifyMultipartRegistered (fastify) {
   return fastify.hasContentTypeParser('multipart') && fastify.hasRequestDecorator('multipart')
+}
+
+function createRequestRetry (requestImpl, reply, retriesCount, retryOnError) {
+  function requestRetry (req, cb) {
+    let retries = 0
+
+    function run () {
+      requestImpl(req, function (err, res) {
+        if (err && !reply.sent && retriesCount > retries) {
+          if (err.code === retryOnError) {
+            retries += 1
+
+            run()
+            return
+          }
+        }
+
+        cb(err, res)
+      })
+    }
+
+    run()
+  }
+
+  return requestRetry
 }
