@@ -33,7 +33,7 @@
   "devDependencies": {
     "@sinonjs/fake-timers": "^7.1.2",
     "@types/node": "^15.12.2",
-    "@types/tap": "^15.0.2",
+    "@types/tap": "^15.0.3",
     "fastify": "^3.17.0",
     "fastify-formbody": "^5.0.0",
     "fastify-multipart": "^4.0.6",
@@ -59,7 +59,7 @@
     "pump": "^3.0.0",
     "semver": "^7.3.5",
     "tiny-lru": "^7.0.6",
-    "undici": "^3.3.6"
+    "undici": "^4.0.0-rc.7"
   },
   "tsd": {
     "directory": "test"
