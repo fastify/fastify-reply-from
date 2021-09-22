@@ -33,6 +33,15 @@ test('should handle lack of trailing slash in base', (t) => {
   t.equal(url.href, 'http://localhost/hi/more')
 })
 
+test('should handle default port in base', (t) => {
+  t.plan(2)
+  let url = buildURL('/hi', 'http://localhost:80/hi')
+  t.equal(url.href, 'http://localhost/hi')
+
+  url = buildURL('/hi', 'https://localhost:443/hi')
+  t.equal(url.href, 'https://localhost/hi')
+})
+
 const errorInputs = [
   { source: '//10.0.0.10/hi', base: 'http://localhost' },
   { source: 'http://10.0.0.10/hi', base: 'http://localhost' },
