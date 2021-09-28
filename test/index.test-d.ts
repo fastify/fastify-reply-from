@@ -113,6 +113,16 @@ async function main() {
   });
   await instance.listen(0);
 
+  const undiciInstance = fastify()
+  undiciInstance.register(replyFrom, {
+    base: "http://example2.com",
+    undici: {
+      pipelining: 10,
+      connections: 10
+    }
+  });
+  await undiciInstance.ready();
+
   tap.pass('done');
   tap.end();
 }
