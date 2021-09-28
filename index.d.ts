@@ -28,7 +28,7 @@ import {
   ClientSessionOptions,
   SecureClientSessionOptions,
 } from "http2";
-
+import { Pool } from 'undici'
 export interface FastifyReplyFromHooks {
   queryString?: { [key: string]: unknown };
   contentType?: string;
@@ -83,7 +83,7 @@ export interface FastifyReplyFromOptions {
   disableCache?: boolean;
   http?: HttpOptions;
   http2?: Http2Options | boolean;
-  undici?: unknown; // undici has no TS declarations yet
+  undici?: Pool.Options;
   keepAliveMsecs?: number;
   maxFreeSockets?: number;
   maxSockets?: number;
