@@ -1,49 +1,80 @@
 'use strict'
 
-const t = require('tap')
+const { test } = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
 const http = require('http')
-const get = require('simple-get').concat
+const got = require('got')
 
-const instance = Fastify()
-
-t.plan(6)
-t.teardown(instance.close.bind(instance))
 let requestCount = 0
-const target = http.createServer((req, res) => {
-  if (requestCount++ === 0) {
-    res.statusCode = 503
+
+function createTargetServer (withRetryAfterHeader) {
+  return http.createServer((req, res) => {
+    console.log('request', requestCount)
+    if (requestCount++ === 0) {
+      res.statusCode = 503
+      res.setHeader('Content-Type', 'text/plain')
+      if (withRetryAfterHeader) {
+        res.setHeader('Retry-After', 1000)
+      }
+      return res.end('This Service Unavailable')
+    }
+    res.statusCode = 205
     res.setHeader('Content-Type', 'text/plain')
-    res.setHeader('Retry-After', 1000)
-    return res.end('This Service Unavailable')
-  }
-  res.statusCode = 205
-  res.setHeader('Content-Type', 'text/plain')
-  return res.end('Hello World Twice!')
-})
+    return res.end('Hello World Twice!')
+  })
+}
 
-instance.get('/', (request, reply) => {
-  reply.from()
-})
+test('Should retry on 503 HTTP error', async function (t) {
+  t.teardown(() => { requestCount = 0 })
+  t.plan(4)
+  const target = createTargetServer()
+  await target.listen(0)
+  t.teardown(target.close.bind(target))
 
-t.teardown(target.close.bind(target))
-
-target.listen(0, (err) => {
-  t.error(err)
+  const instance = Fastify()
 
   instance.register(From, {
     base: `http://localhost:${target.address().port}`
   })
 
-  instance.listen(0, (err) => {
-    t.error(err)
-
-    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-      t.error(err)
-      t.equal(res.headers['content-type'], 'text/plain')
-      t.equal(res.statusCode, 205)
-      t.equal(data.toString(), 'Hello World Twice!')
-    })
+  instance.get('/', (request, reply) => {
+    reply.from()
   })
+
+  t.teardown(instance.close.bind(instance))
+  await instance.listen(0)
+
+  const res = await got.get(`http://localhost:${instance.server.address().port}`)
+  t.equal(res.headers['content-type'], 'text/plain')
+  t.equal(res.statusCode, 205)
+  t.equal(res.body.toString(), 'Hello World Twice!')
+  t.pass()
+})
+
+test('Should retry on 503 HTTP error with Retry-After response header', async function (t) {
+  t.teardown(() => { requestCount = 0 })
+  t.plan(4)
+  const target = createTargetServer(true)
+  await target.listen(0)
+  t.teardown(target.close.bind(target))
+
+  const instance = Fastify()
+
+  instance.register(From, {
+    base: `http://localhost:${target.address().port}`
+  })
+
+  instance.get('/', (request, reply) => {
+    reply.from()
+  })
+
+  t.teardown(instance.close.bind(instance))
+  await instance.listen(0)
+
+  const res = await got.get(`http://localhost:${instance.server.address().port}`)
+  t.equal(res.headers['content-type'], 'text/plain')
+  t.equal(res.statusCode, 205)
+  t.equal(res.body.toString(), 'Hello World Twice!')
+  t.pass()
 })
