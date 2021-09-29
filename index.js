@@ -42,12 +42,16 @@ module.exports = fp(function from (fastify, opts, next) {
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
     const getUpstream = opts.getUpstream || upstreamNoOp
     const onError = opts.onError || onErrorDefault
-    const retriesCount = opts.retriesCount || 0
+    let retriesCount = opts.retriesCount || 0
 
     if (!source) {
       source = req.url
     }
 
+    if (retryMethods.has('GET') && req.method === 'GET' && retriesCount < 1) {
+      // force retries on GET requests
+      retriesCount = 1
+    }
     // we leverage caching to avoid parsing the destination URL
     const dest = getUpstream(req, base)
     let url
@@ -118,9 +122,8 @@ module.exports = fp(function from (fastify, opts, next) {
     const requestHeaders = rewriteRequestHeaders(req, headers)
     const contentLength = requestHeaders['content-length']
     let requestImpl
-
     if (retriesCount && retryMethods.has(req.method) && !contentLength) {
-      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError)
+      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError, 503)
     } else {
       requestImpl = request
     }
@@ -213,21 +216,24 @@ function isFastifyMultipartRegistered (fastify) {
   return fastify.hasContentTypeParser('multipart') && fastify.hasRequestDecorator('multipart')
 }
 
-function createRequestRetry (requestImpl, reply, retriesCount, retryOnError) {
+function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, retryOnCode = 503) {
   function requestRetry (req, cb) {
     let retries = 0
 
     function run () {
       requestImpl(req, function (err, res) {
-        if (err && !reply.sent && retriesCount > retries) {
-          if (err.code === retryOnError) {
+        let retryAfter = 42
+        if (res && res.headers['retry-after']) {
+          retryAfter = res.headers['retry-after']
+        }
+        if (!reply.sent && retriesCount > retries) {
+          if ((err && err.code === retryOnError) ||
+          (res && res.statusCode === retryOnCode && req.method === 'GET')) {
             retries += 1
-
-            run()
+            setTimeout(run, retryAfter)
             return
           }
         }
-
         cb(err, res)
       })
     }

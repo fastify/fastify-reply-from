@@ -56,7 +56,7 @@ test('will not retry', async function (t) {
 
   instance.register(From, { http: true })
 
-  instance.get('/', (request, reply) => {
+  instance.post('/', (request, reply) => {
     reply.from(`http://localhost:${target.address().port}/`, {
       retriesCount: 0,
       onError: (reply, { error }) => {
@@ -70,7 +70,7 @@ test('will not retry', async function (t) {
   t.teardown(instance.close.bind(instance))
 
   try {
-    await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
+    await got.post(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
     t.fail()
   } catch (err) {
     t.equal(err.response.statusCode, 500)
