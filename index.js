@@ -42,16 +42,12 @@ module.exports = fp(function from (fastify, opts, next) {
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
     const getUpstream = opts.getUpstream || upstreamNoOp
     const onError = opts.onError || onErrorDefault
-    let retriesCount = opts.retriesCount || 0
+    const retriesCount = opts.retriesCount || 0
 
     if (!source) {
       source = req.url
     }
 
-    if (retryMethods.has('GET') && req.method === 'GET' && retriesCount < 1) {
-      // force retries on GET requests
-      retriesCount = 1
-    }
     // we leverage caching to avoid parsing the destination URL
     const dest = getUpstream(req, base)
     let url
@@ -122,7 +118,7 @@ module.exports = fp(function from (fastify, opts, next) {
     const requestHeaders = rewriteRequestHeaders(req, headers)
     const contentLength = requestHeaders['content-length']
     let requestImpl
-    if (retriesCount && retryMethods.has(req.method) && !contentLength) {
+    if (retryMethods.has(req.method) && !contentLength) {
       requestImpl = createRequestRetry(request, this, retriesCount, retryOnError, 503)
     } else {
       requestImpl = request
@@ -222,20 +218,26 @@ function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, ret
 
     function run () {
       requestImpl(req, function (err, res) {
-        let retryAfter = 42
+        let retryAfter = 42 * Math.random() * (retries + 1)
         if (res && res.headers['retry-after']) {
           retryAfter = res.headers['retry-after']
         }
-        if (!reply.sent && retriesCount > retries) {
-          if ((err && err.code === retryOnError) ||
-          (res && res.statusCode === retryOnCode && req.method === 'GET')) {
-            retries += 1
-            setTimeout(run, retryAfter)
-            return
+
+        if (!reply.sent) {
+          // always retry on 503 errors
+          if (res && res.statusCode === retryOnCode && req.method === 'GET') {
+            return retry(retryAfter)
+          } else if (retriesCount > retries && err && err.code === retryOnError) {
+            return retry(retryAfter)
           }
         }
         cb(err, res)
       })
+    }
+
+    function retry (after) {
+      retries += 1
+      setTimeout(run, after)
     }
 
     run()
