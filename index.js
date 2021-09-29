@@ -212,8 +212,9 @@ function isFastifyMultipartRegistered (fastify) {
   return fastify.hasContentTypeParser('multipart') && fastify.hasRequestDecorator('multipart')
 }
 
-function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, retryOnCode = 503) {
+function createRequestRetry (requestImpl, reply, retriesCount, retryOnError) {
   function requestRetry (req, cb) {
+    const MAX_RETRIES_ON_503 = 10
     let retries = 0
 
     function run () {
@@ -224,11 +225,13 @@ function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, ret
         if (res && res.headers['retry-after']) {
           retryAfter = res.headers['retry-after']
         }
-
         if (!reply.sent) {
           // always retry on 503 errors
-          if (res && res.statusCode === retryOnCode && req.method === 'GET') {
-            return retry(retryAfter)
+          if (res && res.statusCode === 503 && req.method === 'GET') {
+            if (retriesCount === 0 && retries < MAX_RETRIES_ON_503) {
+              // we should stop at some point
+              return retry(retryAfter)
+            }
           } else if (retriesCount > retries && err && err.code === retryOnError) {
             return retry(retryAfter)
           }
