@@ -218,7 +218,9 @@ function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, ret
 
     function run () {
       requestImpl(req, function (err, res) {
+        // Magic number, so why not 42? We might want to make this configurable.
         let retryAfter = 42 * Math.random() * (retries + 1)
+
         if (res && res.headers['retry-after']) {
           retryAfter = res.headers['retry-after']
         }
