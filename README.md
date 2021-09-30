@@ -196,6 +196,19 @@ On which methods should the connection be retried in case of socket hang up.
 
 By default: `['GET', 'HEAD', 'OPTIONS', 'TRACE' ]`
 
+This plugin will always retry on 503 errors, _unless_ `retryMethods` does not contain `GET`.
+
+---
+
+#### `maxRetriesOn503`
+
+This plugin will always retry on `GET` requests that returns 503 errors, _unless_ `retryMethods` does not contain `GET`.
+
+This option set the limit on how many times the plugin should retry the request, specifically for 503 errors.
+
+By Default: 10
+
+
 ---
 
 ### `reply.from(source, [opts])`

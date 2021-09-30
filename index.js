@@ -43,6 +43,7 @@ module.exports = fp(function from (fastify, opts, next) {
     const getUpstream = opts.getUpstream || upstreamNoOp
     const onError = opts.onError || onErrorDefault
     const retriesCount = opts.retriesCount || 0
+    const maxRetriesOn503 = opts.maxRetriesOn503 || 10
 
     if (!source) {
       source = req.url
@@ -118,9 +119,8 @@ module.exports = fp(function from (fastify, opts, next) {
     const requestHeaders = rewriteRequestHeaders(req, headers)
     const contentLength = requestHeaders['content-length']
     let requestImpl
-
-    if (retriesCount && retryMethods.has(req.method) && !contentLength) {
-      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError)
+    if (retryMethods.has(req.method) && !contentLength) {
+      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError, maxRetriesOn503)
     } else {
       requestImpl = request
     }
@@ -213,23 +213,36 @@ function isFastifyMultipartRegistered (fastify) {
   return fastify.hasContentTypeParser('multipart') && fastify.hasRequestDecorator('multipart')
 }
 
-function createRequestRetry (requestImpl, reply, retriesCount, retryOnError) {
+function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, maxRetriesOn503) {
   function requestRetry (req, cb) {
     let retries = 0
 
     function run () {
       requestImpl(req, function (err, res) {
-        if (err && !reply.sent && retriesCount > retries) {
-          if (err.code === retryOnError) {
-            retries += 1
+        // Magic number, so why not 42? We might want to make this configurable.
+        let retryAfter = 42 * Math.random() * (retries + 1)
 
-            run()
-            return
+        if (res && res.headers['retry-after']) {
+          retryAfter = res.headers['retry-after']
+        }
+        if (!reply.sent) {
+          // always retry on 503 errors
+          if (res && res.statusCode === 503 && req.method === 'GET') {
+            if (retriesCount === 0 && retries < maxRetriesOn503) {
+              // we should stop at some point
+              return retry(retryAfter)
+            }
+          } else if (retriesCount > retries && err && err.code === retryOnError) {
+            return retry(retryAfter)
           }
         }
-
         cb(err, res)
       })
+    }
+
+    function retry (after) {
+      retries += 1
+      setTimeout(run, after)
     }
 
     run()
