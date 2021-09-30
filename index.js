@@ -119,7 +119,7 @@ module.exports = fp(function from (fastify, opts, next) {
     const contentLength = requestHeaders['content-length']
     let requestImpl
     if (retryMethods.has(req.method) && !contentLength) {
-      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError, 503)
+      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError)
     } else {
       requestImpl = request
     }
