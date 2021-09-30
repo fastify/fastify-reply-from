@@ -43,6 +43,7 @@ module.exports = fp(function from (fastify, opts, next) {
     const getUpstream = opts.getUpstream || upstreamNoOp
     const onError = opts.onError || onErrorDefault
     const retriesCount = opts.retriesCount || 0
+    const maxRetriesOn503 = opts.maxRetriesOn503 || 10
 
     if (!source) {
       source = req.url
@@ -119,7 +120,7 @@ module.exports = fp(function from (fastify, opts, next) {
     const contentLength = requestHeaders['content-length']
     let requestImpl
     if (retryMethods.has(req.method) && !contentLength) {
-      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError)
+      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError, maxRetriesOn503)
     } else {
       requestImpl = request
     }
@@ -212,9 +213,8 @@ function isFastifyMultipartRegistered (fastify) {
   return fastify.hasContentTypeParser('multipart') && fastify.hasRequestDecorator('multipart')
 }
 
-function createRequestRetry (requestImpl, reply, retriesCount, retryOnError) {
+function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, maxRetriesOn503) {
   function requestRetry (req, cb) {
-    const MAX_RETRIES_ON_503 = 10
     let retries = 0
 
     function run () {
@@ -228,7 +228,7 @@ function createRequestRetry (requestImpl, reply, retriesCount, retryOnError) {
         if (!reply.sent) {
           // always retry on 503 errors
           if (res && res.statusCode === 503 && req.method === 'GET') {
-            if (retriesCount === 0 && retries < MAX_RETRIES_ON_503) {
+            if (retriesCount === 0 && retries < maxRetriesOn503) {
               // we should stop at some point
               return retry(retryAfter)
             }
