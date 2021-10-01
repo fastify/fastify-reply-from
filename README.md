@@ -104,8 +104,16 @@ proxy.register(require('fastify-reply-from'), {
   }
 })
 ```
-
 See undici own options for more configurations.
+
+You can also pass the plugin a custom instance:
+
+```js
+proxy.register(require('fastify-reply-from'), {
+  base: 'http://localhost:3001/',
+  undici: new undici.Pool('http://localhost:3001')
+})
+```
 
 #### `http`
 
