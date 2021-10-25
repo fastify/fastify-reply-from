@@ -113,7 +113,7 @@ async function main() {
   });
   await instance.listen(0);
 
-  const undiciInstance = fastify()
+  const undiciInstance = fastify();
   undiciInstance.register(replyFrom, {
     base: "http://example2.com",
     undici: {
