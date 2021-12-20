@@ -55,7 +55,7 @@
   "dependencies": {
     "end-of-stream": "^1.4.4",
     "fastify-plugin": "^3.0.0",
-    "http-errors": "^1.8.0",
+    "http-errors": "^2.0.0",
     "pump": "^3.0.0",
     "semver": "^7.3.5",
     "tiny-lru": "^7.0.6",
