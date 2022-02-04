@@ -43,7 +43,8 @@ export interface FastifyReplyFromHooks {
   ) => void;
   body?: unknown;
   rewriteHeaders?: (
-    headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
+    headers: Http2IncomingHttpHeaders | IncomingHttpHeaders,
+    req?: Http2ServerRequest | IncomingMessage
   ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
   rewriteRequestHeaders?: (
     req: Http2ServerRequest | IncomingMessage,

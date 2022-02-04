@@ -142,11 +142,11 @@ module.exports = fp(function from (fastify, opts, next) {
       this.request.log.info('response received')
       if (sourceHttp2) {
         copyHeaders(
-          rewriteHeaders(stripHttp1ConnectionHeaders(res.headers)),
+          rewriteHeaders(stripHttp1ConnectionHeaders(res.headers), req),
           this
         )
       } else {
-        copyHeaders(rewriteHeaders(res.headers), this)
+        copyHeaders(rewriteHeaders(res.headers, req), this)
       }
       this.code(res.statusCode)
       if (onResponse) {
@@ -193,7 +193,7 @@ function getQueryString (search, reqUrl, opts) {
   return ''
 }
 
-function headersNoOp (headers) {
+function headersNoOp (headers, originalReq) {
   return headers
 }
 
