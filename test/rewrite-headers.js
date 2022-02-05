@@ -23,7 +23,7 @@ const target = http.createServer((req, res) => {
 
 instance.get('/', (request, reply) => {
   reply.from(`http://localhost:${target.address().port}`, {
-    rewriteHeaders: (headers) => {
+    rewriteHeaders: (headers, req) => {
       t.pass('rewriteHeaders called')
       return {
         'content-type': headers['content-type'],
