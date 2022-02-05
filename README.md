@@ -254,7 +254,7 @@ The default behavior is `reply.send(error)`, which will be disabled if the
 option is specified.
 It must reply the error.
 
-#### `rewriteHeaders(headers)`
+#### `rewriteHeaders(headers, req)`
 
 Called to rewrite the headers of the response, before them being copied
 over to the outer response.

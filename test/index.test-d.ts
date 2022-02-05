@@ -89,7 +89,7 @@ async function main() {
 
   instance.get("/http2", (request, reply) => {
       reply.from("/", {
-          rewriteHeaders(headers) {
+          rewriteHeaders(headers, req) {
               return headers;
           },
           rewriteRequestHeaders(req, headers: IncomingHttpHeaders) {
