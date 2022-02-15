@@ -176,6 +176,10 @@ module.exports = fp(function from (fastify, opts, next) {
 }, '>=3')
 
 function getQueryString (search, reqUrl, opts) {
+  if (typeof opts.queryString === 'function') {
+    return '?' + opts.queryString(search, reqUrl)
+  }
+
   if (opts.queryString) {
     return '?' + querystring.stringify(opts.queryString)
   }
