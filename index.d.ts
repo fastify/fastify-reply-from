@@ -91,6 +91,7 @@ export interface FastifyReplyFromOptions {
   maxSockets?: number;
   rejectUnauthorized?: boolean;
   sessionTimeout?: number;
+  contentTypesToEncode?: string[];
 }
 
 declare const fastifyReplyFrom: FastifyPlugin<FastifyReplyFromOptions>

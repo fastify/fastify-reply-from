@@ -44,7 +44,8 @@ const fullOptions: FastifyReplyFromOptions = {
   undici: {
     connections: 100,
     pipelining: 10
-  }
+  },
+  contentTypesToEncode: ['application/x-www-form-urlencoded']
 };
 tap.autoend(false);
 
