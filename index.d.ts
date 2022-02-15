@@ -29,8 +29,9 @@ import {
   SecureClientSessionOptions,
 } from "http2";
 import { Pool } from 'undici'
+type QueryStringFunction = (search: string | undefined, reqUrl: string) => string;
 export interface FastifyReplyFromHooks {
-  queryString?: { [key: string]: unknown };
+  queryString?: { [key: string]: unknown } | QueryStringFunction;
   contentType?: string;
   onResponse?: (
     request: FastifyRequest<RequestGenericInterface, RawServerBase>,

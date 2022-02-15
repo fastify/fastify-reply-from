@@ -271,11 +271,14 @@ Called to get upstream destination, before the request is being sent. Useful whe
 Helpful for a gradual rollout of new services.
 It must return the upstream destination.
 
-#### `queryString`
+#### `queryString` or `queryString(search, reqUrl)`
 
 Replaces the original querystring of the request with what is specified.
 This will be passed to
 [`querystring.stringify`](https://nodejs.org/api/querystring.html#querystring_querystring_stringify_obj_sep_eq_options).
+
+- `object`: accepts an object that will be passed to `querystring.stringify`
+- `function`: function that will return a string with the query parameters e.g. `name=test&type=user`
 
 #### `body`
 
