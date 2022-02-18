@@ -3,11 +3,12 @@
 import {
   FastifyRequest,
   FastifyReply,
-  FastifyPlugin,
   RawReplyDefaultExpression,
   RawServerBase,
   RequestGenericInterface,
   HTTPMethods,
+  FastifyPluginAsync,
+  FastifyPluginCallback,
 } from "fastify";
 
 import {
@@ -92,5 +93,7 @@ export interface FastifyReplyFromOptions {
   maxRetriesOn503?: number;
 }
 
-declare const fastifyReplyFrom: FastifyPlugin<FastifyReplyFromOptions>;
+declare const fastifyReplyFrom:
+  | FastifyPluginCallback<FastifyReplyFromOptions>
+  | FastifyPluginAsync<FastifyReplyFromOptions>;
 export default fastifyReplyFrom;
