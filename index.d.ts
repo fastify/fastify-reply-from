@@ -9,7 +9,7 @@ import {
   HTTPMethods,
   FastifyPluginAsync,
   FastifyPluginCallback,
-} from "fastify";
+} from 'fastify';
 
 import {
   IncomingMessage,
@@ -21,7 +21,7 @@ import {
 import {
   RequestOptions as SecureRequestOptions,
   AgentOptions as SecureAgentOptions,
-  Agent as SecureAgent,
+  Agent as SecureAgent
 } from "https";
 import {
   Http2ServerRequest,
@@ -30,11 +30,8 @@ import {
   ClientSessionOptions,
   SecureClientSessionOptions,
 } from "http2";
-import { Pool } from "undici";
-type QueryStringFunction = (
-  search: string | undefined,
-  reqUrl: string
-) => string;
+import { Pool } from 'undici'
+type QueryStringFunction = (search: string | undefined, reqUrl: string) => string;
 export interface FastifyReplyFromHooks {
   queryString?: { [key: string]: unknown } | QueryStringFunction;
   contentType?: string;
@@ -44,8 +41,8 @@ export interface FastifyReplyFromHooks {
     res: RawReplyDefaultExpression<RawServerBase>
   ) => void;
   onError?: (
-    reply: FastifyReply<RawServerBase>,
-    error: { error: Error }
+      reply: FastifyReply<RawServerBase>,
+      error: { error: Error }
   ) => void;
   body?: unknown;
   rewriteHeaders?: (
@@ -57,14 +54,17 @@ export interface FastifyReplyFromHooks {
     headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
   ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
   getUpstream?: (
-    req: Http2ServerRequest | IncomingMessage,
-    base: string
+      req: Http2ServerRequest | IncomingMessage,
+      base: string
   ) => string;
 }
 
 declare module "fastify" {
   interface FastifyReply {
-    from(source?: string, opts?: FastifyReplyFromHooks): void;
+    from(
+      source?: string,
+      opts?: FastifyReplyFromHooks
+    ): void;
   }
 }
 
@@ -78,7 +78,7 @@ interface Http2Options {
 interface HttpOptions {
   agentOptions?: AgentOptions | SecureAgentOptions;
   requestOptions?: RequestOptions | SecureRequestOptions;
-  agents?: { "http:": Agent; "https:": SecureAgent };
+  agents?: { 'http:': Agent, 'https:': SecureAgent }
 }
 
 export interface FastifyReplyFromOptions {
@@ -89,7 +89,7 @@ export interface FastifyReplyFromOptions {
   http2?: Http2Options | boolean;
   undici?: Pool.Options;
   contentTypesToEncode?: string[];
-  retryMethods?: (HTTPMethods | "TRACE")[];
+  retryMethods?: (HTTPMethods | 'TRACE')[];
   maxRetriesOn503?: number;
 }
 
