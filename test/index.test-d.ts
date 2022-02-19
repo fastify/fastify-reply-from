@@ -113,6 +113,10 @@ async function main() {
         },
       },
   });
+  instance.register(replyFrom, {
+    base: `http://localhost:${port}`,
+    http2: true,
+});
   await instance.listen(0);
 
   const undiciInstance = fastify();
