@@ -37,15 +37,13 @@ const fullOptions: FastifyReplyFromOptions = {
   },
   cacheURLs: 100,
   disableCache: false,
-  keepAliveMsecs: 60 * 1000,
-  maxFreeSockets: 2048,
-  maxSockets: 2048,
-  rejectUnauthorized: true,
   undici: {
     connections: 100,
     pipelining: 10
   },
-  contentTypesToEncode: ['application/x-www-form-urlencoded']
+  contentTypesToEncode: ['application/x-www-form-urlencoded'],
+  retryMethods: ['GET', 'HEAD', 'OPTIONS', 'TRACE'],
+  maxRetriesOn503: 10,
 };
 tap.autoend(false);
 
@@ -109,9 +107,16 @@ async function main() {
   const port = (target.server.address() as AddressInfo).port;
   instance.register(replyFrom, {
       base: `http://localhost:${port}`,
-      http2: true,
-      rejectUnauthorized: false
+      http2: {
+        sessionOptions: {
+          rejectUnauthorized: false,
+        },
+      },
   });
+  instance.register(replyFrom, {
+    base: `http://localhost:${port}`,
+    http2: true,
+});
   await instance.listen(0);
 
   const undiciInstance = fastify();

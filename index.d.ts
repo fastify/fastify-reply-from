@@ -3,10 +3,12 @@
 import {
   FastifyRequest,
   FastifyReply,
-  FastifyPlugin,
   RawReplyDefaultExpression,
   RawServerBase,
-  RequestGenericInterface
+  RequestGenericInterface,
+  HTTPMethods,
+  FastifyPluginAsync,
+  FastifyPluginCallback,
 } from 'fastify';
 
 import {
@@ -86,13 +88,12 @@ export interface FastifyReplyFromOptions {
   http?: HttpOptions;
   http2?: Http2Options | boolean;
   undici?: Pool.Options;
-  keepAliveMsecs?: number;
-  maxFreeSockets?: number;
-  maxSockets?: number;
-  rejectUnauthorized?: boolean;
-  sessionTimeout?: number;
   contentTypesToEncode?: string[];
+  retryMethods?: (HTTPMethods | 'TRACE')[];
+  maxRetriesOn503?: number;
 }
 
-declare const fastifyReplyFrom: FastifyPlugin<FastifyReplyFromOptions>
+declare const fastifyReplyFrom:
+  | FastifyPluginCallback<FastifyReplyFromOptions>
+  | FastifyPluginAsync<FastifyReplyFromOptions>;
 export default fastifyReplyFrom;
