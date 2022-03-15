@@ -65,20 +65,26 @@ module.exports = fp(function from (fastify, opts, next) {
     const qs = getQueryString(url.search, req.url, opts)
     let body = ''
 
-    if (opts.body) {
-      if (typeof opts.body.pipe === 'function') {
-        throw new Error('sending a new body as a stream is not supported yet')
-      }
+    if ('body' in opts) {
+      if (opts.body !== undefined) {
+        if (typeof opts.body.pipe === 'function') {
+          throw new Error('sending a new body as a stream is not supported yet')
+        }
 
-      if (opts.contentType) {
-        body = opts.body
+        if (opts.contentType) {
+          body = opts.body
+        } else {
+          body = JSON.stringify(opts.body)
+          opts.contentType = 'application/json'
+        }
+
+        headers['content-length'] = Buffer.byteLength(body)
+        headers['content-type'] = opts.contentType
       } else {
-        body = JSON.stringify(opts.body)
-        opts.contentType = 'application/json'
+        body = undefined
+        headers['content-length'] = 0
+        delete headers['content-type']
       }
-
-      headers['content-length'] = Buffer.byteLength(body)
-      headers['content-type'] = opts.contentType
     } else if (this.request.body) {
       if (this.request.body instanceof Stream) {
         body = this.request.body
