@@ -286,6 +286,7 @@ Replaces the original request body with what is specified. Unless
 [`contentType`](#contentType) is specified, the content will be passed
 through `JSON.stringify()`.
 Setting this option for GET, HEAD requests will throw an error "Rewriting the body when doing a {GET|HEAD} is not allowed".
+Setting this option to `undefined` will strip the body (and `content-type` header) entirely from the proxied request.
 
 #### `retriesCount`
 
