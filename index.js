@@ -65,8 +65,8 @@ module.exports = fp(function from (fastify, opts, next) {
     const qs = getQueryString(url.search, req.url, opts)
     let body = ''
 
-    if ('body' in opts) {
-      if (opts.body !== undefined) {
+    if (opts.body !== undefined) {
+      if (opts.body !== null) {
         if (typeof opts.body.pipe === 'function') {
           throw new Error('sending a new body as a stream is not supported yet')
         }

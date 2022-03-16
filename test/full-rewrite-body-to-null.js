@@ -34,7 +34,7 @@ const target = http.createServer((req, res) => {
 
 instance.post('/', (request, reply) => {
   reply.from(`http://localhost:${target.address().port}`, {
-    body: undefined
+    body: null
   })
 })
 
