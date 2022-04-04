@@ -59,7 +59,7 @@
     "pump": "^3.0.0",
     "semver": "^7.3.5",
     "tiny-lru": "^8.0.1",
-    "undici": "^4.0.0"
+    "undici": "^5.0.0"
   },
   "tsd": {
     "directory": "test"
