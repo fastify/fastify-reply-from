@@ -40,7 +40,7 @@
     "form-data": "^4.0.0",
     "got": "^11.8.2",
     "h2url": "^0.2.0",
-    "msgpack5": "^5.3.2",
+    "msgpack5": "^6.0.0",
     "nock": "^13.1.0",
     "pre-commit": "^1.2.2",
     "proxyquire": "^2.1.3",
