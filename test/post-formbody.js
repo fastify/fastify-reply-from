@@ -10,7 +10,7 @@ const instance = Fastify()
 instance.register(From, {
   contentTypesToEncode: ['application/x-www-form-urlencoded']
 })
-instance.register(require('fastify-formbody'))
+instance.register(require('@fastify/formbody'))
 
 t.plan(9)
 t.teardown(instance.close.bind(instance))

@@ -5,7 +5,7 @@ const path = require('path')
 const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
-const Multipart = require('fastify-multipart')
+const Multipart = require('@fastify/multipart')
 const http = require('http')
 const get = require('simple-get').concat
 const FormData = require('form-data')
@@ -62,7 +62,7 @@ instance.listen(0, (err) => {
   logStream.on('data', (log) => {
     if (
       log.level === 40 &&
-      log.msg.match(/fastify-reply-from might not behave as expected when used with fastify-multipart/)
+      log.msg.match(/@fastify\/reply-from might not behave as expected when used with @fastify\/multipart/)
     ) {
       t.pass('incompatibility warn message logged')
     }
