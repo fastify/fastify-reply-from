@@ -1,7 +1,7 @@
-# fastify-reply-from
+# @fastify/reply-from
 
 ![CI](https://github.com/fastify/fastify-reply-from/workflows/CI/badge.svg)
-[![NPM version](https://img.shields.io/npm/v/fastify-reply-from.svg?style=flat)](https://www.npmjs.com/package/fastify-reply-from)
+[![NPM version](https://img.shields.io/npm/v/@fastify/reply-from.svg?style=flat)](https://www.npmjs.com/package/@fastify/reply-from)
 [![Known Vulnerabilities](https://snyk.io/test/github/fastify/fastify-reply-from/badge.svg)](https://snyk.io/test/github/fastify/fastify-reply-from)
 [![Coverage Status](https://coveralls.io/repos/github/fastify/fastify-reply-from/badge.svg?branch=master)](https://coveralls.io/github/fastify/fastify-reply-from?branch=master)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
@@ -12,11 +12,11 @@ HTTP2 to HTTP is supported too.
 ## Install
 
 ```
-npm i fastify-reply-from
+npm i @fastify/reply-from
 ```
 
-## Compatibility with fastify-multipart
-`fastify-reply-from` and [`fastify-multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor should they be registered in plugins which have a parent-child relationship.<br> The two plugins are incompatible, in the sense that the behavior of `fastify-reply-from` might not be the expected one when the above-mentioned conditions are not respected.<br> This is due to the fact that `fastify-multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `fastify-reply-from`.<br>
+## Compatibility with @fastify/multipart
+`@fastify/reply-from` and [`@fastify/multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor should they be registered in plugins which have a parent-child relationship.<br> The two plugins are incompatible, in the sense that the behavior of `@fastify/reply-from` might not be the expected one when the above-mentioned conditions are not respected.<br> This is due to the fact that `@fastify/multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `@fastify/reply-from`.<br>
 However, the two plugins may be used within the same fastify instance, at the condition that they belong to disjoint branches of the fastify plugins hierarchy tree.
 
 ## Usage
@@ -41,7 +41,7 @@ const proxy = Fastify({
   logger: true
 })
 
-proxy.register(require('fastify-reply-from'), {
+proxy.register(require('@fastify/reply-from'), {
   base: 'http://localhost:3001/'
 })
 
@@ -77,7 +77,7 @@ for http2 nor undici.  To illustrate:
 
 ```js
 const socketPath = require('querystring').escape('/run/http-daemon.socket')
-proxy.register(require('fastify-reply-from'), {
+proxy.register(require('@fastify/reply-from'), {
   base: 'unix+http://${socketPath}/'
 });
 ```
@@ -91,7 +91,7 @@ requests. Enabling this flag should guarantee
 This flag could controls the settings of the undici client, like so:
 
 ```js
-proxy.register(require('fastify-reply-from'), {
+proxy.register(require('@fastify/reply-from'), {
   base: 'http://localhost:3001/',
   // default settings
   undici: {
@@ -109,7 +109,7 @@ See undici own options for more configurations.
 You can also pass the plugin a custom instance:
 
 ```js
-proxy.register(require('fastify-reply-from'), {
+proxy.register(require('@fastify/reply-from'), {
   base: 'http://localhost:3001/',
   undici: new undici.Pool('http://localhost:3001')
 })
@@ -124,7 +124,7 @@ you can pass in [`agentOptions`](https://nodejs.org/api/http.html#http_new_agent
 [`requestOptions`](https://nodejs.org/api/http.html#http_http_request_options_callback). To illustrate:
 
 ```js
-proxy.register(require('fastify-reply-from'), {
+proxy.register(require('@fastify/reply-from'), {
   base: 'http://localhost:3001/',
   http: {
     agentOptions: { // pass in any options from https://nodejs.org/api/http.html#http_new_agent_options
@@ -139,7 +139,7 @@ proxy.register(require('fastify-reply-from'), {
 
 You can also pass custom HTTP agents. If you pass the agents, then the http.agentOptions will be ignored. To illustrate:
 ```js
-proxy.register(require('fastify-reply-from'), {
+proxy.register(require('@fastify/reply-from'), {
   base: 'http://localhost:3001/',
   http: {
     agents: {
@@ -160,7 +160,7 @@ You can either set `http2` to `true` or set the settings object to connect to a 
 The `http2` settings object has the shape of:
 
 ```js
-proxy.register(require('fastify-reply-from'), {
+proxy.register(require('@fastify/reply-from'), {
   base: 'http://localhost:3001/',
   http2: {
     sessionTimeout: 10000, // HTTP/2 session timeout in msecs, defaults to 60000 (1 minute)
@@ -301,7 +301,7 @@ By default: 0 (disabled)
 Override the `'Content-Type'` header of the forwarded request, if we are
 already overriding the [`body`](#body).
 
-### Combining with [fastify-formbody](https://github.com/fastify/fastify-formbody)
+### Combining with [@fastify/formbody](https://github.com/fastify/fastify-formbody)
 
 `formbody` expects the body to be returned as a string and not an object. 
 Use the [`contentTypesToEncode`](#contentTypesToEncode) option to pass in `['application/x-www-form-urlencoded']`
