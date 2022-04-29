@@ -166,7 +166,7 @@ module.exports = fp(function from (fastify, opts, next) {
 
   fastify.addHook('onReady', (done) => {
     if (isFastifyMultipartRegistered(fastify)) {
-      fastify.log.warn('fastify-reply-from might not behave as expected when used with fastify-multipart')
+      fastify.log.warn('@fastify/reply-from might not behave as expected when used with @fastify/multipart')
     }
     done()
   })
