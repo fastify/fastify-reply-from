@@ -22,7 +22,7 @@ const target = require('http').createServer(function (req, res) {
 test('Will retry', async function (t) {
   t.teardown(() => { retryNum = 1 })
 
-  await target.listen(0)
+  await target.listen({ port: 0 })
   t.teardown(target.close.bind(target))
 
   const instance = Fastify()
@@ -39,7 +39,7 @@ test('Will retry', async function (t) {
     })
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
   t.teardown(instance.close.bind(instance))
 
   const { statusCode } = await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
@@ -49,7 +49,7 @@ test('Will retry', async function (t) {
 test('will not retry', async function (t) {
   t.teardown(() => { retryNum = 1 })
 
-  await target.listen(0)
+  await target.listen({ port: 0 })
   t.teardown(target.close.bind(target))
 
   const instance = Fastify()
@@ -66,7 +66,7 @@ test('will not retry', async function (t) {
     })
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
   t.teardown(instance.close.bind(instance))
 
   try {
@@ -80,7 +80,7 @@ test('will not retry', async function (t) {
 test('will not retry unsupported method', async function (t) {
   t.teardown(() => { retryNum = 1 })
 
-  await target.listen(0)
+  await target.listen({ port: 0 })
   t.teardown(target.close.bind(target))
 
   const instance = Fastify()
@@ -97,7 +97,7 @@ test('will not retry unsupported method', async function (t) {
     })
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
   t.teardown(instance.close.bind(instance))
 
   try {

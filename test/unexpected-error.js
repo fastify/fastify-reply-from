@@ -28,7 +28,7 @@ test('unexpected error renders 500', async (t) => {
     base: 'http://localhost'
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   try {
     await got(`http://localhost:${instance.server.address().port}`)

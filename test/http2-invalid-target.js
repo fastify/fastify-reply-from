@@ -18,7 +18,7 @@ test('http2 invalid target', async (t) => {
     http2: true
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   try {
     await got(`http://localhost:${instance.server.address().port}`)

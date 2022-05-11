@@ -27,14 +27,14 @@ instance.get('/hello', (request, reply) => {
 
 t.teardown(target.close.bind(target))
 
-target.listen(0, (err) => {
+target.listen({ port: 0 }, (err) => {
   t.error(err)
 
   instance.register(From, {
     base: `http://localhost:${target.address().port}`
   })
 
-  instance.listen(0, (err) => {
+  instance.listen({ port: 0 }, (err) => {
     t.error(err)
 
     get(`http://localhost:${instance.server.address().port}/hello?a=b`, (err, res, data) => {

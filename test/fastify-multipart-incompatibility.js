@@ -56,7 +56,7 @@ instance.post('/', (request, reply) => {
 
 t.teardown(target.close.bind(target))
 
-instance.listen(0, (err) => {
+instance.listen({ port: 0 }, (err) => {
   t.error(err)
 
   logStream.on('data', (log) => {
@@ -68,7 +68,7 @@ instance.listen(0, (err) => {
     }
   })
 
-  target.listen(0, (err) => {
+  target.listen({ port: 0 }, (err) => {
     t.error(err)
 
     const form = new FormData()

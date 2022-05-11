@@ -26,7 +26,7 @@ instance.register(From, {
   undici: false
 })
 
-instance.listen(0, (err) => {
+instance.listen({ port: 0 }, (err) => {
   t.error(err)
 
   get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {

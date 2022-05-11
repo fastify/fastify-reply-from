@@ -20,15 +20,15 @@ test('http -> http2 crash multiple times', async (t) => {
     sessionTimeout: 200
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   try {
     let target = setupTarget()
-    await target.listen(3128)
+    await target.listen({ port: 3128 })
     await got(`http://localhost:${instance.server.address().port}`)
     await target.close()
     target = setupTarget()
-    await target.listen(3128)
+    await target.listen({ port: 3128 })
     await got(`http://localhost:${instance.server.address().port}`)
     await target.close()
     await got(`http://localhost:${instance.server.address().port}`)

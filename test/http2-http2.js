@@ -36,7 +36,7 @@ t.test('http2 -> http2', async (t) => {
 
   t.teardown(target.close.bind(target))
 
-  await target.listen(0)
+  await target.listen({ port: 0 })
 
   instance.register(From, {
     base: `http://localhost:${target.server.address().port}`,
@@ -44,7 +44,7 @@ t.test('http2 -> http2', async (t) => {
     rejectUnauthorized: false
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   const { headers, body } = await h2url.concat({
     url: `https://localhost:${instance.server.address().port}`

@@ -21,7 +21,7 @@ const target = http.createServer((req, res) => {
 t.test('use a custom instance of \'undici\'', async t => {
   t.teardown(target.close.bind(target))
 
-  await new Promise((resolve, reject) => target.listen(0, err => err ? reject(err) : resolve()))
+  await new Promise((resolve, reject) => target.listen({ port: 0 }, err => err ? reject(err) : resolve()))
 
   t.test('custom Pool', t => {
     const instance = Fastify()
@@ -35,7 +35,7 @@ t.test('use a custom instance of \'undici\'', async t => {
       reply.from()
     })
 
-    instance.listen(0, (err) => {
+    instance.listen({ port: 0 }, (err) => {
       t.error(err)
 
       get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
@@ -61,7 +61,7 @@ t.test('use a custom instance of \'undici\'', async t => {
       reply.from()
     })
 
-    instance.listen(0, (err) => {
+    instance.listen({ port: 0 }, (err) => {
       t.error(err)
 
       get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {

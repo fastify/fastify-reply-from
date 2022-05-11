@@ -49,11 +49,11 @@ instanceWithoutBase.get('/test2', (request, reply) => {
 
 t.teardown(target.close.bind(target))
 
-instance.listen(0, (err) => {
+instance.listen({ port: 0 }, (err) => {
   t.error(err)
-  instanceWithoutBase.listen(0, (err) => {
+  instanceWithoutBase.listen({ port: 0 }, (err) => {
     t.error(err)
-    target.listen(0, (err) => {
+    target.listen({ port: 0 }, (err) => {
       t.error(err)
 
       get(`http://localhost:${instance.server.address().port}/test`, (err, res) => {

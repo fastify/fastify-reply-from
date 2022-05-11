@@ -26,7 +26,7 @@ function createTargetServer (withRetryAfterHeader, stopAfter = 1) {
 test('Should retry on 503 HTTP error', async function (t) {
   t.plan(3)
   const target = createTargetServer()
-  await target.listen(0)
+  await target.listen({ port: 0 })
   t.teardown(target.close.bind(target))
 
   const instance = Fastify()
@@ -40,7 +40,7 @@ test('Should retry on 503 HTTP error', async function (t) {
   })
 
   t.teardown(instance.close.bind(instance))
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
   t.equal(res.headers['content-type'], 'text/plain')
@@ -51,7 +51,7 @@ test('Should retry on 503 HTTP error', async function (t) {
 test('Should retry on 503 HTTP error with Retry-After response header', async function (t) {
   t.plan(3)
   const target = createTargetServer(true)
-  await target.listen(0)
+  await target.listen({ port: 0 })
   t.teardown(target.close.bind(target))
 
   const instance = Fastify()
@@ -65,7 +65,7 @@ test('Should retry on 503 HTTP error with Retry-After response header', async fu
   })
 
   t.teardown(instance.close.bind(instance))
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
   t.equal(res.headers['content-type'], 'text/plain')
@@ -76,7 +76,7 @@ test('Should retry on 503 HTTP error with Retry-After response header', async fu
 test('Should abort if server is always returning 503', async function (t) {
   t.plan(2)
   const target = createTargetServer(true, Number.MAX_SAFE_INTEGER)
-  await target.listen(0)
+  await target.listen({ port: 0 })
   t.teardown(target.close.bind(target))
 
   const instance = Fastify()
@@ -90,7 +90,7 @@ test('Should abort if server is always returning 503', async function (t) {
   })
 
   t.teardown(instance.close.bind(instance))
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
   try {
     await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
     t.fail()
