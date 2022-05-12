@@ -39,7 +39,7 @@ instance.post('/', (request, reply) => {
 
 t.teardown(target.close.bind(target))
 
-target.listen(0, (err) => {
+target.listen({ port: 0 }, (err) => {
   t.error(err)
 
   instance.addContentTypeParser('application/json', function (req, payload, done) {
@@ -51,7 +51,7 @@ target.listen(0, (err) => {
     undici: true
   })
 
-  instance.listen(0, (err) => {
+  instance.listen({ port: 0 }, (err) => {
     t.error(err)
 
     get({

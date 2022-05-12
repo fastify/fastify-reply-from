@@ -48,7 +48,7 @@ instance.get('/', (request, reply) => {
 
 t.teardown(target.close.bind(target))
 
-instance.listen(0, (err) => {
+instance.listen({ port: 0 }, (err) => {
   t.error(err)
 
   target.listen(socketPath, (err) => {

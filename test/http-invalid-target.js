@@ -17,7 +17,7 @@ test('http invalid target', async (t) => {
     base: 'http://abc.xyz1'
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   try {
     await got(`http://localhost:${instance.server.address().port}`)

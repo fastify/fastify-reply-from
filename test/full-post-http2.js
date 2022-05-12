@@ -28,14 +28,14 @@ test('http -> http2', async function (t) {
 
   t.teardown(target.close.bind(target))
 
-  await target.listen(0)
+  await target.listen({ port: 0 })
 
   instance.register(From, {
     base: `http://localhost:${target.server.address().port}`,
     http2: true
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   const { headers, body, statusCode } = await got(`http://localhost:${instance.server.address().port}`, {
     method: 'POST',

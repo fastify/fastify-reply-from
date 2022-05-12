@@ -37,7 +37,7 @@ instance.get('/', (request, reply) => {
 
 t.teardown(target.close.bind(target))
 
-target.listen(0, (err) => {
+target.listen({ port: 0 }, (err) => {
   t.error(err)
 
   instance.register(From, {
@@ -50,7 +50,7 @@ target.listen(0, (err) => {
     }
   })
 
-  instance.listen(0, (err) => {
+  instance.listen({ port: 0 }, (err) => {
     t.error(err)
 
     get({

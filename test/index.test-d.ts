@@ -103,7 +103,7 @@ async function main() {
       });
   });
 
-  await target.listen(0);
+  await target.listen({ port: 0 });
   const port = (target.server.address() as AddressInfo).port;
   instance.register(replyFrom, {
       base: `http://localhost:${port}`,
@@ -117,7 +117,7 @@ async function main() {
     base: `http://localhost:${port}`,
     http2: true,
 });
-  await instance.listen(0);
+  await instance.listen({ port: 0 });
 
   const undiciInstance = fastify();
   undiciInstance.register(replyFrom, {

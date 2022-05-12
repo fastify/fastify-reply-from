@@ -26,7 +26,7 @@ test('hostname', async (t) => {
     http: {} // force the use of Node.js core
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   const res = await got.get(`http://localhost:${instance.server.address().port}/ip`, {
     retry: 0
@@ -56,7 +56,7 @@ test('hostname and port', async (t) => {
     reply.from()
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   const res = await got.get(`http://localhost:${instance.server.address().port}/ip`, {
     retry: 0

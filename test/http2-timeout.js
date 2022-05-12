@@ -13,7 +13,7 @@ test('http2 request timeout', async (t) => {
     t.pass('request arrives')
   })
 
-  await target.listen(0)
+  await target.listen({ port: 0 })
 
   const instance = Fastify()
   t.teardown(instance.close.bind(instance))
@@ -27,7 +27,7 @@ test('http2 request timeout', async (t) => {
     reply.from(`http://localhost:${target.server.address().port}/`)
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   try {
     await got.get(`http://localhost:${instance.server.address().port}/`, {
@@ -56,7 +56,7 @@ test('http2 session timeout', async (t) => {
     t.pass('request arrives')
   })
 
-  await target.listen(0)
+  await target.listen({ port: 0 })
 
   const instance = Fastify()
   t.teardown(instance.close.bind(instance))
@@ -70,7 +70,7 @@ test('http2 session timeout', async (t) => {
     reply.from(`http://localhost:${target.server.address().port}/`)
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   try {
     await got.get(`http://localhost:${instance.server.address().port}/`, {

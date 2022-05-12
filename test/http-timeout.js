@@ -23,7 +23,7 @@ target.get('/', (request, reply) => {
 })
 
 async function main () {
-  await target.listen(0)
+  await target.listen({ port: 0 })
 
   const instance = Fastify()
   t.teardown(instance.close.bind(instance))
@@ -34,7 +34,7 @@ async function main () {
     reply.from(`http://localhost:${target.server.address().port}/`)
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   try {
     await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })

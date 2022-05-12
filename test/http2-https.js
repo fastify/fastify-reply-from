@@ -39,14 +39,14 @@ instance.get('/', (request, reply) => {
 t.teardown(target.close.bind(target))
 
 async function run () {
-  await target.listen(0)
+  await target.listen({ port: 0 })
 
   instance.register(From, {
     base: `https://localhost:${target.server.address().port}`,
     rejectUnauthorized: false
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   t.test('http2 -> https', async (t) => {
     const { headers, body } = await h2url.concat({

@@ -26,7 +26,7 @@ const target = http.createServer((req, res) => {
 })
 
 async function main () {
-  await target.listen(0)
+  await target.listen({ port: 0 })
 
   const instance = Fastify()
   t.teardown(instance.close.bind(instance))
@@ -43,7 +43,7 @@ async function main () {
     reply.from()
   })
 
-  await instance.listen(0)
+  await instance.listen({ port: 0 })
 
   try {
     await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
