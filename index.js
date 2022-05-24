@@ -179,7 +179,10 @@ module.exports = fp(function from (fastify, opts, next) {
   })
 
   next()
-}, '4.x')
+}, { 
+  fastify: '4.x', 
+  name: '@fastify/reply-from'
+})
 
 function getQueryString (search, reqUrl, opts) {
   if (typeof opts.queryString === 'function') {
