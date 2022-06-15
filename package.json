@@ -26,9 +26,6 @@
   "bugs": {
     "url": "https://github.com/fastify/fastify-reply-from/issues"
   },
-  "engines": {
-    "node": ">=12.18"
-  },
   "homepage": "https://github.com/fastify/fastify-reply-from#readme",
   "devDependencies": {
     "@fastify/formbody": "^7.0.1",
