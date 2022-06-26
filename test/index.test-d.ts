@@ -44,6 +44,7 @@ const fullOptions: FastifyReplyFromOptions = {
   contentTypesToEncode: ['application/x-www-form-urlencoded'],
   retryMethods: ['GET', 'HEAD', 'OPTIONS', 'TRACE'],
   maxRetriesOn503: 10,
+  disableRequestLogging: false,
 };
 tap.autoend(false);
 

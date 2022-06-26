@@ -33,6 +33,7 @@ module.exports = fp(function from (fastify, opts, next) {
     base,
     undici: opts.undici
   })
+  const disableRequestLogging = opts.disableRequestLogging || false
 
   fastify.decorateReply('from', function (source, opts) {
     opts = opts || {}
@@ -120,7 +121,7 @@ module.exports = fp(function from (fastify, opts, next) {
       }
     }
 
-    this.request.log.info({ source }, 'fetching from remote server')
+    !disableRequestLogging && this.request.log.info({ source }, 'fetching from remote server')
 
     const requestHeaders = rewriteRequestHeaders(req, headers)
     const contentLength = requestHeaders['content-length']
@@ -145,7 +146,7 @@ module.exports = fp(function from (fastify, opts, next) {
         }
         return
       }
-      this.request.log.info('response received')
+      !disableRequestLogging && this.request.log.info('response received')
       if (sourceHttp2) {
         copyHeaders(
           rewriteHeaders(stripHttp1ConnectionHeaders(res.headers), req),
