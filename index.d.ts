@@ -91,6 +91,7 @@ export interface FastifyReplyFromOptions {
   contentTypesToEncode?: string[];
   retryMethods?: (HTTPMethods | 'TRACE')[];
   maxRetriesOn503?: number;
+  disableRequestLogging?: boolean;
 }
 
 declare const fastifyReplyFrom:

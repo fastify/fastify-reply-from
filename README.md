@@ -173,6 +173,19 @@ proxy.register(require('@fastify/reply-from'), {
 })
 ```
 
+#### `disableRequestLogging`
+
+By default package will issue log messages when a request is received. By setting this option to true, these log messages will be disabled.
+
+Default for `disableRequestLogging` will be `false`. To disable the log messages set `disableRequestLogging` to `true`.
+
+```js
+proxy.register(require('@fastify/reply-from'), {
+  base: 'http://localhost:3001/',
+  disableRequestLogging: true // request log messages will be disabled
+})
+```
+
 #### `cacheURLs`
 
 The number of parsed URLs that will be cached. Default: `100`.
