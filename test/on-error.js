@@ -34,8 +34,8 @@ async function main () {
     reply.from(`http://localhost:${target.server.address().port}/`,
       {
         onError: (reply, { error }) => {
-          t.equal(error.status, 504)
-          reply.code(error.status).send(error)
+          t.equal(error.statusCode, 504)
+          reply.code(error.statusCode).send(error)
         }
       })
   })
@@ -49,6 +49,7 @@ async function main () {
     t.match(err.response.headers['content-type'], /application\/json/)
     t.same(JSON.parse(err.response.body), {
       statusCode: 504,
+      code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
       error: 'Gateway Timeout',
       message: 'Gateway Timeout'
     })
