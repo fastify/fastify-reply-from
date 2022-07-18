@@ -34,7 +34,12 @@ async function main () {
     reply.from(`http://localhost:${target.server.address().port}/`,
       {
         onError: (reply, { error }) => {
-          t.equal(error.statusCode, 504)
+          t.same(error, {
+            statusCode: 504,
+            name: 'FastifyError',
+            code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
+            message: 'Gateway Timeout'
+          })
           reply.code(error.statusCode).send(error)
         }
       })
