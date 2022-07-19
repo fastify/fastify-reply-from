@@ -50,9 +50,9 @@
     "typescript": "^4.7.3"
   },
   "dependencies": {
+    "@fastify/error": "^3.0.0",
     "end-of-stream": "^1.4.4",
     "fastify-plugin": "^4.0.0",
-    "http-errors": "^2.0.0",
     "pump": "^3.0.0",
     "semver": "^7.3.7",
     "tiny-lru": "^8.0.2",

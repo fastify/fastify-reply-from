@@ -37,6 +37,7 @@ test('unexpected error renders 500', async (t) => {
     t.match(err.response.headers['content-type'], /application\/json/)
     t.same(JSON.parse(err.response.body), {
       statusCode: 500,
+      code: 'FST_REPLY_FROM_INTERNAL_SERVER_ERROR',
       error: 'Internal Server Error',
       message: 'foo'
     })

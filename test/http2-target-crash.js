@@ -44,6 +44,7 @@ test('http -> http2 crash', async (t) => {
     t.match(err.response.headers['content-type'], /application\/json/)
     t.same(JSON.parse(err.response.body), {
       statusCode: 503,
+      code: 'FST_REPLY_FROM_SERVICE_UNAVAILABLE',
       error: 'Service Unavailable',
       message: 'Service Unavailable'
     })

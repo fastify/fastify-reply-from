@@ -38,6 +38,7 @@ test('http2 request timeout', async (t) => {
     t.match(err.response.headers['content-type'], /application\/json/)
     t.same(JSON.parse(err.response.body), {
       statusCode: 504,
+      code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
       error: 'Gateway Timeout',
       message: 'Gateway Timeout'
     })
@@ -81,6 +82,7 @@ test('http2 session timeout', async (t) => {
     t.match(err.response.headers['content-type'], /application\/json/)
     t.same(JSON.parse(err.response.body), {
       statusCode: 504,
+      code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
       error: 'Gateway Timeout',
       message: 'Gateway Timeout'
     })

@@ -4,7 +4,6 @@ const fp = require('fastify-plugin')
 const lru = require('tiny-lru')
 const querystring = require('querystring')
 const Stream = require('stream')
-const createError = require('http-errors')
 const buildRequest = require('./lib/request')
 const {
   filterPseudoHeaders,
@@ -13,7 +12,14 @@ const {
   buildURL
 } = require('./lib/utils')
 
-const { TimeoutError } = buildRequest
+const {
+  TimeoutError,
+  ServiceUnavailableError,
+  GatewayTimeoutError,
+  ConnectionResetError,
+  UndiciSocketError,
+  InternalServerError
+} = require('./lib/errors')
 
 module.exports = fp(function from (fastify, opts, next) {
   const contentTypesToEncode = new Set([
@@ -137,11 +143,15 @@ module.exports = fp(function from (fastify, opts, next) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {
           if (err.code === 'ERR_HTTP2_STREAM_CANCEL' || err.code === 'ENOTFOUND') {
-            onError(this, { error: new createError.ServiceUnavailable() })
+            onError(this, { error: ServiceUnavailableError() })
           } else if (err instanceof TimeoutError || err.code === 'UND_ERR_HEADERS_TIMEOUT') {
-            onError(this, { error: new createError.GatewayTimeout() })
+            onError(this, { error: new GatewayTimeoutError() })
+          } else if (err.code === 'ECONNRESET') {
+            onError(this, { error: new ConnectionResetError() })
+          } else if (err.code === 'UND_ERR_SOCKET') {
+            onError(this, { error: new UndiciSocketError() })
           } else {
-            onError(this, { error: createError(500, err) })
+            onError(this, { error: new InternalServerError(err.message) })
           }
         }
         return
