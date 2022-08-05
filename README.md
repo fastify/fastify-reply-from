@@ -47,12 +47,12 @@ proxy.get('/', (request, reply) => {
   reply.from('/')
 })
 
-target.listen(3001, (err) => {
+target.listen({ port: 3001 }, (err) => {
   if (err) {
     throw err
   }
 
-  proxy.listen(3000, (err) => {
+  proxy.listen({ port: 3000 }, (err) => {
     if (err) {
       throw err
     }
