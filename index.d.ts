@@ -85,7 +85,7 @@ export interface FastifyReplyFromOptions {
   base?: string;
   cacheURLs?: number;
   disableCache?: boolean;
-  http?: HttpOptions | boolean;
+  http?: HttpOptions;
   http2?: Http2Options | boolean;
   undici?: Pool.Options;
   contentTypesToEncode?: string[];
