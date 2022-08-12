@@ -115,7 +115,7 @@ proxy.register(require('@fastify/reply-from'), {
 
 #### `http`
 
-Set the `http` option to `true` or to an Object to use 
+Set the `http` option to an Object to use 
 Node's [`http.request`](https://nodejs.org/api/http.html#http_http_request_options_callback)
 will be used if you do not enable [`http2`](#http2). To customize the `request`,
 you can pass in [`agentOptions`](https://nodejs.org/api/http.html#http_new_agent_options) and
