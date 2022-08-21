@@ -7,7 +7,6 @@ import {
   RawServerBase,
   RequestGenericInterface,
   HTTPMethods,
-  FastifyPluginAsync,
   FastifyPluginCallback,
 } from 'fastify';
 
@@ -94,7 +93,5 @@ export interface FastifyReplyFromOptions {
   disableRequestLogging?: boolean;
 }
 
-declare const fastifyReplyFrom:
-  | FastifyPluginCallback<FastifyReplyFromOptions>
-  | FastifyPluginAsync<FastifyReplyFromOptions>;
+declare const fastifyReplyFrom: FastifyPluginCallback<FastifyReplyFromOptions>;
 export default fastifyReplyFrom;

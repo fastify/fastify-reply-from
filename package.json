@@ -3,13 +3,13 @@
   "version": "8.2.1",
   "description": "forward your HTTP request to another server, for fastify",
   "main": "index.js",
-  "types": "index.d.ts",
+  "types": "types/index.d.ts",
   "scripts": {
-    "coverage": "tap -j8 test/*.js --cov --coverage-report=html",
+    "lint": "standard | snazzy",
     "lint:fix": "standard --fix",
-    "test": "standard | snazzy && tap test/*.js && npm run typescript",
-    "test:ci": "standard | snazzy && tap test/*.js --coverage-report=lcovonly && npm run typescript",
-    "typescript": "tsd"
+    "test": "npm run test:unit && npm run typescript",
+    "test:unit": "tap",
+    "test:typescript": "tsd"
   },
   "repository": {
     "type": "git",
@@ -46,8 +46,7 @@
     "split2": "^4.1.0",
     "standard": "^17.0.0",
     "tap": "^16.2.0",
-    "tsd": "^0.22.0",
-    "typescript": "^4.7.3"
+    "tsd": "^0.22.0"
   },
   "dependencies": {
     "@fastify/error": "^3.0.0",
@@ -58,9 +57,10 @@
     "tiny-lru": "^8.0.2",
     "undici": "^5.5.1"
   },
-  "tsd": {
-    "directory": "test"
-  },
+  "pre-commit": [
+    "lint",
+    "test"
+  ],
   "publishConfig": {
     "access": "public"
   }

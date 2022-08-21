@@ -15,7 +15,7 @@ const proxy = Fastify({
 })
 
 // proxy.register(require('fastify-reply-from'), {
-proxy.register(require('.'), {
+proxy.register(require('..'), {
   base: 'http://localhost:3001/'
 })
 
