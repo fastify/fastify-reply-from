@@ -1,4 +1,4 @@
-import replyFrom, { FastifyReplyFromOptions } from "../";
+import replyFrom, { FastifyReplyFromOptions } from "..";
 import fastify, {FastifyReply, RawServerBase} from "fastify";
 import { AddressInfo } from "net";
 import { IncomingHttpHeaders } from "http2";
