@@ -2,7 +2,7 @@
 
 const fp = require('fastify-plugin')
 const lru = require('tiny-lru')
-const querystring = require('querystring')
+const querystring = require('fast-querystring')
 const Stream = require('stream')
 const buildRequest = require('./lib/request')
 const {
