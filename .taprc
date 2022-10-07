@@ -2,10 +2,10 @@ ts: false
 jsx: false
 flow: false
 
-functions: 100
-lines: 99
-statements: 99
-branches: 97
+functions: 97
+lines: 96
+statements: 96
+branches: 96
 
 files:
   - test/**/*.js
