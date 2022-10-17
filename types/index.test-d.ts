@@ -60,8 +60,7 @@ async function main() {
   server.register(replyFrom, fullOptions);
 
   server.get("/v1", (request, reply) => {
-      // Verify the return type of reply.from()
-      const newReply: FastifyReply = reply.from();
+      expectType<FastifyReply>(reply.from());
   });
   server.get("/v3", (request, reply) => {
       reply.from("/v3", {
