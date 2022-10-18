@@ -63,7 +63,7 @@ declare module "fastify" {
     from(
       source?: string,
       opts?: FastifyReplyFromHooks
-    ): void;
+    ): this;
   }
 }
 
