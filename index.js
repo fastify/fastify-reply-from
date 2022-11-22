@@ -21,7 +21,7 @@ const {
   InternalServerError
 } = require('./lib/errors')
 
-module.exports = fp(function from (fastify, opts, next) {
+const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   const contentTypesToEncode = new Set([
     'application/json',
     ...(opts.contentTypesToEncode || [])
@@ -274,3 +274,7 @@ function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, max
 
   return requestRetry
 }
+
+module.exports = fastifyReplyFrom
+module.exports.default = fastifyReplyFrom
+module.exports.fastifyReplyFrom = fastifyReplyFrom
