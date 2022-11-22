@@ -203,8 +203,7 @@ This only applies when a custom [`body`](#body) is not passed in. Defaults to:
 
 ```js
 [ 
-  'application/json',
-  'application/x-www-form-urlencoded'
+  'application/json'
 ]
 ```
 

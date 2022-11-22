@@ -1,8 +1,11 @@
 ts: false
 jsx: false
 flow: false
-coverage: true
-check-coverage: false
+
+functions: 97
+lines: 96
+statements: 96
+branches: 96
 
 files:
   - test/**/*.js

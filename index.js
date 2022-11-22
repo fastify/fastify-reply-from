@@ -33,12 +33,17 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
 
   const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
   const base = opts.base
-  const { request, close, retryOnError } = buildRequest({
+  const requestBuilt = buildRequest({
     http: opts.http,
     http2: opts.http2,
     base,
     undici: opts.undici
   })
+  if (requestBuilt instanceof Error) {
+    next(requestBuilt)
+    return
+  }
+  const { request, close, retryOnError } = requestBuilt
   const disableRequestLogging = opts.disableRequestLogging || false
 
   fastify.decorateReply('from', function (source, opts) {
