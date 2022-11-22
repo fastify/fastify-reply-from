@@ -5,7 +5,9 @@ const Fastify = require('fastify')
 const From = require('..')
 
 async function createTarget (i) {
-  const target = Fastify()
+  const target = Fastify({
+    keepAliveTimeout: 1
+  })
 
   target.get('/test', async () => {
     return `Hello from target ${i}`
@@ -23,7 +25,9 @@ async function run () {
     createTarget(2)
   ])
 
-  const instance = Fastify()
+  const instance = Fastify({
+    keepAliveTimeout: 1
+  })
 
   instance.register(From, {
     base: 'http://localhost',
