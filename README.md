@@ -1,6 +1,6 @@
 # @fastify/reply-from
 
-[![CI](https://github.com/fastify/reply-fro/workflows/CI/badge.svg)](https://github.com/fastify/reply-fro/actions/workflows/ci.yml)
+[![CI](https://github.com/fastify/fastify-reply-from/workflows/CI/badge.svg)](https://github.com/fastify/fastify-reply-from/actions/workflows/ci.yml)
 [![NPM version](https://img.shields.io/npm/v/@fastify/reply-from.svg?style=flat)](https://www.npmjs.com/package/@fastify/reply-from)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
