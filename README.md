@@ -166,7 +166,7 @@ proxy.register(require('@fastify/reply-from'), {
     sessionOptions: { // HTTP/2 session connect options, pass in any options from https://nodejs.org/api/http2.html#http2_http2_connect_authority_options_listener
       rejectUnauthorized: true
     },
-    requestOptions: { // HTTP/2 request options, pass in any options from https://nodejs.org/api/http2.html#http2_clienthttp2session_request_headers_options
+    requestOptions: { // HTTP/2 request options, pass in any options from https://nodejs.org/api/http2.html#clienthttp2sessionrequestheaders-options
       endStream: true
     }
   }
