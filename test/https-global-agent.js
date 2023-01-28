@@ -42,7 +42,8 @@ target.listen({ port: 0 }, (err) => {
   instance.register(From, {
     base: `https://localhost:${target.address().port}`,
     globalAgent: true,
-    undici: false
+    http: {
+    }
   })
 
   instance.listen({ port: 0 }, (err) => {

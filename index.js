@@ -241,7 +241,7 @@ function onErrorDefault (reply, { error }) {
 }
 
 function isFastifyMultipartRegistered (fastify) {
-  return fastify.hasContentTypeParser('multipart') && fastify.hasRequestDecorator('multipart')
+  return fastify.hasContentTypeParser('multipart/form-data') && fastify.hasRequestDecorator('multipart')
 }
 
 function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, maxRetriesOn503) {
