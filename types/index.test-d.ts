@@ -45,6 +45,7 @@ const fullOptions: FastifyReplyFromOptions = {
   retryMethods: ['GET', 'HEAD', 'OPTIONS', 'TRACE'],
   maxRetriesOn503: 10,
   disableRequestLogging: false,
+  globalAgent: false,
 };
 tap.autoend(false);
 
