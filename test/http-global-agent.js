@@ -1,54 +1,57 @@
 'use strict'
 
-const t = require('tap')
+const { test } = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
 const http = require('http')
 const get = require('simple-get').concat
 
-const instance = Fastify()
-
-t.plan(10)
-t.teardown(instance.close.bind(instance))
-
-const target = http.createServer((req, res) => {
-  t.pass('request proxied')
-  t.equal(req.method, 'GET')
-  t.equal(req.url, '/')
-  res.statusCode = 205
-  res.setHeader('Content-Type', 'text/plain')
-  res.setHeader('x-my-header', 'hello!')
-  res.end('hello world')
-})
-
-instance.get('/', (request, reply) => {
-  reply.from()
-})
-
-t.teardown(target.close.bind(target))
-
-target.listen({ port: 0 }, (err) => {
-  t.error(err)
-
-  instance.register(From, {
-    base: `http://localhost:${target.address().port}`,
-    globalAgent: true,
-    http: {
-    }
+test('http global agent is used, but not destroyed', async (t) => {
+  http.globalAgent.destroy = () => {
+    t.fail()
+  }
+  const instance = Fastify()
+  t.teardown(instance.close.bind(instance))
+  instance.get('/', (request, reply) => {
+    reply.from()
   })
 
-  instance.listen({ port: 0 }, (err) => {
-    t.error(err)
+  const target = http.createServer((req, res) => {
+    t.pass('request proxied')
+    t.equal(req.method, 'GET')
+    t.equal(req.url, '/')
+    res.statusCode = 200
+    res.end()
+  })
+  t.teardown(target.close.bind(target))
 
-    get(
-      `http://localhost:${instance.server.address().port}`,
-      (err, res, data) => {
+  const executionFlow = () => new Promise((resolve) => {
+    target.listen({ port: 0 }, (err) => {
+      t.error(err)
+
+      instance.register(From, {
+        base: `http://localhost:${target.address().port}`,
+        globalAgent: true,
+        http: {
+        }
+      })
+
+      instance.listen({ port: 0 }, (err) => {
         t.error(err)
-        t.equal(res.headers['content-type'], 'text/plain')
-        t.equal(res.headers['x-my-header'], 'hello!')
-        t.equal(res.statusCode, 205)
-        t.equal(data.toString(), 'hello world')
-      }
-    )
+
+        get(
+          `http://localhost:${instance.server.address().port}`,
+          (err, res) => {
+            t.error(err)
+            t.equal(res.statusCode, 200)
+            resolve()
+          }
+        )
+      })
+    })
   })
+
+  await executionFlow()
+
+  target.close()
 })

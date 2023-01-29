@@ -241,7 +241,9 @@ function onErrorDefault (reply, { error }) {
 }
 
 function isFastifyMultipartRegistered (fastify) {
-  return fastify.hasContentTypeParser('multipart/form-data') && fastify.hasRequestDecorator('multipart')
+  // TODO: remove fastify.hasContentTypeParser('multipart') in next major
+  // It is used to be compatible with @fastify/multipart@<=7.3.0
+  return (fastify.hasContentTypeParser('multipart') || fastify.hasContentTypeParser('multipart/form-data')) && fastify.hasRequestDecorator('multipart')
 }
 
 function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, maxRetriesOn503) {

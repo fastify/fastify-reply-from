@@ -229,9 +229,7 @@ setGlobalDispatcher(proxyAgent)
 
 fastify.register(FastifyReplyFrom, {
   base: 'http://localhost:3001/',
-  globalAgent: true, 
-  undici: {
-  }
+  globalAgent: true
 })
 ```
 

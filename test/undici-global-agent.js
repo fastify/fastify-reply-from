@@ -1,56 +1,45 @@
 'use strict'
 
-const t = require('tap')
+const { test } = require('tap')
 const Fastify = require('fastify')
-const http = require('http')
-const get = require('simple-get').concat
+const got = require('got')
 const undici = require('undici')
 const From = require('..')
-undici.setGlobalDispatcher(new undici.Agent())
-t.plan(8)
 
-const instance = Fastify()
-t.teardown(instance.close.bind(instance))
+test('undici global agent is used, but not destroyed', async (t) => {
+  const mockAgent = new undici.Agent()
+  mockAgent.destroy = () => {
+    t.fail()
+  }
+  undici.setGlobalDispatcher(mockAgent)
+  const instance = Fastify()
 
-const target = http.createServer((req, res) => {
-  res.statusCode = 200
-  res.end('hello world')
-})
+  t.teardown(instance.close.bind(instance))
 
-instance.get('/', (request, reply) => {
-  reply.from()
-})
+  const target = Fastify()
 
-t.teardown(target.close.bind(target))
+  target.get('/', (request, reply) => {
+    t.pass('request proxied')
+    reply.code(200).send()
+  })
 
-target.listen({ port: 0 }, (err) => {
-  t.error(err)
+  instance.get('/', (request, reply) => {
+    reply.from()
+  })
+
+  t.teardown(target.close.bind(target))
+
+  await target.listen({ port: 0 })
 
   instance.register(From, {
-    base: `http://localhost:${target.address().port}`,
-    globalAgent: true,
-    undici: {}
+    base: `http://localhost:${target.server.address().port}`,
+    globalAgent: true
   })
 
-  instance.listen({ port: 0 }, (err) => {
-    t.error(err)
+  await instance.listen({ port: 0 })
 
-    get(
-      `http://localhost:${instance.server.address().port}`,
-      (err, res, data) => {
-        t.error(err)
-        t.equal(res.statusCode, 200)
-        t.equal(data.toString(), 'hello world')
+  const result = await got(`http://localhost:${instance.server.address().port}`)
+  t.equal(result.statusCode, 200)
 
-        get(
-          `http://localhost:${instance.server.address().port}`,
-          (err, res, data) => {
-            t.error(err)
-            t.equal(res.statusCode, 200)
-            t.equal(data.toString(), 'hello world')
-          }
-        )
-      }
-    )
-  })
+  await target.close()
 })
