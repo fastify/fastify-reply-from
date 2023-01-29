@@ -2,7 +2,8 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
-const got = require('got')
+const http = require('http')
+const get = require('simple-get').concat
 const undici = require('undici')
 const From = require('..')
 
@@ -16,11 +17,9 @@ test('undici global agent is used, but not destroyed', async (t) => {
 
   t.teardown(instance.close.bind(instance))
 
-  const target = Fastify()
-
-  target.get('/', (request, reply) => {
-    t.pass('request proxied')
-    reply.code(200).send()
+  const target = http.createServer((req, res) => {
+    res.statusCode = 200
+    res.end()
   })
 
   instance.get('/', (request, reply) => {
@@ -29,17 +28,39 @@ test('undici global agent is used, but not destroyed', async (t) => {
 
   t.teardown(target.close.bind(target))
 
-  await target.listen({ port: 0 })
+  const executionFlow = () => new Promise((resolve) => {
+    target.listen({ port: 0 }, (err) => {
+      t.error(err)
 
-  instance.register(From, {
-    base: `http://localhost:${target.server.address().port}`,
-    globalAgent: true
+      instance.register(From, {
+        base: `http://localhost:${target.address().port}`,
+        globalAgent: true
+      })
+
+      instance.listen({ port: 0 }, (err) => {
+        t.error(err)
+
+        get(
+          `http://localhost:${instance.server.address().port}`,
+          (err, res) => {
+            t.error(err)
+            t.equal(res.statusCode, 200)
+
+            get(
+              `http://localhost:${instance.server.address().port}`,
+              (err, res) => {
+                t.error(err)
+                t.equal(res.statusCode, 200)
+                resolve()
+              }
+            )
+          }
+        )
+      })
+    })
   })
 
-  await instance.listen({ port: 0 })
+  await executionFlow()
 
-  const result = await got(`http://localhost:${instance.server.address().port}`)
-  t.equal(result.statusCode, 200)
-
-  await target.close()
+  target.close()
 })
