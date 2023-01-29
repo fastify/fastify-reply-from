@@ -95,6 +95,7 @@ declare namespace fastifyReplyFrom {
     retryMethods?: (HTTPMethods | 'TRACE')[];
     maxRetriesOn503?: number;
     disableRequestLogging?: boolean;
+    globalAgent?: boolean;
   }
 
   export const fastifyReplyFrom: FastifyReplyFrom

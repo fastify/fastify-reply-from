@@ -216,6 +216,34 @@ By default: `['GET', 'HEAD', 'OPTIONS', 'TRACE' ]`
 
 This plugin will always retry on 503 errors, _unless_ `retryMethods` does not contain `GET`.
 
+#### `globalAgent`
+
+Enables the possibility to explictly opt-in for global agents.
+
+Usage for undici global agent:
+```js
+import { setGlobalDispatcher, ProxyAgent } from 'undici'
+
+const proxyAgent = new ProxyAgent('my.proxy.server')
+setGlobalDispatcher(proxyAgent)
+
+fastify.register(FastifyReplyFrom, {
+  base: 'http://localhost:3001/',
+  globalAgent: true
+})
+```
+
+Usage for http/https global agent:
+```js
+fastify.register(FastifyReplyFrom, {
+  base: 'http://localhost:3001/',
+  // http and https is allowed to use http.globalAgent or https.globalAgent
+  globalAgent: true, 
+  http: {
+  }
+})
+```
+
 ---
 
 #### `maxRetriesOn503`

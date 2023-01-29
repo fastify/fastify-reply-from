@@ -37,7 +37,8 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     http: opts.http,
     http2: opts.http2,
     base,
-    undici: opts.undici
+    undici: opts.undici,
+    globalAgent: opts.globalAgent
   })
   if (requestBuilt instanceof Error) {
     next(requestBuilt)
@@ -240,7 +241,9 @@ function onErrorDefault (reply, { error }) {
 }
 
 function isFastifyMultipartRegistered (fastify) {
-  return fastify.hasContentTypeParser('multipart') && fastify.hasRequestDecorator('multipart')
+  // TODO: remove fastify.hasContentTypeParser('multipart') in next major
+  // It is used to be compatible with @fastify/multipart@<=7.3.0
+  return (fastify.hasContentTypeParser('multipart') || fastify.hasContentTypeParser('multipart/form-data')) && fastify.hasRequestDecorator('multipart')
 }
 
 function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, maxRetriesOn503) {
