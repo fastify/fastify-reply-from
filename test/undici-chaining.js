@@ -11,8 +11,6 @@ t.plan(6)
 
 const instance = Fastify()
 t.teardown(instance.close.bind(instance))
-instance.listen({ port: 0 })
-
 const proxy1 = Fastify()
 t.teardown(proxy1.close.bind(proxy1))
 const proxy2 = Fastify()
