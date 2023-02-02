@@ -3,7 +3,6 @@
 const t = require('tap')
 const Fastify = require('fastify')
 const get = require('simple-get').concat
-const { getUndiciOptions } = require('../lib/request')
 const From = require('..')
 
 const header = 'attachment; filename="år.pdf"'
@@ -22,14 +21,18 @@ instance.get('/', (request, reply) => {
 })
 
 proxy1.register(From, {
-  undici: buildUndiciOptions()
+  undici: {
+    keepAliveMaxTimeout: 10
+  }
 })
 proxy1.get('/', (request, reply) => {
   return reply.from(`http://localhost:${instance.server.address().port}`)
 })
 
 proxy2.register(From, {
-  undici: buildUndiciOptions()
+  undici: {
+    keepAliveMaxTimeout: 10
+  }
 })
 proxy2.get('/', (request, reply) => {
   return reply.from(`http://localhost:${proxy1.server.address().port}`)
@@ -52,12 +55,3 @@ instance.listen({ port: 0 }, err => {
     })
   })
 })
-
-function buildUndiciOptions () {
-  return getUndiciOptions({
-    connections: 42,
-    pipelining: 24,
-    keepAliveTimeout: 4242,
-    strictContentLength: false
-  })
-}
