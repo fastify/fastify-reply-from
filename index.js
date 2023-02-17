@@ -74,7 +74,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     }
 
     const sourceHttp2 = req.httpVersionMajor === 2
-    const headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : {...req.headers}
+    const headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : { ...req.headers }
     headers.host = url.host
     const qs = getQueryString(url.search, req.url, opts)
     let body = ''
