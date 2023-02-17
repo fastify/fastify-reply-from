@@ -18,7 +18,13 @@ test('hostname', async (t) => {
     })
 
   instance.get('*', (request, reply) => {
-    reply.from()
+    reply.from(null, {
+      rewriteRequestHeaders: (originalReq, headers) => {
+        t.equal(headers.host, 'httpbin.org')
+        t.equal(originalReq.headers.host, `localhost:${instance.server.address().port}`)
+        return headers
+      }
+    })
   })
 
   instance.register(From, {
