@@ -11,7 +11,6 @@ import {
 } from 'fastify';
 
 import {
-  IncomingMessage,
   IncomingHttpHeaders,
   RequestOptions,
   AgentOptions,
@@ -23,7 +22,6 @@ import {
   Agent as SecureAgent
 } from "https";
 import {
-  Http2ServerRequest,
   IncomingHttpHeaders as Http2IncomingHttpHeaders,
   ClientSessionRequestOptions,
   ClientSessionOptions,
@@ -59,14 +57,14 @@ declare namespace fastifyReplyFrom {
     body?: unknown;
     rewriteHeaders?: (
       headers: Http2IncomingHttpHeaders | IncomingHttpHeaders,
-      req?: Http2ServerRequest | IncomingMessage
+      request?: FastifyRequest<RequestGenericInterface, RawServerBase>
     ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
     rewriteRequestHeaders?: (
-      req: Http2ServerRequest | IncomingMessage,
+      request: FastifyRequest<RequestGenericInterface, RawServerBase>,
       headers: Http2IncomingHttpHeaders | IncomingHttpHeaders
     ) => Http2IncomingHttpHeaders | IncomingHttpHeaders;
     getUpstream?: (
-      req: Http2ServerRequest | IncomingMessage,
+      request: FastifyRequest<RequestGenericInterface, RawServerBase>,
       base: string
     ) => string;
   }
