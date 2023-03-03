@@ -292,21 +292,24 @@ The default behavior is `reply.send(error)`, which will be disabled if the
 option is specified.
 It must reply the error.
 
-#### `rewriteHeaders(headers, req)`
+#### `rewriteHeaders(headers, request)`
 
 Called to rewrite the headers of the response, before them being copied
 over to the outer response.
+Parameters are the original headers and the Fastify request.
 It must return the new headers object.
 
-#### `rewriteRequestHeaders(originalReq, headers)`
+#### `rewriteRequestHeaders(request, headers)`
 
 Called to rewrite the headers of the request, before them being sent to the other server.
+Parameters are the Fastify request and the original request headers.
 It must return the new headers object.
 
-#### `getUpstream(originalReq, base)`
+#### `getUpstream(request, base)`
 
 Called to get upstream destination, before the request is being sent. Useful when you want to decide which target server to call based on the request data.
 Helpful for a gradual rollout of new services.
+Parameters are the Fastify request and the base string from the plugin options.
 It must return the upstream destination.
 
 #### `queryString` or `queryString(search, reqUrl)`

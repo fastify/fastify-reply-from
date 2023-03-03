@@ -63,7 +63,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     }
 
     // we leverage caching to avoid parsing the destination URL
-    const dest = getUpstream(req, base)
+    const dest = getUpstream(this.request, base)
     let url
     if (cache) {
       const cacheKey = dest + source
@@ -136,7 +136,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
 
     !disableRequestLogging && this.request.log.info({ source }, 'fetching from remote server')
 
-    const requestHeaders = rewriteRequestHeaders(req, headers)
+    const requestHeaders = rewriteRequestHeaders(this.request, headers)
     const contentLength = requestHeaders['content-length']
     let requestImpl
     if (retryMethods.has(req.method) && !contentLength) {
@@ -166,11 +166,11 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       !disableRequestLogging && this.request.log.info('response received')
       if (sourceHttp2) {
         copyHeaders(
-          rewriteHeaders(stripHttp1ConnectionHeaders(res.headers), req),
+          rewriteHeaders(stripHttp1ConnectionHeaders(res.headers), this.request),
           this
         )
       } else {
-        copyHeaders(rewriteHeaders(res.headers, req), this)
+        copyHeaders(rewriteHeaders(res.headers, this.request), this)
       }
       this.code(res.statusCode)
       if (onResponse) {

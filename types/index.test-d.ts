@@ -1,11 +1,10 @@
 import replyFrom, { FastifyReplyFromOptions } from "..";
-import fastify, {FastifyReply, RawServerBase} from "fastify";
+import fastify, {FastifyReply, FastifyRequest, RawServerBase, RequestGenericInterface} from "fastify";
 import { AddressInfo } from "net";
 import { IncomingHttpHeaders } from "http2";
 import { expectType } from 'tsd';
 import * as http from 'http';
 import * as https from 'https';
-import * as http2 from 'http2';
 // @ts-ignore
 import tap from 'tap'
 
@@ -67,11 +66,11 @@ async function main() {
       reply.from("/v3", {
           body: {hello: "world"},
           rewriteRequestHeaders(req, headers) {
-              expectType<http.IncomingMessage | http2.Http2ServerRequest>(req);
+              expectType<FastifyRequest<RequestGenericInterface, RawServerBase>>(req);
               return headers;
           },
           getUpstream(req, base) {
-              expectType<http.IncomingMessage | http2.Http2ServerRequest>(req);
+              expectType<FastifyRequest<RequestGenericInterface, RawServerBase>>(req);
               return base;
           }
       });
