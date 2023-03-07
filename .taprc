@@ -8,4 +8,4 @@ statements: 96
 branches: 96
 
 files:
-  - test/**/*.js
+  - test/**/*.test.js
