@@ -49,6 +49,35 @@ test('http2 request timeout', async (t) => {
   t.fail()
 })
 
+test('http2 sse removes timeout test', async (t) => {
+  const target = Fastify({ http2: true, sessionTimeout: 0 })
+  t.teardown(target.close.bind(target))
+
+  target.get('/', (request, reply) => {
+    t.pass('request arrives')
+    reply.header('content-type', 'text/event-stream').status(200).send('hello world')
+  })
+
+  await target.listen({ port: 0 })
+
+  const instance = Fastify()
+  t.teardown(instance.close.bind(instance))
+
+  instance.register(From, {
+    base: `http://localhost:${target.server.address().port}`,
+    http2: { requestTimeout: 100 }
+  })
+
+  instance.get('/', (request, reply) => {
+    reply.from(`http://localhost:${target.server.address().port}/`)
+  })
+
+  await instance.listen({ port: 0 })
+
+  const { statusCode } = await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
+  t.equal(statusCode, 200)
+})
+
 test('http2 session timeout', async (t) => {
   const target = Fastify({ http2: true, sessionTimeout: 0 })
   t.teardown(target.close.bind(target))
