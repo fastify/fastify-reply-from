@@ -20,7 +20,7 @@ test('http2 request timeout', async (t) => {
 
   instance.register(From, {
     base: `http://localhost:${target.server.address().port}`,
-    http2: { requestTimeout: 100 }
+    http2: { requestTimeout: 100, sessionTimeout: 6000 }
   })
 
   instance.get('/', (request, reply) => {
