@@ -16,7 +16,9 @@ test('http -> http2 crash multiple times', async (t) => {
 
   instance.register(From, {
     base: 'http://localhost:3128',
-    http2: true,
+    http2: {
+      sessionTimeout: 6000
+    },
     sessionTimeout: 200
   })
 
