@@ -24,7 +24,7 @@ t.test('use a custom instance of \'undici\'', async t => {
   await new Promise((resolve, reject) => target.listen({ port: 0 }, err => err ? reject(err) : resolve()))
 
   t.test('disableRequestLogging is set to true', t => {
-    t.plan(10)
+    t.plan(9)
     const logStream = split(JSON.parse)
     const instance = Fastify({
       logger: {
