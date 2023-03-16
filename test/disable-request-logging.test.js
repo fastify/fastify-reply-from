@@ -25,7 +25,6 @@ t.test('use a custom instance of \'undici\'', async t => {
   await new Promise((resolve, reject) => target.listen({ port: 0 }, err => err ? reject(err) : resolve()))
 
   t.test('disableRequestLogging is set to true', t => {
-    t.plan(9)
     const logStream = split(JSON.parse)
     const instance = Fastify({
       logger: {
@@ -64,12 +63,12 @@ t.test('use a custom instance of \'undici\'', async t => {
         t.equal(res.headers['x-my-header'], 'hello!')
         t.equal(res.statusCode, 205)
         t.equal(data.toString(), 'hello world')
+        t.end()
       })
     })
   })
 
   t.test('disableRequestLogging is set to false', t => {
-    t.plan(8)
     const logStream = split(JSON.parse)
     const instance = Fastify({
       logger: {
@@ -108,12 +107,12 @@ t.test('use a custom instance of \'undici\'', async t => {
         t.equal(res.headers['x-my-header'], 'hello!')
         t.equal(res.statusCode, 205)
         t.equal(data.toString(), 'hello world')
+        t.end()
       })
     })
   })
 
   t.test('disableRequestLogging is not defined', t => {
-    t.plan(8)
     const logStream = split(JSON.parse)
     const instance = Fastify({
       logger: {
@@ -151,6 +150,7 @@ t.test('use a custom instance of \'undici\'', async t => {
         t.equal(res.headers['x-my-header'], 'hello!')
         t.equal(res.statusCode, 205)
         t.equal(data.toString(), 'hello world')
+        t.end()
       })
     })
   })
