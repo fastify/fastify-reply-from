@@ -19,6 +19,7 @@ const target = http.createServer((req, res) => {
 })
 
 t.test('use a custom instance of \'undici\'', async t => {
+  t.plan(3)
   t.teardown(target.close.bind(target))
 
   await new Promise((resolve, reject) => target.listen({ port: 0 }, err => err ? reject(err) : resolve()))
