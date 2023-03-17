@@ -17,6 +17,7 @@ const {
   ServiceUnavailableError,
   GatewayTimeoutError,
   ConnectionResetError,
+  ConnectTimeoutError,
   UndiciSocketError,
   InternalServerError
 } = require('./lib/errors')
@@ -157,6 +158,8 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
             onError(this, { error: new ConnectionResetError() })
           } else if (err.code === 'UND_ERR_SOCKET') {
             onError(this, { error: new UndiciSocketError() })
+          } else if (err.code === 'UND_ERR_CONNECT_TIMEOUT') {
+            onError(this, { error: new ConnectTimeoutError() })
           } else {
             onError(this, { error: new InternalServerError(err.message) })
           }
