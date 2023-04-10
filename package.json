@@ -54,7 +54,7 @@
     "fast-querystring": "^1.0.0",
     "fastify-plugin": "^4.0.0",
     "pump": "^3.0.0",
-    "tiny-lru": "^10.0.0",
+    "tiny-lru": "^11.0.0",
     "undici": "^5.19.1"
   },
   "pre-commit": [
