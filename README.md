@@ -312,6 +312,56 @@ Helpful for a gradual rollout of new services.
 Parameters are the Fastify request and the base string from the plugin options.
 It must return the upstream destination.
 
+Only http1! As http2 uses one connection for the whole session only the base upstream is used. If you want to
+have different upstreams based on the request you can add multiple Fastify.register's with different
+ContraintStrategies.
+
+e.g.:
+
+Route grpc-web/http1 and grpc/http2 to different routes with a ContentType-ConstraintStrategy:
+```
+const contentTypeMatchContraintStrategy = {
+    // strategy name for referencing in the route handler `constraints` options
+    name: 'contentType',
+    // storage factory for storing routes in the find-my-way route tree
+    storage: function () {
+      let handlers = {}
+      return {
+        get: (type: any) => { return handlers[type] || null },
+        set: (type: any, store: any) => { handlers[type] = store }
+      }
+    },
+    // function to get the value of the constraint from each incoming request
+    deriveConstraint: (req: any, ctx: any) => { 
+      return req.headers['content-type']
+    },
+    // optional flag marking if handlers without constraints can match requests that have a value for this constraint
+    mustMatchWhenDerived: true
+  }
+ 
+  server.addConstraintStrategy(contentTypeMatchContraintStrategy);
+```
+
+and then 2 different upstreams with different register's:
+```
+// grpc-web / http1
+server.register(fastifyHttpProxy, {
+    // Although most browsers send with http2, nodejs cannot handle this http2 request
+    // therefore we have to transport to the grpc-web-proxy via http1
+    http2: false,
+    upstream: 'http://grpc-web-proxy',
+    constraints: { "contentType": "application/grpc-web+proto" }   
+});
+
+// grpc / http2
+server.register(fastifyHttpProxy, {
+    http2: true,
+    upstream: 'http://grpc.server',
+    constraints: { "contentType": "application/grpc+proto" }   
+});
+```
+
+
 #### `queryString` or `queryString(search, reqUrl)`
 
 Replaces the original querystring of the request with what is specified.
