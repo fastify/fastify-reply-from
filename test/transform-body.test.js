@@ -26,7 +26,7 @@ instance.get('/', (request, reply) => {
   reply.from(`http://localhost:${target.address().port}`, {
     onResponse: (request, reply, res) => {
       reply.send(
-        res.pipe(
+        res.stream.pipe(
           new Transform({
             transform: function (chunk, enc, cb) {
               this.push(chunk.toString().toUpperCase())
