@@ -1,5 +1,5 @@
 import replyFrom, { FastifyReplyFromOptions } from "..";
-import fastify, {FastifyReply, FastifyRequest, RawServerBase, RequestGenericInterface} from "fastify";
+import fastify, {FastifyReply, FastifyRequest, RawReplyDefaultExpression, RawServerBase, RequestGenericInterface} from "fastify";
 import { AddressInfo } from "net";
 import { IncomingHttpHeaders } from "http2";
 import { expectType } from 'tsd';
@@ -72,6 +72,12 @@ async function main() {
           getUpstream(req, base) {
               expectType<FastifyRequest<RequestGenericInterface, RawServerBase>>(req);
               return base;
+          },
+          onResponse(request, reply, res) {
+            expectType<FastifyRequest<RequestGenericInterface, RawServerBase>>(request);
+            expectType<FastifyReply<RawServerBase>>(reply);
+            expectType<RawReplyDefaultExpression<RawServerBase>>(res);
+            expectType<number>(res.statusCode);
           }
       });
   });

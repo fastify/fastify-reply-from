@@ -177,7 +177,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       }
       this.code(res.statusCode)
       if (onResponse) {
-        onResponse(this.request, this, res.stream)
+        onResponse(this.request, this, res)
       } else {
         this.send(res.stream)
       }
