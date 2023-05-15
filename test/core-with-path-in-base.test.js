@@ -39,7 +39,10 @@ target.listen({ port: 0 }, (err) => {
   instance.listen({ port: 0 }, (err) => {
     t.error(err)
 
-    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
+    get({
+      url: `http://localhost:${instance.server.address().port}`,
+      agent: false
+    }, (err, res, data) => {
       t.error(err)
       t.equal(res.headers['content-type'], 'text/plain')
       t.equal(res.headers['x-my-header'], 'hello!')
