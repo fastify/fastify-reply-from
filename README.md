@@ -246,6 +246,15 @@ fastify.register(FastifyReplyFrom, {
 
 ---
 
+#### `destoryAgent`
+
+If set to `true`, it will destory all agents when the Fastify is closed.
+If set to `false`, it will not destroy the agents.
+
+By Default: `false`
+
+---
+
 #### `maxRetriesOn503`
 
 This plugin will always retry on `GET` requests that returns 503 errors, _unless_ `retryMethods` does not contain `GET`.

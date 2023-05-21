@@ -94,6 +94,7 @@ declare namespace fastifyReplyFrom {
     maxRetriesOn503?: number;
     disableRequestLogging?: boolean;
     globalAgent?: boolean;
+    destroyAgent?: boolean;
   }
 
   export const fastifyReplyFrom: FastifyReplyFrom

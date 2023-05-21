@@ -39,7 +39,8 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     http2: opts.http2,
     base,
     undici: opts.undici,
-    globalAgent: opts.globalAgent
+    globalAgent: opts.globalAgent,
+    destroyAgent: opts.destroyAgent
   })
   if (requestBuilt instanceof Error) {
     next(requestBuilt)
