@@ -246,6 +246,15 @@ fastify.register(FastifyReplyFrom, {
 
 ---
 
+#### `closeAgent`
+
+If set to `true`, it will close all agents when Fastify shuts down.
+If set to `false`, it will not close the agents.
+
+By Default: `false`
+
+---
+
 #### `maxRetriesOn503`
 
 This plugin will always retry on `GET` requests that returns 503 errors, _unless_ `retryMethods` does not contain `GET`.
