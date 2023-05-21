@@ -246,10 +246,10 @@ fastify.register(FastifyReplyFrom, {
 
 ---
 
-#### `closeAgent`
+#### `destoryAgent`
 
-If set to `true`, it will close all agents when Fastify shuts down.
-If set to `false`, it will not close the agents.
+If set to `true`, it will destory all agents when the Fastify is closed.
+If set to `false`, it will not destroy the agents.
 
 By Default: `false`
 

@@ -5,7 +5,7 @@ const Fastify = require('fastify')
 const undici = require('undici')
 const From = require('..')
 
-test('closeAgent false', async (t) => {
+test('destroyAgent false', async (t) => {
   const mockAgent = new undici.Agent()
   mockAgent.destroy = () => {
     t.fail()
@@ -21,7 +21,7 @@ test('closeAgent false', async (t) => {
   instance.register(From, {
     base: 'http://localhost:4242',
     undici: mockAgent,
-    closeAgent: false
+    destroyAgent: false
   })
 
   await instance.ready()
