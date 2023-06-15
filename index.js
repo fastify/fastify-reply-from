@@ -52,6 +52,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   fastify.decorateReply('from', function (source, opts) {
     opts = opts || {}
     const req = this.request.raw
+    const method = opts.method || req.method
     const onResponse = opts.onResponse
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
@@ -127,12 +128,12 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     // fastify ignore message body when it's a GET or HEAD request
     // when proxy this request, we should reset the content-length to make it a valid http request
     // discussion: https://github.com/fastify/fastify/issues/953
-    if (req.method === 'GET' || req.method === 'HEAD') {
+    if (method === 'GET' || method === 'HEAD') {
       // body will be populated here only if opts.body is passed.
       // if we are doing that with a GET or HEAD request is a programmer error
       // and as such we can throw immediately.
       if (body) {
-        throw new Error(`Rewriting the body when doing a ${req.method} is not allowed`)
+        throw new Error(`Rewriting the body when doing a ${method} is not allowed`)
       }
     }
 
@@ -141,13 +142,13 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const requestHeaders = rewriteRequestHeaders(this.request, headers)
     const contentLength = requestHeaders['content-length']
     let requestImpl
-    if (retryMethods.has(req.method) && !contentLength) {
+    if (retryMethods.has(method) && !contentLength) {
       requestImpl = createRequestRetry(request, this, retriesCount, retryOnError, maxRetriesOn503)
     } else {
       requestImpl = request
     }
 
-    requestImpl({ method: req.method, url, qs, headers: requestHeaders, body }, (err, res) => {
+    requestImpl({ method, url, qs, headers: requestHeaders, body }, (err, res) => {
       if (err) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {

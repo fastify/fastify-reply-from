@@ -67,6 +67,7 @@ declare namespace fastifyReplyFrom {
       request: FastifyRequest<RequestGenericInterface, RawServerBase>,
       base: string
     ) => string;
+    method?: HTTPMethods;
   }
 
   interface Http2Options {
