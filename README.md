@@ -388,6 +388,10 @@ through `JSON.stringify()`.
 Setting this option for GET, HEAD requests will throw an error "Rewriting the body when doing a {GET|HEAD} is not allowed".
 Setting this option to `null` will strip the body (and `content-type` header) entirely from the proxied request.
 
+#### `method`
+
+Replaces the original request method with what is specified. 
+
 #### `retriesCount`
 
 How many times it will try to pick another connection on socket hangup (`ECONNRESET` error).  
