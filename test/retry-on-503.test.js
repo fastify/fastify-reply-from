@@ -3,7 +3,7 @@
 const { test } = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
-const http = require('http')
+const http = require('node:http')
 const got = require('got')
 
 function createTargetServer (withRetryAfterHeader, stopAfter = 1) {

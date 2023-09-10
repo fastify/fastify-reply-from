@@ -3,11 +3,11 @@
 const { test } = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
-const https = require('https')
+const https = require('node:https')
 const get = require('simple-get').concat
 
-const fs = require('fs')
-const path = require('path')
+const fs = require('node:fs')
+const path = require('node:path')
 const certs = {
   key: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.key')),
   cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))

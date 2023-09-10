@@ -2,7 +2,7 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
-const http = require('http')
+const http = require('node:http')
 const get = require('simple-get').concat
 const undici = require('undici')
 const From = require('..')

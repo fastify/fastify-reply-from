@@ -1,8 +1,8 @@
 'use strict'
 
 const t = require('tap')
-const http = require('http')
-const net = require('net')
+const http = require('node:http')
+const net = require('node:net')
 const Fastify = require('fastify')
 const From = require('..')
 const got = require('got')

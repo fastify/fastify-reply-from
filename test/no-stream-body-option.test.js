@@ -3,9 +3,9 @@
 const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
-const http = require('http')
+const http = require('node:http')
 const get = require('simple-get').concat
-const Readable = require('stream').Readable
+const Readable = require('node:stream').Readable
 
 const instance = Fastify()
 instance.register(From)

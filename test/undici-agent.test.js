@@ -3,7 +3,7 @@
 const t = require('tap')
 const Fastify = require('fastify')
 const proxyquire = require('proxyquire')
-const http = require('http')
+const http = require('node:http')
 const get = require('simple-get').concat
 const undici = require('undici')
 const { getUndiciOptions } = require('../lib/request')
