@@ -1,12 +1,12 @@
 'use strict'
 
-const fs = require('fs')
-const path = require('path')
+const fs = require('node:fs')
+const path = require('node:path')
 const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
 const Multipart = require('@fastify/multipart')
-const http = require('http')
+const http = require('node:http')
 const get = require('simple-get').concat
 const FormData = require('form-data')
 

@@ -3,8 +3,8 @@
 const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
-const http = require('http')
-const https = require('https')
+const http = require('node:http')
+const https = require('node:https')
 const get = require('simple-get').concat
 
 const instance = Fastify()

@@ -3,9 +3,9 @@
 const test = require('tap').test
 const Fastify = require('fastify')
 const From = require('../index')
-const http = require('http')
+const http = require('node:http')
 const get = require('simple-get').concat
-const { parse } = require('querystring')
+const { parse } = require('node:querystring')
 
 test('with explicitly set content-type application/octet-stream', t => {
   const instance = Fastify()

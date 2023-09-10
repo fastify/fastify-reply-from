@@ -3,9 +3,9 @@
 const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
-const http = require('http')
+const http = require('node:http')
 const get = require('simple-get').concat
-const querystring = require('querystring')
+const querystring = require('node:querystring')
 
 const instance = Fastify()
 

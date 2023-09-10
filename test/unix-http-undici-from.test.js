@@ -3,9 +3,9 @@
 const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
-const fs = require('fs')
-const querystring = require('querystring')
-const http = require('http')
+const fs = require('node:fs')
+const querystring = require('node:querystring')
+const http = require('node:http')
 const get = require('simple-get').concat
 
 if (process.platform === 'win32') {
