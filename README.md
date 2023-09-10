@@ -74,7 +74,7 @@ socket server by using `querystring.escape(socketPath)` as the hostname.  This i
 for http2 nor undici.  To illustrate:
 
 ```js
-const socketPath = require('querystring').escape('/run/http-daemon.socket')
+const socketPath = require('node:querystring').escape('/run/http-daemon.socket')
 proxy.register(require('@fastify/reply-from'), {
   base: 'unix+http://${socketPath}/'
 });
