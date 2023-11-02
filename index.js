@@ -29,7 +29,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   ])
 
   const retryMethods = new Set(opts.retryMethods || [
-    'GET', 'HEAD', 'OPTIONS', 'TRACE'
+    'GET', 'HEAD', 'OPTIONS', 'TRACE', "POST", "PATCH"
   ])
 
   const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
@@ -60,6 +60,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const onError = opts.onError || onErrorDefault
     const retriesCount = opts.retriesCount || 0
     const maxRetriesOn503 = opts.maxRetriesOn503 || 10
+    const customRetryHandler = opts.customRetryHandler || undefined
 
     if (!source) {
       source = req.url
@@ -143,7 +144,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const contentLength = requestHeaders['content-length']
     let requestImpl
     if (retryMethods.has(method) && !contentLength) {
-      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError, maxRetriesOn503)
+      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError, maxRetriesOn503, customRetryHandler)
     } else {
       requestImpl = request
     }
@@ -251,12 +252,13 @@ function isFastifyMultipartRegistered (fastify) {
   return (fastify.hasContentTypeParser('multipart') || fastify.hasContentTypeParser('multipart/form-data')) && fastify.hasRequestDecorator('multipart')
 }
 
-function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, maxRetriesOn503) {
+function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, maxRetriesOn503, customRetryHandler) {
   function requestRetry (req, cb) {
     let retries = 0
 
     function run () {
       requestImpl(req, function (err, res) {
+
         // Magic number, so why not 42? We might want to make this configurable.
         let retryAfter = 42 * Math.random() * (retries + 1)
 
@@ -264,8 +266,21 @@ function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, max
           retryAfter = res.headers['retry-after']
         }
         if (!reply.sent) {
+
+          const customRetryHandlerWrapper = (customRetryHandler, {...opts}) => {
+            const retryAfter = customRetryHandler.retryHandlerImpl({...opts})
+            if (retryAfter > 0){
+              if (retriesCount === 0 && retries < customRetryHandler.retries || 1) {
+                return retry(retryAfter)
+              }
+            }
+            return null
+          }
+
+          customRetryHandlerWrapper(customRetryHandler, {req, res})
+
           // always retry on 503 errors
-          if (res && res.statusCode === 503 && req.method === 'GET') {
+          if (res && res.statusCode === 503 && retryMethods.has(req.method)) {
             if (retriesCount === 0 && retries < maxRetriesOn503) {
               // we should stop at some point
               return retry(retryAfter)
@@ -274,6 +289,9 @@ function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, max
             return retry(retryAfter)
           }
         }
+
+
+
         cb(err, res)
       })
     }
