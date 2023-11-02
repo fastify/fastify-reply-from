@@ -29,7 +29,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   ])
 
   const retryMethods = new Set(opts.retryMethods || [
-    'GET', 'HEAD', 'OPTIONS', 'TRACE', "POST", "PATCH"
+    'GET', 'HEAD', 'OPTIONS', 'TRACE', 'POST', 'PATCH'
   ])
 
   const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
@@ -258,7 +258,6 @@ function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, max
 
     function run () {
       requestImpl(req, function (err, res) {
-
         // Magic number, so why not 42? We might want to make this configurable.
         let retryAfter = 42 * Math.random() * (retries + 1)
 
@@ -267,30 +266,27 @@ function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, max
         }
         if (!reply.sent) {
 
-          const customRetryHandlerWrapper = (customRetryHandler, {...opts}) => {
-            const retryAfter = customRetryHandler.retryHandlerImpl({...opts})
-            if (retryAfter > 0){
-              if (retriesCount === 0 && retries < customRetryHandler.retries || 1) {
-                return retry(retryAfter)
+          if (customRetryHandler) {
+            if (++retries < customRetryHandler.retries) {
+              const retryAfter = customRetryHandler.retryHandlerImpl(req, res)
+
+              if (retryAfter || retryAfter > 0){
+               return retry(retryAfter)
               }
             }
-            return null
           }
 
-          customRetryHandlerWrapper(customRetryHandler, {req, res})
-
           // always retry on 503 errors
-          if (res && res.statusCode === 503 && retryMethods.has(req.method)) {
+          if (res && res.statusCode === 503 && req.method === 'GET') {
             if (retriesCount === 0 && retries < maxRetriesOn503) {
               // we should stop at some point
+              console.log("retryAfter 503", retryAfter)
               return retry(retryAfter)
             }
           } else if (retriesCount > retries && err && err.code === retryOnError) {
             return retry(retryAfter)
           }
         }
-
-
 
         cb(err, res)
       })

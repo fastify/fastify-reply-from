@@ -13,6 +13,7 @@ function createTargetServer (withRetryAfterHeader, stopAfter = 1) {
       res.statusCode = 503
       res.setHeader('Content-Type', 'text/plain')
       if (withRetryAfterHeader) {
+        console.log("header")
         res.setHeader('Retry-After', 100)
       }
       return res.end('This Service is Unavailable')

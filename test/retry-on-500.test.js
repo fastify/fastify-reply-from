@@ -6,13 +6,14 @@ const From = require('..')
 const http = require('node:http')
 const got = require('got')
 
-function createTargetServer (withRetryAfterHeader, stopAfter = 2) {
+function createTargetServer (withRetryAfterHeader, stopAfter = 4) {
   let requestCount = 0
   return http.createServer((req, res) => {
     if (requestCount++ < stopAfter) {
       res.statusCode = 500
       res.setHeader('Content-Type', 'text/plain')
 
+      //this will be ignored because we have a custom retryAfter
       if (withRetryAfterHeader) {
         res.setHeader('Retry-After', 100) // 100 ms
       }
@@ -20,21 +21,21 @@ function createTargetServer (withRetryAfterHeader, stopAfter = 2) {
       return res.end('This Service is Unavailable')
     }
 
-    res.statusCode = 200
+    res.statusCode = 205
     res.setHeader('Content-Type', 'text/plain')
-    return res.end(`Hello World After ${requestCount}`)
+    return res.end(`Hello World ${requestCount}!`)
   })
 }
 
-test("custom retries on the server", async function (t) {
-  const customRetryLogic = ({...opts}) => {
-    if (opts.res && opts.res.statusCode === 500 && opts.req.method === 'GET'){
-      return 100
+test('retry a 500 status code in a custom manner', async function (t) {
+  const customRetryLogic = (req, res) => {
+    if (res && res.statusCode === 500 && req.method === 'GET') {
+      return 300
     }
     return null
   }
 
-  const target = createTargetServer()
+  const target = createTargetServer(true)
   await target.listen({ port: 0 })
   t.teardown(target.close.bind(target))
 
@@ -57,5 +58,9 @@ test("custom retries on the server", async function (t) {
 
   // making a request to the server we setup through fastify
   const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
-  console.log('request to server', { statusCode: res.statusCode, body: res.body.toString() })
+  console.log('request to server', { statusCode: res.statusCode, body: res.body.toString()})
+
+  t.equal(res.headers['content-type'], 'text/plain')
+  t.equal(res.statusCode, 205)
+  t.equal(res.body.toString(), 'Hello World 5!')
 })
