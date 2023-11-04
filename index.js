@@ -60,7 +60,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const onError = opts.onError || onErrorDefault
     const retriesCount = opts.retriesCount || 0
     const maxRetriesOn503 = opts.maxRetriesOn503 || 10
-    const customRetryHandler = opts.customRetryHandler || undefined
+    const customRetry = opts.customRetry || undefined
 
     if (!source) {
       source = req.url
@@ -144,7 +144,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const contentLength = requestHeaders['content-length']
     let requestImpl
     if (retryMethods.has(method) && !contentLength) {
-      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError, maxRetriesOn503, customRetryHandler)
+      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError, maxRetriesOn503, customRetry)
     } else {
       requestImpl = request
     }
@@ -252,39 +252,48 @@ function isFastifyMultipartRegistered (fastify) {
   return (fastify.hasContentTypeParser('multipart') || fastify.hasContentTypeParser('multipart/form-data')) && fastify.hasRequestDecorator('multipart')
 }
 
-function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, maxRetriesOn503, customRetryHandler) {
+function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, maxRetriesOn503, customRetry) {
   function requestRetry (req, cb) {
     let retries = 0
 
     function run () {
       requestImpl(req, function (err, res) {
         // Magic number, so why not 42? We might want to make this configurable.
-        let retryAfter = 42 * Math.random() * (retries + 1)
 
-        if (res && res.headers['retry-after']) {
-          retryAfter = res.headers['retry-after']
-        }
-        if (!reply.sent) {
+        const defaultRetryAfter = () => {
+          let retryAfter = 42 * Math.random() * (retries + 1)
 
-          if (customRetryHandler) {
-            if (++retries < customRetryHandler.retries) {
-              const retryAfter = customRetryHandler.retryHandlerImpl(req, res)
-
-              if (retryAfter || retryAfter > 0){
-               return retry(retryAfter)
-              }
-            }
+          if (res && res.headers['retry-after']) {
+            retryAfter = res.headers['retry-after']
           }
+          return retryAfter
+        }
 
-          // always retry on 503 errors
+        const defaultRetryLogic = (retryAfter) => {
           if (res && res.statusCode === 503 && req.method === 'GET') {
             if (retriesCount === 0 && retries < maxRetriesOn503) {
               // we should stop at some point
-              console.log("retryAfter 503", retryAfter)
-              return retry(retryAfter)
+              return retryAfter
             }
           } else if (retriesCount > retries && err && err.code === retryOnError) {
-            return retry(retryAfter)
+            return retryAfter
+          }
+        }
+
+
+        if (!reply.sent) {
+          if (customRetry && customRetry.handler){
+           const customRetryAfter = customRetry.handler(req, res, defaultRetryAfter, defaultRetryLogic)
+            if (customRetryAfter){
+              if (++retries < customRetry.retries){
+                return retry(customRetryAfter)
+              }
+            }
+          }else{
+            const defaultAfter = defaultRetryAfter()
+            if (defaultRetryLogic(defaultAfter)){
+              return retry(defaultAfter)
+            }
           }
         }
 
