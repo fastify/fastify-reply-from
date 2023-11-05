@@ -34,7 +34,7 @@ function serverWithCustomError (stopAfter, statusCodeToFailOn) {
 
 
 // -> a server 500's and we don't have a custom handler we should fail
-async function setupServer(t, fromOptions= {}, stopAfter = 4, statusCodeToFailOn = 500){
+async function setupServer(t, fromOptions= {}, statusCodeToFailOn = 500, stopAfter = 4){
   const target = serverWithCustomError(stopAfter, statusCodeToFailOn)
   await target.listen({ port: 0 })
   t.teardown(target.close.bind(target))
@@ -70,23 +70,53 @@ test("a 500 status code with no custom handler should fail", async (t) => {
 
 
 
-// -> a server 500's and we have a custom handler we should revive
-// test("a server 500's with a custom handler and should revive", async (t) => {
+// -> a server 500's and we have a custom handler we should revive not
+test("a server 500's with a custom handler and should revive", async (t) => {
+  const customRetryLogic = (req, res, registerDefaultRetry, defaultRetryAfter) => {
+    if (res && res.statusCode === 500 && req.method === 'GET') {
+      return 300
+    }
+    return null
+  }
 
-//   const {target, instance} = await setupServer(t);
+  const {instance} = await setupServer(t, {customRetry: { handler: customRetryLogic, retries: 10}});
 
-// })
+  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
+
+  t.equal(res.headers['content-type'], 'text/plain')
+  t.equal(res.statusCode, 205)
+  t.equal(res.body.toString(), 'Hello World 5!')
+})
+
+
+
+// -> server 500's with a custom handler and we revive but then we 503 without registering we should ultimately fail
+test("a server 503's with a custom handler for 500 and should revive", async (t) => {
+  //the key here is we need our customRetryHandler should register the deefault handler and as a result so it ends up working
+
+  const customRetryLogic = (req, res, registerDefaultRetry, defaultRetryAfter) => {
+
+    if (res && res.statusCode === 500 && req.method === 'GET') {
+      return 300
+    }
+    return null
+  }
+
+  const {instance} = await setupServer(t, {customRetry: { handler: customRetryLogic, retries: 10}}, 503);
+
+  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
+
+  t.equal(res.headers['content-type'], 'text/plain')
+  t.equal(res.statusCode, 205)
+  t.equal(res.body.toString(), 'Hello World 5!')
+
+
+});
 
 
 
 
 // test('retry a 500 status code in a custom manner', async function (t) {
-//   const customRetryLogic = (req, res, registerDefaultRetry, defaultRetryAfter) => {
-//     if (res && res.statusCode === 500 && req.method === 'GET') {
-//       return 300
-//     }
-//     return null
-//   }
 
 //   const target = internalErrorServerWhichRevives(true)
 //   await target.listen({ port: 0 })
