@@ -269,30 +269,30 @@ function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, max
           return retryAfter
         }
 
-        const defaultRetryLogic = (retryAfter) => {
+        const defaultRetry = () => {
           if (res && res.statusCode === 503 && req.method === 'GET') {
             if (retriesCount === 0 && retries < maxRetriesOn503) {
               // we should stop at some point
-              return retryAfter
+              return true
             }
           } else if (retriesCount > retries && err && err.code === retryOnError) {
-            return retryAfter
+            return true
           }
+          return false
         }
 
 
         if (!reply.sent) {
           if (customRetry && customRetry.handler){
-           const retryAfter = customRetry.handler(req, res, defaultRetryAfter, defaultRetryLogic)
+           const retryAfter = customRetry.handler(req, res, defaultRetryAfter, defaultRetry)
             if (retryAfter){
               if (++retries < customRetry.retries){
                 return retry(retryAfter)
               }
             }
           }else{
-            const defaultAfter = defaultRetryAfter()
-            if (defaultRetryLogic(defaultAfter)){
-              return retry(defaultAfter)
+            if (defaultRetry()){
+              return retry(defaultRetryAfter())
             }
           }
         }

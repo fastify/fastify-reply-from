@@ -23,18 +23,8 @@ function serverWithCustomError (stopAfter, statusCodeToFailOn) {
   })
 }
 
-//test cases queue
-// -> a server just 503's and as have a custom handler attached and we register the default
-// -> a server just 503's and we have a custom handler and we don't register the default. expect to 503
-// -> a server 503's and we don't have a custom handler we should still revive
-
-
-// -> server 500's with a custom handler and we revive but then we 503 without registering we should ultimately fail
-// -> a server 500's with a custom handler and we revive but then we 503 with registering
-
-
 // -> a server 500's and we don't have a custom handler we should fail
-async function setupServer(t, fromOptions= {}, statusCodeToFailOn = 500, stopAfter = 4){
+async function setupServer(t, fromOptions = {}, statusCodeToFailOn = 500, stopAfter = 4){
   const target = serverWithCustomError(stopAfter, statusCodeToFailOn)
   await target.listen({ port: 0 })
   t.teardown(target.close.bind(target))
@@ -56,7 +46,6 @@ async function setupServer(t, fromOptions= {}, statusCodeToFailOn = 500, stopAft
   }
 }
 
-
 test("a 500 status code with no custom handler should fail", async (t) => {
   const {instance} = await setupServer(t);
 
@@ -67,8 +56,6 @@ test("a 500 status code with no custom handler should fail", async (t) => {
     t.end()
   }
 })
-
-
 
 // -> a server 500's and we have a custom handler we should revive not
 test("a server 500's with a custom handler and should revive", async (t) => {
@@ -87,7 +74,6 @@ test("a server 500's with a custom handler and should revive", async (t) => {
   t.equal(res.statusCode, 205)
   t.equal(res.body.toString(), 'Hello World 5!')
 })
-
 
 // -> server 503's with a custom handler not registering the default should ultimately fail
 test("a server 503's with a custom handler for 500 but the custom handler never registers the default so should fail", async (t) => {
@@ -112,15 +98,13 @@ test("a server 503's with a custom handler for 500 but the custom handler never 
 test("a server 503's with a custom handler for 500 and the custom handler registers the default so it passes", async (t) => {
   const customRetryLogic = (req, res, registerDefaultRetry, defaultRetryAfter) => {
     //registering the default retry logic for non 500 errors if it occurs
-    const defaultHandler = registerDefaultRetry(defaultRetryAfter())
-    if (defaultHandler){
-      return defaultHandler;
+    if (registerDefaultRetry()){
+      return defaultRetryAfter;
     }
 
     if (res && res.statusCode === 500 && req.method === 'GET') {
       return 300
     }
-
 
     return null
   }
