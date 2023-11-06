@@ -283,10 +283,10 @@ function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, max
 
         if (!reply.sent) {
           if (customRetry && customRetry.handler){
-           const customRetryAfter = customRetry.handler(req, res, defaultRetryAfter, defaultRetryLogic)
-            if (customRetryAfter){
+           const retryAfter = customRetry.handler(req, res, defaultRetryAfter, defaultRetryLogic)
+            if (retryAfter){
               if (++retries < customRetry.retries){
-                return retry(customRetryAfter)
+                return retry(retryAfter)
               }
             }
           }else{
