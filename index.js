@@ -29,8 +29,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   ])
 
   const retryMethods = new Set(opts.retryMethods || [
-    'GET', 'HEAD', 'OPTIONS', 'TRACE', 'POST', 'PATCH'
-  ])
+    'GET', 'HEAD', 'OPTIONS', 'TRACE'])
 
   const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
   const base = opts.base
@@ -144,7 +143,30 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const contentLength = requestHeaders['content-length']
     let requestImpl
     if (retryMethods.has(method) && !contentLength) {
-      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError, maxRetriesOn503, customRetry)
+
+
+      //returns either default or the customRetry
+      const retryHandler = (retryOnError, maxRetriesOn503, customRetry) => {
+
+        // Magic number, so why not 42? We might want to make this configurable.
+        let retryAfter = 42 * Math.random() * (retries + 1)
+
+        if (res && res.headers['retry-after']) {
+          retryAfter = res.headers['retry-after']
+        }
+          if (res && res.statusCode === 503 && req.method === 'GET') {
+            if (retriesCount === 0 && retries < maxRetriesOn503) {
+              // we should stop at some point
+              return retryAfter
+            }
+          } else if (retriesCount > retries && err && err.code === retryOnError) {
+            return retryAfter
+          }
+          return customRetry
+        }
+
+      requestImpl = createRequestRetry(request, this, retriesCount, defaultHandler(retryOnError, maxRetriesOn503, customRetry))
+
     } else {
       requestImpl = request
     }
@@ -252,38 +274,45 @@ function isFastifyMultipartRegistered (fastify) {
   return (fastify.hasContentTypeParser('multipart') || fastify.hasContentTypeParser('multipart/form-data')) && fastify.hasRequestDecorator('multipart')
 }
 
+function createRequestRetry(requestImpl, reply, retriesCount, caller){
+  //note caller has a bunch of args with the defaults already baked in
+  //
+
+}
+
+
+
+
+
+
 function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, maxRetriesOn503, customRetry) {
   function requestRetry (req, cb) {
     let retries = 0
 
     function run () {
       requestImpl(req, function (err, res) {
+
+        const defaultDelay = () => {
         // Magic number, so why not 42? We might want to make this configurable.
+        let retryAfter = 42 * Math.random() * (retries + 1)
 
-        const defaultRetryAfter = () => {
-          let retryAfter = 42 * Math.random() * (retries + 1)
-
-          if (res && res.headers['retry-after']) {
-            retryAfter = res.headers['retry-after']
-          }
-          return retryAfter
+        if (res && res.headers['retry-after']) {
+          retryAfter = res.headers['retry-after']
         }
-
-        const defaultRetry = () => {
           if (res && res.statusCode === 503 && req.method === 'GET') {
             if (retriesCount === 0 && retries < maxRetriesOn503) {
               // we should stop at some point
-              return true
+              return retryAfter
             }
           } else if (retriesCount > retries && err && err.code === retryOnError) {
-            return true
+            return retryAfter
           }
-          return false
+          return null
         }
 
         if (!reply.sent) {
           if (customRetry && customRetry.handler) {
-            const retryAfter = customRetry.handler(req, res, defaultRetryAfter, defaultRetry)
+            const retryAfter = customRetry.handler(req, res, defaultDelay)
             if (retryAfter) {
               const customRetries = customRetry.retries || 1
               if (++retries < customRetries) {
@@ -291,8 +320,8 @@ function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, max
               }
             }
           } else {
-            if (defaultRetry()) {
-              return retry(defaultRetryAfter())
+            if (defaultDelay()) {
+              return retry(defaultDelay())
             }
           }
         }
