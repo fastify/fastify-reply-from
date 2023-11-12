@@ -41,7 +41,7 @@ const fullOptions: FastifyReplyFromOptions = {
     pipelining: 10
   },
   contentTypesToEncode: ['application/x-www-form-urlencoded'],
-  retryMethods: ['GET', 'HEAD', 'OPTIONS', 'TRACE', 'POST', 'PATCH'],
+  retryMethods: ['GET', 'HEAD', 'OPTIONS', 'TRACE'],
   maxRetriesOn503: 10,
   disableRequestLogging: false,
   globalAgent: false,

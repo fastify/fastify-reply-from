@@ -23,7 +23,7 @@ const {
 } = require('./lib/errors')
 const { warn } = require('node:console')
 
-const fastifyReplyFrom = fp(function from(fastify, opts, next) {
+const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   const contentTypesToEncode = new Set([
     'application/json',
     ...(opts.contentTypesToEncode || [])
@@ -144,9 +144,7 @@ const fastifyReplyFrom = fp(function from(fastify, opts, next) {
     const contentLength = requestHeaders['content-length']
     let requestImpl
     if (retryMethods.has(method) && !contentLength) {
-
       const retryHandler = (req, res, err, retries) => {
-
         const defaultDelay = () => {
           // Magic number, so why not 42? We might want to make this configurable.
           let retryAfter = 42 * Math.random() * (retries + 1)
@@ -165,10 +163,11 @@ const fastifyReplyFrom = fp(function from(fastify, opts, next) {
           return null
         }
 
-        if (customRetry && customRetry.handler){
+        if (customRetry && customRetry.handler) {
           const customRetries = customRetry.retries || 1
           if (++retries < customRetries) {
-            return customRetry.handler(req, res, defaultDelay)}
+            return customRetry.handler(req, res, defaultDelay)
+          }
         }
         return defaultDelay()
       }
@@ -237,7 +236,7 @@ const fastifyReplyFrom = fp(function from(fastify, opts, next) {
   name: '@fastify/reply-from'
 })
 
-function getQueryString(search, reqUrl, opts) {
+function getQueryString (search, reqUrl, opts) {
   if (typeof opts.queryString === 'function') {
     return '?' + opts.queryString(search, reqUrl)
   }
@@ -259,33 +258,33 @@ function getQueryString(search, reqUrl, opts) {
   return ''
 }
 
-function headersNoOp(headers, originalReq) {
+function headersNoOp (headers, originalReq) {
   return headers
 }
 
-function requestHeadersNoOp(originalReq, headers) {
+function requestHeadersNoOp (originalReq, headers) {
   return headers
 }
 
-function upstreamNoOp(req, base) {
+function upstreamNoOp (req, base) {
   return base
 }
 
-function onErrorDefault(reply, { error }) {
+function onErrorDefault (reply, { error }) {
   reply.send(error)
 }
 
-function isFastifyMultipartRegistered(fastify) {
+function isFastifyMultipartRegistered (fastify) {
   // TODO: remove fastify.hasContentTypeParser('multipart') in next major
   // It is used to be compatible with @fastify/multipart@<=7.3.0
   return (fastify.hasContentTypeParser('multipart') || fastify.hasContentTypeParser('multipart/form-data')) && fastify.hasRequestDecorator('multipart')
 }
 
-function createRequestRetry(requestImpl, reply, retryHandler) {
-  function requestRetry(req, cb) {
+function createRequestRetry (requestImpl, reply, retryHandler) {
+  function requestRetry (req, cb) {
     let retries = 0
 
-    function run() {
+    function run () {
       requestImpl(req, function (err, res) {
         const retryDelay = retryHandler(req, res, err, retries)
         if (!reply.sent && retryDelay) {
@@ -295,7 +294,7 @@ function createRequestRetry(requestImpl, reply, retryHandler) {
       })
     }
 
-    function retry(after) {
+    function retry (after) {
       retries += 1
       setTimeout(run, after)
     }
