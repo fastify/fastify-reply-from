@@ -6,7 +6,7 @@ const From = require('..')
 const http = require('node:http')
 const got = require('got')
 
-function serverWithCustomError (stopAfter, statusCodeToFailOn) {
+function serverWithCustomError(stopAfter, statusCodeToFailOn) {
   let requestCount = 0
   return http.createServer((req, res) => {
     if (requestCount++ < stopAfter) {
@@ -21,7 +21,7 @@ function serverWithCustomError (stopAfter, statusCodeToFailOn) {
   })
 }
 
-async function setupServer (t, fromOptions = {}, statusCodeToFailOn = 500, stopAfter = 4) {
+async function setupServer(t, fromOptions = {}, statusCodeToFailOn = 500, stopAfter = 4) {
   const target = serverWithCustomError(stopAfter, statusCodeToFailOn)
   await target.listen({ port: 0 })
   t.teardown(target.close.bind(target))
@@ -46,16 +46,18 @@ async function setupServer (t, fromOptions = {}, statusCodeToFailOn = 500, stopA
 test('a 500 status code with no custom handler should fail', async (t) => {
   const { instance } = await setupServer(t)
 
+  let errorMessage
   try {
     await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
   } catch (error) {
-    t.ok(error instanceof got.RequestError, 'should throw RequestError')
-    t.end()
+    errorMessage = error.message
   }
+
+  t.equal(errorMessage, 'Response code 500 (Internal Server Error)')
 })
 
 test("a server 500's with a custom handler and should revive", async (t) => {
-  const customRetryLogic = (req, res, defaultDelay) => {
+  const customRetryLogic = (req, res, getDefaultDelay) => {
     const defaultDelay = getDefaultDelay()
     if (defaultDelay) return defaultDelay;
 
@@ -76,7 +78,7 @@ test("a server 500's with a custom handler and should revive", async (t) => {
 
 test("custom retry does not invoke the default delay causing a 503", async (t) => {
   // the key here is our customRetryHandler doesn't register the deefault handler and as a result it doesn't work
-  const customRetryLogic = (req, res, defaultDelay) => {
+  const customRetryLogic = (req, res, getDefaultDelay) => {
     if (res && res.statusCode === 500 && req.method === 'GET') {
       return 300
     }
@@ -85,16 +87,18 @@ test("custom retry does not invoke the default delay causing a 503", async (t) =
 
   const { instance } = await setupServer(t, { customRetry: { handler: customRetryLogic, retries: 10 } }, 503)
 
+  let errorMessage
   try {
     await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
   } catch (error) {
-    t.equal(error.message, 'Response code 503 (Service Unavailable)')
-    t.end()
+    errorMessage = error.message
   }
+
+  t.equal(errorMessage, 'Response code 503 (Service Unavailable)')
 })
 
 test("custom retry delay functions can invoke the default delay", async (t) => {
-  const customRetryLogic = (req, res, defaultDelay) => {
+  const customRetryLogic = (req, res, getDefaultDelay) => {
     // registering the default retry logic for non 500 errors if it occurs
     const defaultDelay = getDefaultDelay()
     if (defaultDelay) return defaultDelay;
@@ -112,5 +116,5 @@ test("custom retry delay functions can invoke the default delay", async (t) => {
 
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.statusCode, 205)
-  t.equal(res.body.toString(), 'Hello World 6!')
+  t.equal(res.body.toString(), 'Hello World 5!')
 })
