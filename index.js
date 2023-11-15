@@ -21,7 +21,6 @@ const {
   UndiciSocketError,
   InternalServerError
 } = require('./lib/errors')
-const { warn } = require('node:console')
 
 const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   const contentTypesToEncode = new Set([

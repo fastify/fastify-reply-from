@@ -14,7 +14,6 @@ npm i @fastify/reply-from
 ```
 
 ## Compatibility with @fastify/multipart
-
 `@fastify/reply-from` and [`@fastify/multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor should they be registered in plugins which have a parent-child relationship.`<br>` The two plugins are incompatible, in the sense that the behavior of `@fastify/reply-from` might not be the expected one when the above-mentioned conditions are not respected.`<br>` This is due to the fact that `@fastify/multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `@fastify/reply-from`.`<br>`
 However, the two plugins may be used within the same fastify instance, at the condition that they belong to disjoint branches of the fastify plugins hierarchy tree.
 
@@ -103,7 +102,6 @@ proxy.register(require('@fastify/reply-from'), {
   }
 })
 ```
-
 See undici own options for more configurations.
 
 You can also pass the plugin a custom instance:
@@ -215,7 +213,7 @@ This only applies when a custom [`body`](#body) is not passed in. Defaults to:
 On which methods should the connection be retried in case of socket hang up.
 **Be aware** that setting here not idempotent method may lead to unexpected results on target.
 
-By default: `['GET', 'HEAD', 'OPTIONS', 'TRACE', 'POST', 'PATCH']`
+By default: `['GET', 'HEAD', 'OPTIONS', 'TRACE']`
 
 This plugin will always retry on 503 errors, _unless_ `retryMethods` does not contain `GET`.
 
