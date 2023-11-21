@@ -1,12 +1,12 @@
-import replyFrom, { FastifyReplyFromOptions } from "..";
-import fastify, {FastifyReply, FastifyRequest, RawServerBase, RequestGenericInterface} from "fastify";
-import { AddressInfo } from "net";
-import { IncomingHttpHeaders } from "http2";
-import { expectType } from 'tsd';
+import fastify, { FastifyReply, FastifyRequest, RawServerBase, RequestGenericInterface } from "fastify";
 import * as http from 'http';
+import { IncomingHttpHeaders } from "http2";
 import * as https from 'https';
+import { AddressInfo } from "net";
+import { expectType } from 'tsd';
+import replyFrom, { FastifyReplyFromOptions } from "..";
 // @ts-ignore
-import tap from 'tap'
+import tap from 'tap';
 
 const fullOptions: FastifyReplyFromOptions = {
   base: "http://example2.com",

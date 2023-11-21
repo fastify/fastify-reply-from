@@ -29,8 +29,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   ])
 
   const retryMethods = new Set(opts.retryMethods || [
-    'GET', 'HEAD', 'OPTIONS', 'TRACE'
-  ])
+    'GET', 'HEAD', 'OPTIONS', 'TRACE'])
 
   const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
   const base = opts.base
@@ -60,6 +59,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const onError = opts.onError || onErrorDefault
     const retriesCount = opts.retriesCount || 0
     const maxRetriesOn503 = opts.maxRetriesOn503 || 10
+    const customRetry = opts.customRetry || undefined
 
     if (!source) {
       source = req.url
@@ -143,7 +143,35 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const contentLength = requestHeaders['content-length']
     let requestImpl
     if (retryMethods.has(method) && !contentLength) {
-      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError, maxRetriesOn503)
+      const retryHandler = (req, res, err, retries) => {
+        const defaultDelay = () => {
+          // Magic number, so why not 42? We might want to make this configurable.
+          let retryAfter = 42 * Math.random() * (retries + 1)
+
+          if (res && res.headers['retry-after']) {
+            retryAfter = res.headers['retry-after']
+          }
+          if (res && res.statusCode === 503 && req.method === 'GET') {
+            if (retriesCount === 0 && retries < maxRetriesOn503) {
+              // we should stop at some point
+              return retryAfter
+            }
+          } else if (retriesCount > retries && err && err.code === retryOnError) {
+            return retryAfter
+          }
+          return null
+        }
+
+        if (customRetry && customRetry.handler) {
+          const customRetries = customRetry.retries || 1
+          if (++retries < customRetries) {
+            return customRetry.handler(req, res, defaultDelay)
+          }
+        }
+        return defaultDelay()
+      }
+
+      requestImpl = createRequestRetry(request, this, retryHandler)
     } else {
       requestImpl = request
     }
@@ -251,28 +279,15 @@ function isFastifyMultipartRegistered (fastify) {
   return (fastify.hasContentTypeParser('multipart') || fastify.hasContentTypeParser('multipart/form-data')) && fastify.hasRequestDecorator('multipart')
 }
 
-function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, maxRetriesOn503) {
+function createRequestRetry (requestImpl, reply, retryHandler) {
   function requestRetry (req, cb) {
     let retries = 0
 
     function run () {
       requestImpl(req, function (err, res) {
-        // Magic number, so why not 42? We might want to make this configurable.
-        let retryAfter = 42 * Math.random() * (retries + 1)
-
-        if (res && res.headers['retry-after']) {
-          retryAfter = res.headers['retry-after']
-        }
-        if (!reply.sent) {
-          // always retry on 503 errors
-          if (res && res.statusCode === 503 && req.method === 'GET') {
-            if (retriesCount === 0 && retries < maxRetriesOn503) {
-              // we should stop at some point
-              return retry(retryAfter)
-            }
-          } else if (retriesCount > retries && err && err.code === retryOnError) {
-            return retry(retryAfter)
-          }
+        const retryDelay = retryHandler(req, res, err, retries)
+        if (!reply.sent && retryDelay) {
+          return retry(retryDelay)
         }
         cb(err, res)
       })
