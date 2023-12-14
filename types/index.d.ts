@@ -45,6 +45,11 @@ declare namespace fastifyReplyFrom {
   export interface FastifyReplyFromHooks {
     queryString?: { [key: string]: unknown } | QueryStringFunction;
     contentType?: string;
+    customRetry?: {
+      handler: (request, response, getDefaultDelay) => {},
+      retries: number
+    };
+    retriesCount?: number;
     onResponse?: (
       request: FastifyRequest<RequestGenericInterface, RawServerBase>,
       reply: FastifyReply<RawServerBase>,
