@@ -46,8 +46,8 @@ declare namespace fastifyReplyFrom {
     queryString?: { [key: string]: unknown } | QueryStringFunction;
     contentType?: string;
     customRetry?: {
-      handler: (request, response, getDefaultDelay) => {},
-      retries: number
+      handler: (request: FastifyRequest<RequestGenericInterface, RawServerBase>, response: FastifyReply<RawServerBase>, getDefaultDelay: () => number | null) => {} | null,
+      retries?: number;
     };
     retriesCount?: number;
     onResponse?: (
