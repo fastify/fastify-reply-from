@@ -279,7 +279,7 @@ If a `handler` is passed to the `customRetry` object the onus is on the client t
 Given example
 
 ```js
-  const customRetryLogic = (req, res, getDefaultRetry) => {
+   const customRetryLogic = (req, res, getDefaultRetry, err) => {
     //If this block is not included all non 500 errors will not be retried
     const defaultDelay = getDefaultDelay();
     if (defaultDelay) return defaultDelay();
@@ -288,6 +288,11 @@ Given example
     if (res && res.statusCode === 500 && req.method === 'GET') {
       return 300
     }
+
+    if (err && err.code == "UND_ERR_SOCKET"){
+      return 600
+    }
+
     return null
   }
 

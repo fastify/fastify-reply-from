@@ -165,7 +165,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
         if (customRetry && customRetry.handler) {
           const customRetries = customRetry.retries || 1
           if (++retries < customRetries) {
-            return customRetry.handler(req, res, defaultDelay)
+            return customRetry.handler(req, res, defaultDelay, err)
           }
         }
         return defaultDelay()

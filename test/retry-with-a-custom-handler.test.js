@@ -6,10 +6,11 @@ const From = require('..')
 const http = require('node:http')
 const got = require('got')
 
-function serverWithCustomError (stopAfter, statusCodeToFailOn) {
+function serverWithCustomError (stopAfter, statusCodeToFailOn, closesSocket) {
   let requestCount = 0
   return http.createServer((req, res) => {
     if (requestCount++ < stopAfter) {
+      if (closesSocket) req.socket.end()
       res.statusCode = statusCodeToFailOn
       res.setHeader('Content-Type', 'text/plain')
       return res.end('This Service is Unavailable')
@@ -21,8 +22,9 @@ function serverWithCustomError (stopAfter, statusCodeToFailOn) {
   })
 }
 
-async function setupServer (t, fromOptions = {}, statusCodeToFailOn = 500, stopAfter = 4) {
-  const target = serverWithCustomError(stopAfter, statusCodeToFailOn)
+async function setupServer (t, fromOptions = {}, statusCodeToFailOn = 500, stopAfter = 4, closesSocket = false) {
+  const target = serverWithCustomError(stopAfter, statusCodeToFailOn, closesSocket)
+
   await target.listen({ port: 0 })
   t.teardown(target.close.bind(target))
 
@@ -111,6 +113,23 @@ test('custom retry delay functions can invoke the default delay', async (t) => {
   }
 
   const { instance } = await setupServer(t, { customRetry: { handler: customRetryLogic, retries: 10 } }, 503)
+
+  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
+
+  t.equal(res.headers['content-type'], 'text/plain')
+  t.equal(res.statusCode, 205)
+  t.equal(res.body.toString(), 'Hello World 5!')
+})
+
+test('custom retry delay function inspects the err paramater', async (t) => {
+  const customRetryLogic = (req, res, getDefaultDelay, err) => {
+    if (err && (err.code == "UND_ERR_SOCKET" || err.code == "ECONNRESET")){
+      return 300
+    }
+    return null
+  }
+
+  const { instance } = await setupServer(t, { customRetry: { handler: customRetryLogic, retries: 10 } }, 500, 4, true)
 
   const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
 
