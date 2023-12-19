@@ -1,33 +1,33 @@
 /// <reference types="node" />
 
 import {
-  FastifyRequest,
+  FastifyPluginCallback,
   FastifyReply,
+  FastifyRequest,
+  HTTPMethods,
   RawReplyDefaultExpression,
   RawServerBase,
   RequestGenericInterface,
-  HTTPMethods,
-  FastifyPluginCallback,
 } from 'fastify';
 
 import {
+  Agent,
+  AgentOptions,
   IncomingHttpHeaders,
   RequestOptions,
-  AgentOptions,
-  Agent,
 } from "http";
 import {
-  RequestOptions as SecureRequestOptions,
-  AgentOptions as SecureAgentOptions,
-  Agent as SecureAgent
-} from "https";
-import {
-  IncomingHttpHeaders as Http2IncomingHttpHeaders,
-  ClientSessionRequestOptions,
   ClientSessionOptions,
+  ClientSessionRequestOptions,
+  IncomingHttpHeaders as Http2IncomingHttpHeaders,
   SecureClientSessionOptions,
 } from "http2";
-import { Pool } from 'undici'
+import {
+  Agent as SecureAgent,
+  AgentOptions as SecureAgentOptions,
+  RequestOptions as SecureRequestOptions
+} from "https";
+import { Pool } from 'undici';
 
 declare module "fastify" {
   interface FastifyReply {
@@ -46,7 +46,7 @@ declare namespace fastifyReplyFrom {
     queryString?: { [key: string]: unknown } | QueryStringFunction;
     contentType?: string;
     customRetry?: {
-      handler: (request: FastifyRequest<RequestGenericInterface, RawServerBase>, response: FastifyReply<RawServerBase>, getDefaultDelay: () => number | null) => {} | null,
+      handler: (request: FastifyRequest<RequestGenericInterface, RawServerBase>, response: FastifyReply<RawServerBase>, getDefaultDelay: () => number | null, error: Error) => {} | null,
       retries?: number;
     };
     retriesCount?: number;
