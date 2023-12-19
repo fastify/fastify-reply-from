@@ -92,7 +92,7 @@ async function main() {
       reply.from("/", {
           method: "POST",
           customRetry: {
-            handler: (req, res, getDefaultDelay) => {
+            handler: (req, res, err, getDefaultDelay) => {
              const defaultDelay = getDefaultDelay();
               if (defaultDelay) return defaultDelay;
 
