@@ -6,7 +6,8 @@ const From = require('..')
 const pino = require('pino')
 const split = require('split2')
 const { request, Agent, setGlobalDispatcher } = require('undici')
-const { setTimeout: sleep } = require('timers/promises')
+const { promisify } = require('util')
+const sleep = promisify(setTimeout)
 
 setGlobalDispatcher(new Agent({
   keepAliveMaxTimeout: 1000,
