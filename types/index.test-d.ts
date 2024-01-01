@@ -4,7 +4,7 @@ import { IncomingHttpHeaders } from "http2";
 import * as https from 'https';
 import { AddressInfo } from "net";
 import { expectType } from 'tsd';
-import replyFrom, { FastifyReplyFromOptions } from "..";
+import replyFrom, { FastifyReplyFromOptions, customRetryHandler } from "..";
 // @ts-ignore
 import tap from 'tap';
 
@@ -92,8 +92,8 @@ async function main() {
       reply.from("/", {
           method: "POST",
           customRetry: {
-            handler: (req, res, err, getDefaultDelay) => {
-             const defaultDelay = getDefaultDelay();
+            handler: ({err, req, res, getDefaultDelay}: customRetryHandler) => {
+              const defaultDelay = getDefaultDelay();
               if (defaultDelay) return defaultDelay;
 
               if (res && res.statusCode === 500 && req.method === "GET") {

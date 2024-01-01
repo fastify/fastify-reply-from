@@ -279,7 +279,7 @@ If a `handler` is passed to the `customRetry` object the onus is on the client t
 Given example
 
 ```js
-   const customRetryLogic = (req, res, err, getDefaultRetry) => {
+   const customRetryLogic = ({req, res, err, getDefaultRetry}) => {
     //If this block is not included all non 500 errors will not be retried
     const defaultDelay = getDefaultDelay();
     if (defaultDelay) return defaultDelay();
@@ -305,6 +305,14 @@ fastify.register(FastifyReplyFrom, {
 
 ```
 
+Note the Typescript Equivalent
+```
+const customRetryLogic = ({req, res, err, getDefaultRetry}: customRetryHandler) => {
+  ...
+}
+...
+
+```
 ---
 
 ### `reply.from(source, [opts])`

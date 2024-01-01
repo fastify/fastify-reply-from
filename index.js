@@ -144,7 +144,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     let requestImpl
     if (retryMethods.has(method) && !contentLength) {
       const retryHandler = (req, res, err, retries) => {
-        const defaultDelay = () => {
+        const getDefaultDelay = () => {
           // Magic number, so why not 42? We might want to make this configurable.
           let retryAfter = 42 * Math.random() * (retries + 1)
 
@@ -165,10 +165,10 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
         if (customRetry && customRetry.handler) {
           const customRetries = customRetry.retries || 1
           if (++retries < customRetries) {
-            return customRetry.handler(req, res, err, defaultDelay)
+            return customRetry.handler({err, req, res, getDefaultDelay})
           }
         }
-        return defaultDelay()
+        return getDefaultDelay()
       }
 
       requestImpl = createRequestRetry(request, this, retryHandler)

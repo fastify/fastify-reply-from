@@ -39,14 +39,19 @@ declare module "fastify" {
 }
 
 type FastifyReplyFrom = FastifyPluginCallback<fastifyReplyFrom.FastifyReplyFromOptions>
-
+export type customRetryHandler = {
+  err: Error;
+  req: FastifyRequest<RequestGenericInterface, RawServerBase>;
+  res: FastifyReply<RawServerBase>;
+  getDefaultDelay: () => number | null;
+}
 declare namespace fastifyReplyFrom {
   type QueryStringFunction = (search: string | undefined, reqUrl: string) => string;
   export interface FastifyReplyFromHooks {
     queryString?: { [key: string]: unknown } | QueryStringFunction;
     contentType?: string;
     customRetry?: {
-      handler: (request: FastifyRequest<RequestGenericInterface, RawServerBase>, response: FastifyReply<RawServerBase>, error: Error, getDefaultDelay: () => number | null) => {} | null,
+      handler: (retryObj: customRetryHandler) => {} | null;
       retries?: number;
     };
     retriesCount?: number;
@@ -104,7 +109,7 @@ declare namespace fastifyReplyFrom {
   }
 
   export const fastifyReplyFrom: FastifyReplyFrom
-  export { fastifyReplyFrom as default }
+  export { fastifyReplyFrom as default };
 }
 
 declare function fastifyReplyFrom(...params: Parameters<FastifyReplyFrom>): ReturnType<FastifyReplyFrom>
