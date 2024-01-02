@@ -276,12 +276,11 @@ This plugin gives the client an option to pass their own retry callback to allow
 outside the scope of what is handled by default in fastify-reply-from. To see the default please refer to index.js `getDefaultDelay()`
 If a `handler` is passed to the `retryDelay` object the onus is on the client to invoke the default retry logic in their callback otherwise default cases such as 500 will not be handled
 
-- The `attempt` property in the object callback refers to the current retriesAttempt number.
-You are given the freedom to use this in concert with the retryCount property set to handle retries
-
+- `err` is the error thrown by making a request using whichever agent is configured
+- `req` is the raw request details sent to the underlying agent. __Note__: this object is not a Fastify request object, but instead the low-level request for the agent.
+- `res` is the raw response returned by the underlying agent (if available) __Note__: this object is not a Fastify response, but instead the low-level response from the agent. This property may be null if no response was obtained at all, like from a connection reset or timeout.
+- `attempt` in the object callback refers to the current retriesAttempt number. You are given the freedom to use this in concert with the retryCount property set to handle retries
 - `getDefaultRetry` refers to the default retry handler. If this callback returns not null and you wish to handle those case of errors simply invoke it as done below.
-
-- `err`, `req`, `res` are self-explanatory error, request, and response properties respectively
 
 Given example
 
@@ -307,7 +306,7 @@ Given example
 
 fastify.register(FastifyReplyFrom, {
   base: 'http://localhost:3001/',
-  customRetry: {handler: customRetryLogic}
+  retryDelay: customRetryLogic
 })
 
 ```

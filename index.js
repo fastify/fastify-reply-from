@@ -162,14 +162,12 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       return null
     }
 
-    if (retryDelay && retryDelay.handler) {
+    if (retryDelay) {
       requestImpl = createRequestRetry(request, this, (req, res, err, retries) => {
-        return retryDelay.handler({ err, req, res, attempt: retries, getDefaultDelay })
+        return retryDelay({ err, req, res, attempt: retries, getDefaultDelay })
       })
-    } else if (retryMethods.has(method) && !contentLength) {
-      requestImpl = createRequestRetry(request, this, getDefaultDelay)
     } else {
-      requestImpl = request
+      requestImpl = createRequestRetry(request, this, getDefaultDelay)
     }
 
     requestImpl({ method, url, qs, headers: requestHeaders, body }, (err, res) => {

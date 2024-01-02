@@ -69,7 +69,7 @@ test("a server 500's with a custom handler and should revive", async (t) => {
     return null
   }
 
-  const { instance } = await setupServer(t, { retryDelay: { handler: customRetryLogic } })
+  const { instance } = await setupServer(t, { retryDelay: customRetryLogic })
 
   const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
 
@@ -79,7 +79,7 @@ test("a server 500's with a custom handler and should revive", async (t) => {
 })
 
 test('custom retry does not invoke the default delay causing a 501', async (t) => {
-  // the key here is our retryDelayHandler doesn't register the deefault handler and as a result it doesn't work
+  // the key here is our retryDelay doesn't register the deefault handler and as a result it doesn't work
   const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
     if (res && res.statusCode === 500 && req.method === 'GET') {
       return 0
@@ -87,7 +87,7 @@ test('custom retry does not invoke the default delay causing a 501', async (t) =
     return null
   }
 
-  const { instance } = await setupServer(t, { retryDelay: { handler: customRetryLogic } }, 501)
+  const { instance } = await setupServer(t, { retryDelay: customRetryLogic }, 501)
 
   let errorMessage
   try {
@@ -112,7 +112,7 @@ test('custom retry delay functions can invoke the default delay', async (t) => {
     return null
   }
 
-  const { instance } = await setupServer(t, { customRetry: { handler: customRetryLogic } }, 500)
+  const { instance } = await setupServer(t, { retryDelay: customRetryLogic }, 500)
 
   const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
 
@@ -129,11 +129,35 @@ test('custom retry delay function inspects the err paramater', async (t) => {
     return null
   }
 
-  const { instance } = await setupServer(t, { retryDelay: { handler: customRetryLogic } }, 500, 4, true)
+  const { instance } = await setupServer(t, { retryDelay: customRetryLogic }, 500, 4, true)
 
   const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
 
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.statusCode, 205)
   t.equal(res.body.toString(), 'Hello World 5!')
+})
+
+test('we can exceed our retryCount and introspect attempts independently', async(t) => {
+  let attemptCounter = []
+
+  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
+    attemptCounter.push(attempt)
+
+    if (err && (err.code === 'UND_ERR_SOCKET' || err.code === 'ECONNRESET')) {
+      return 0.1
+    }
+
+    return null
+  }
+
+  const { instance } = await setupServer(t, { retryDelay: customRetryLogic }, 500, 4, true) //note it takes 8 attempts to work but our retryCount is 5
+
+  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
+
+  t.match(attemptCounter, [0, 1, 2, 3, 4])
+  t.equal(res.headers['content-type'], 'text/plain')
+  t.equal(res.statusCode, 205)
+  t.equal(res.body.toString(), 'Hello World 5!')
+
 })
