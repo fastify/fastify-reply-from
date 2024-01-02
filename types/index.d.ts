@@ -39,14 +39,15 @@ declare module "fastify" {
 }
 
 type FastifyReplyFrom = FastifyPluginCallback<fastifyReplyFrom.FastifyReplyFromOptions>
-export type customRetryHandler = {
-  err: Error;
-  req: FastifyRequest<RequestGenericInterface, RawServerBase>;
-  res: FastifyReply<RawServerBase>;
-  getDefaultDelay: () => number | null;
-}
 declare namespace fastifyReplyFrom {
   type QueryStringFunction = (search: string | undefined, reqUrl: string) => string;
+
+  export type customRetryHandler = {
+    err: Error;
+    req: FastifyRequest<RequestGenericInterface, RawServerBase>;
+    res: FastifyReply<RawServerBase>;
+    getDefaultDelay: () => number | null;
+  }
   export interface FastifyReplyFromHooks {
     queryString?: { [key: string]: unknown } | QueryStringFunction;
     contentType?: string;
