@@ -50,7 +50,7 @@ test('a 500 status code with no custom handler should fail', async (t) => {
 
   let errorMessage
   try {
-    await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
+    await got.get(`http://localhost:${instance.server.address().port}`, { retry: 3 })
   } catch (error) {
     errorMessage = error.message
   }
@@ -59,62 +59,62 @@ test('a 500 status code with no custom handler should fail', async (t) => {
 })
 
 test("a server 500's with a custom handler and should revive", async (t) => {
-  const customRetryLogic = ({ req, res, err, getDefaultDelay }) => {
+  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
     const defaultDelay = getDefaultDelay()
     if (defaultDelay) return defaultDelay
 
     if (res && res.statusCode === 500 && req.method === 'GET') {
-      return 300
+      return 0.1
     }
     return null
   }
 
-  const { instance } = await setupServer(t, { customRetry: { handler: customRetryLogic, retries: 10 } })
+  const { instance } = await setupServer(t, { retryDelay: { handler: customRetryLogic } })
 
-  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
+  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
 
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.statusCode, 205)
   t.equal(res.body.toString(), 'Hello World 5!')
 })
 
-test('custom retry does not invoke the default delay causing a 503', async (t) => {
-  // the key here is our customRetryHandler doesn't register the deefault handler and as a result it doesn't work
-  const customRetryLogic = ({ req, res, err, getDefaultDelay }) => {
+test('custom retry does not invoke the default delay causing a 501', async (t) => {
+  // the key here is our retryDelayHandler doesn't register the deefault handler and as a result it doesn't work
+  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
     if (res && res.statusCode === 500 && req.method === 'GET') {
-      return 300
+      return 0
     }
     return null
   }
 
-  const { instance } = await setupServer(t, { customRetry: { handler: customRetryLogic, retries: 10 } }, 503)
+  const { instance } = await setupServer(t, { retryDelay: { handler: customRetryLogic } }, 501)
 
   let errorMessage
   try {
-    await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
+    await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
   } catch (error) {
     errorMessage = error.message
   }
 
-  t.equal(errorMessage, 'Response code 503 (Service Unavailable)')
+  t.equal(errorMessage, 'Response code 501 (Not Implemented)')
 })
 
 test('custom retry delay functions can invoke the default delay', async (t) => {
-  const customRetryLogic = ({ req, res, err, getDefaultDelay }) => {
+  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
     // registering the default retry logic for non 500 errors if it occurs
     const defaultDelay = getDefaultDelay()
     if (defaultDelay) return defaultDelay
 
     if (res && res.statusCode === 500 && req.method === 'GET') {
-      return 300
+      return 0.1
     }
 
     return null
   }
 
-  const { instance } = await setupServer(t, { customRetry: { handler: customRetryLogic, retries: 10 } }, 503)
+  const { instance } = await setupServer(t, { customRetry: { handler: customRetryLogic } }, 500)
 
-  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
+  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
 
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.statusCode, 205)
@@ -122,16 +122,16 @@ test('custom retry delay functions can invoke the default delay', async (t) => {
 })
 
 test('custom retry delay function inspects the err paramater', async (t) => {
-  const customRetryLogic = ({ req, res, err, getDefaultDelay }) => {
+  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
     if (err && (err.code === 'UND_ERR_SOCKET' || err.code === 'ECONNRESET')) {
-      return 300
+      return 0.1
     }
     return null
   }
 
-  const { instance } = await setupServer(t, { customRetry: { handler: customRetryLogic, retries: 10 } }, 500, 4, true)
+  const { instance } = await setupServer(t, { retryDelay: { handler: customRetryLogic } }, 500, 4, true)
 
-  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
+  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
 
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.statusCode, 205)

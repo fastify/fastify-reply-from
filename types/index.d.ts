@@ -46,14 +46,14 @@ declare namespace fastifyReplyFrom {
     err: Error;
     req: FastifyRequest<RequestGenericInterface, RawServerBase>;
     res: FastifyReply<RawServerBase>;
+    attempt: number;
     getDefaultDelay: () => number | null;
   }
   export interface FastifyReplyFromHooks {
     queryString?: { [key: string]: unknown } | QueryStringFunction;
     contentType?: string;
-    customRetry?: {
+    retryDelay?: {
       handler: (retryObj: customRetryHandler) => {} | null;
-      retries?: number;
     };
     retriesCount?: number;
     onResponse?: (
