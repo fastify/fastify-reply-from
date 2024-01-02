@@ -138,8 +138,8 @@ test('custom retry delay function inspects the err paramater', async (t) => {
   t.equal(res.body.toString(), 'Hello World 5!')
 })
 
-test('we can exceed our retryCount and introspect attempts independently', async(t) => {
-  let attemptCounter = []
+test('we can exceed our retryCount and introspect attempts independently', async (t) => {
+  const attemptCounter = []
 
   const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
     attemptCounter.push(attempt)
@@ -151,7 +151,7 @@ test('we can exceed our retryCount and introspect attempts independently', async
     return null
   }
 
-  const { instance } = await setupServer(t, { retryDelay: customRetryLogic }, 500, 4, true) //note it takes 8 attempts to work but our retryCount is 5
+  const { instance } = await setupServer(t, { retryDelay: customRetryLogic }, 500, 4, true)
 
   const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
 
@@ -159,5 +159,4 @@ test('we can exceed our retryCount and introspect attempts independently', async
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.statusCode, 205)
   t.equal(res.body.toString(), 'Hello World 5!')
-
 })
