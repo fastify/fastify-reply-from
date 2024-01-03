@@ -91,8 +91,7 @@ async function main() {
   instance.get("/http2", (request, reply) => {
       reply.from("/", {
           method: "POST",
-          retryDelay: {
-            handler: ({err, req, res, attempt, getDefaultDelay}: customRetryHandler) => {
+          retryDelay: ({err, req, res, attempt, getDefaultDelay}: customRetryHandler) => {
               const defaultDelay = getDefaultDelay();
               if (defaultDelay) return defaultDelay;
 
@@ -101,7 +100,6 @@ async function main() {
               }
               return null;
             },
-          },
           rewriteHeaders(headers, req) {
               return headers;
           },
