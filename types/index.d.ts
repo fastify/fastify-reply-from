@@ -42,7 +42,7 @@ type FastifyReplyFrom = FastifyPluginCallback<fastifyReplyFrom.FastifyReplyFromO
 declare namespace fastifyReplyFrom {
   type QueryStringFunction = (search: string | undefined, reqUrl: string) => string;
 
-  export type customRetryHandler = {
+  export type RetryDetails = {
     err: Error;
     req: FastifyRequest<RequestGenericInterface, RawServerBase>;
     res: FastifyReply<RawServerBase>;
@@ -52,7 +52,7 @@ declare namespace fastifyReplyFrom {
   export interface FastifyReplyFromHooks {
     queryString?: { [key: string]: unknown } | QueryStringFunction;
     contentType?: string;
-    retryDelay?: (retryObj: customRetryHandler) => {} | null;
+    retryDelay?: (details: RetryDetails) => {} | null;
     retriesCount?: number;
     onResponse?: (
       request: FastifyRequest<RequestGenericInterface, RawServerBase>,

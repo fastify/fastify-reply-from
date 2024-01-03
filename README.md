@@ -313,7 +313,7 @@ fastify.register(FastifyReplyFrom, {
 
 Note the Typescript Equivalent
 ```
-const customRetryLogic = ({req, res, err, getDefaultRetry}: customRetryHandler) => {
+const customRetryLogic = ({req, res, err, getDefaultRetry}: RetryDetails) => {
   ...
 }
 ...
