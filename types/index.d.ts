@@ -1,33 +1,33 @@
 /// <reference types="node" />
 
 import {
-  FastifyRequest,
+  FastifyPluginCallback,
   FastifyReply,
+  FastifyRequest,
+  HTTPMethods,
   RawReplyDefaultExpression,
   RawServerBase,
   RequestGenericInterface,
-  HTTPMethods,
-  FastifyPluginCallback,
 } from 'fastify';
 
 import {
+  Agent,
+  AgentOptions,
   IncomingHttpHeaders,
   RequestOptions,
-  AgentOptions,
-  Agent,
 } from "http";
 import {
-  RequestOptions as SecureRequestOptions,
-  AgentOptions as SecureAgentOptions,
-  Agent as SecureAgent
-} from "https";
-import {
-  IncomingHttpHeaders as Http2IncomingHttpHeaders,
-  ClientSessionRequestOptions,
   ClientSessionOptions,
+  ClientSessionRequestOptions,
+  IncomingHttpHeaders as Http2IncomingHttpHeaders,
   SecureClientSessionOptions,
 } from "http2";
-import { Pool } from 'undici'
+import {
+  Agent as SecureAgent,
+  AgentOptions as SecureAgentOptions,
+  RequestOptions as SecureRequestOptions
+} from "https";
+import { Pool } from 'undici';
 
 declare module "fastify" {
   interface FastifyReply {
@@ -39,12 +39,21 @@ declare module "fastify" {
 }
 
 type FastifyReplyFrom = FastifyPluginCallback<fastifyReplyFrom.FastifyReplyFromOptions>
-
 declare namespace fastifyReplyFrom {
   type QueryStringFunction = (search: string | undefined, reqUrl: string) => string;
+
+  export type RetryDetails = {
+    err: Error;
+    req: FastifyRequest<RequestGenericInterface, RawServerBase>;
+    res: FastifyReply<RawServerBase>;
+    attempt: number;
+    getDefaultDelay: () => number | null;
+  }
   export interface FastifyReplyFromHooks {
     queryString?: { [key: string]: unknown } | QueryStringFunction;
     contentType?: string;
+    retryDelay?: (details: RetryDetails) => {} | null;
+    retriesCount?: number;
     onResponse?: (
       request: FastifyRequest<RequestGenericInterface, RawServerBase>,
       reply: FastifyReply<RawServerBase>,
@@ -99,7 +108,7 @@ declare namespace fastifyReplyFrom {
   }
 
   export const fastifyReplyFrom: FastifyReplyFrom
-  export { fastifyReplyFrom as default }
+  export { fastifyReplyFrom as default };
 }
 
 declare function fastifyReplyFrom(...params: Parameters<FastifyReplyFrom>): ReturnType<FastifyReplyFrom>
