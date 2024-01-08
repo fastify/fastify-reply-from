@@ -160,3 +160,27 @@ test('we can exceed our retryCount and introspect attempts independently', async
   t.equal(res.statusCode, 205)
   t.equal(res.body.toString(), 'Hello World 5!')
 })
+
+test('we handle our retries based on the retryCount', async (t) => {
+  const attemptCounter = []
+  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay, retriesCount }) => {
+    if (retriesCount < attempt) {
+      return null
+    }
+
+    if (res && res.statusCode === 500 && req.method === 'GET') {
+      attemptCounter.push(attempt)
+      return 0.1
+    }
+    return null
+  }
+
+  const { instance } = await setupServer(t, { retryDelay: customRetryLogic, retriesCount: 2 }, 500)
+
+  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
+
+  t.match(attemptCounter, [0, 1])
+  t.equal(res.headers['content-type'], 'text/plain')
+  t.equal(res.statusCode, 205)
+  t.equal(res.body.toString(), 'Hello World 5!')
+})
