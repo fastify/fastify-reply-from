@@ -281,6 +281,7 @@ If a `handler` is passed to the `retryDelay` object the onus is on the client to
 - `res` is the raw response returned by the underlying agent (if available) __Note__: this object is not a Fastify response, but instead the low-level response from the agent. This property may be null if no response was obtained at all, like from a connection reset or timeout.
 - `attempt` in the object callback refers to the current retriesAttempt number. You are given the freedom to use this in concert with the retryCount property set to handle retries
 - `getDefaultRetry` refers to the default retry handler. If this callback returns not null and you wish to handle those case of errors simply invoke it as done below.
+- `retriesCount` refers to the retriesCount property a client passes to reply-from. Note if the client does not explicitly set this value it will default to 0. The objective value here is to avoid hard-coding and seeing the retriesCount set. It is your perogative to ensure that you ensure the value here is as you wish (and not `0` if not intended to be as a result of a lack of not setting it).
 
 Given example
 
