@@ -3,6 +3,7 @@
 const fp = require('fastify-plugin')
 const { lru } = require('tiny-lru')
 const querystring = require('fast-querystring')
+const fastContentTypeParse = require('fast-content-type-parse')
 const Stream = require('node:stream')
 const buildRequest = require('./lib/request')
 const {
@@ -107,15 +108,13 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
         body = this.request.body
       } else {
         // Per RFC 7231 §3.1.1.5 if this header is not present we MAY assume application/octet-stream
-        const contentType = req.headers['content-type'] || 'application/octet-stream'
-        // detect if body should be encoded as JSON
-        // supporting extended content-type header formats:
-        // - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
-        const lowerCaseContentType = contentType.toLowerCase()
-        const plainContentType = lowerCaseContentType.indexOf(';') > -1
-          ? lowerCaseContentType.slice(0, lowerCaseContentType.indexOf(';'))
-          : lowerCaseContentType
-        const shouldEncodeJSON = contentTypesToEncode.has(plainContentType)
+        let contentType = 'application/octet-stream'
+        if (req.headers['content-type']) {
+          const plainContentType = fastContentTypeParse.parse(req.headers['content-type'])
+          contentType = plainContentType.type
+        }
+
+        const shouldEncodeJSON = contentTypesToEncode.has(contentType)
         // transparently support JSON encoding
         body = shouldEncodeJSON ? JSON.stringify(this.request.body) : this.request.body
         // update origin request headers after encoding
