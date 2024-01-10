@@ -47,6 +47,7 @@ declare namespace fastifyReplyFrom {
     req: FastifyRequest<RequestGenericInterface, RawServerBase>;
     res: FastifyReply<RawServerBase>;
     attempt: number;
+    retriesCount: number;
     getDefaultDelay: () => number | null;
   }
   export interface FastifyReplyFromHooks {
