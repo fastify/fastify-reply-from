@@ -1,7 +1,7 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const { lru } = require('tiny-lru')
+const { LruMap } = require('toad-cache')
 const querystring = require('fast-querystring')
 const fastContentTypeParse = require('fast-content-type-parse')
 const Stream = require('node:stream')
@@ -32,7 +32,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   const retryMethods = new Set(opts.retryMethods || [
     'GET', 'HEAD', 'OPTIONS', 'TRACE'])
 
-  const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
+  const cache = opts.disableCache ? undefined : new LruMap(opts.cacheURLs || 100)
   const base = opts.base
   const requestBuilt = buildRequest({
     http: opts.http,
