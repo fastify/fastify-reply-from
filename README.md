@@ -325,7 +325,7 @@ const customRetryLogic = ({req, res, err, getDefaultRetry}: RetryDetails) => {
 ### `reply.from(source, [opts])`
 
 The plugin decorates the
-[`Reply`](https://github.com/fastify/fastify/blob/master/docs/Reply.md)
+[`Reply`](https://fastify.dev/docs/latest/Reference/Reply)
 instance with a `from` method, which will reply to the original request
 __from the desired source__. The options allows to override any part of
 the request or response being sent or received to/from the source.
