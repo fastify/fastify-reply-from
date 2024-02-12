@@ -58,7 +58,7 @@
     "fastify-plugin": "^4.0.0",
     "pump": "^3.0.0",
     "toad-cache": "^3.7.0",
-    "undici": "^5.19.1"
+    "undici": "^6.6.2"
   },
   "pre-commit": [
     "lint",
