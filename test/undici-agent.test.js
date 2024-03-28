@@ -31,7 +31,7 @@ target.listen({ port: 0 }, err => {
   const From = proxyquire('..', {
     './lib/request.js': proxyquire('../lib/request.js', {
       undici: proxyquire('undici', {
-        './lib/agent': proxyquire('undici/lib/agent.js', {
+        './lib/dispatcher/agent.js': proxyquire('undici/lib/dispatcher/agent.js', {
           './pool': class Pool extends undici.Pool {
             constructor (url, options) {
               super(url, options)
