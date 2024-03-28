@@ -1,9 +1,10 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const { lru } = require('tiny-lru')
+const { LruMap } = require('toad-cache')
 const querystring = require('fast-querystring')
-const Stream = require('stream')
+const fastContentTypeParse = require('fast-content-type-parse')
+const Stream = require('node:stream')
 const buildRequest = require('./lib/request')
 const {
   filterPseudoHeaders,
@@ -29,17 +30,17 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   ])
 
   const retryMethods = new Set(opts.retryMethods || [
-    'GET', 'HEAD', 'OPTIONS', 'TRACE'
-  ])
+    'GET', 'HEAD', 'OPTIONS', 'TRACE'])
 
-  const cache = opts.disableCache ? undefined : lru(opts.cacheURLs || 100)
+  const cache = opts.disableCache ? undefined : new LruMap(opts.cacheURLs || 100)
   const base = opts.base
   const requestBuilt = buildRequest({
     http: opts.http,
     http2: opts.http2,
     base,
     undici: opts.undici,
-    globalAgent: opts.globalAgent
+    globalAgent: opts.globalAgent,
+    destroyAgent: opts.destroyAgent
   })
   if (requestBuilt instanceof Error) {
     next(requestBuilt)
@@ -51,6 +52,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   fastify.decorateReply('from', function (source, opts) {
     opts = opts || {}
     const req = this.request.raw
+    const method = opts.method || req.method
     const onResponse = opts.onResponse
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
@@ -58,6 +60,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const onError = opts.onError || onErrorDefault
     const retriesCount = opts.retriesCount || 0
     const maxRetriesOn503 = opts.maxRetriesOn503 || 10
+    const retryDelay = opts.retryDelay || undefined
 
     if (!source) {
       source = req.url
@@ -105,15 +108,13 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
         body = this.request.body
       } else {
         // Per RFC 7231 §3.1.1.5 if this header is not present we MAY assume application/octet-stream
-        const contentType = req.headers['content-type'] || 'application/octet-stream'
-        // detect if body should be encoded as JSON
-        // supporting extended content-type header formats:
-        // - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
-        const lowerCaseContentType = contentType.toLowerCase()
-        const plainContentType = lowerCaseContentType.indexOf(';') > -1
-          ? lowerCaseContentType.slice(0, lowerCaseContentType.indexOf(';'))
-          : lowerCaseContentType
-        const shouldEncodeJSON = contentTypesToEncode.has(plainContentType)
+        let contentType = 'application/octet-stream'
+        if (req.headers['content-type']) {
+          const plainContentType = fastContentTypeParse.parse(req.headers['content-type'])
+          contentType = plainContentType.type
+        }
+
+        const shouldEncodeJSON = contentTypesToEncode.has(contentType)
         // transparently support JSON encoding
         body = shouldEncodeJSON ? JSON.stringify(this.request.body) : this.request.body
         // update origin request headers after encoding
@@ -126,12 +127,12 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     // fastify ignore message body when it's a GET or HEAD request
     // when proxy this request, we should reset the content-length to make it a valid http request
     // discussion: https://github.com/fastify/fastify/issues/953
-    if (req.method === 'GET' || req.method === 'HEAD') {
+    if (method === 'GET' || method === 'HEAD') {
       // body will be populated here only if opts.body is passed.
       // if we are doing that with a GET or HEAD request is a programmer error
       // and as such we can throw immediately.
       if (body) {
-        throw new Error(`Rewriting the body when doing a ${req.method} is not allowed`)
+        throw new Error(`Rewriting the body when doing a ${method} is not allowed`)
       }
     }
 
@@ -140,13 +141,35 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const requestHeaders = rewriteRequestHeaders(this.request, headers)
     const contentLength = requestHeaders['content-length']
     let requestImpl
-    if (retryMethods.has(req.method) && !contentLength) {
-      requestImpl = createRequestRetry(request, this, retriesCount, retryOnError, maxRetriesOn503)
-    } else {
-      requestImpl = request
+
+    const getDefaultDelay = (req, res, err, retries) => {
+      if (retryMethods.has(method) && !contentLength) {
+        // Magic number, so why not 42? We might want to make this configurable.
+        let retryAfter = 42 * Math.random() * (retries + 1)
+
+        if (res && res.headers['retry-after']) {
+          retryAfter = res.headers['retry-after']
+        }
+        if (res && res.statusCode === 503 && req.method === 'GET') {
+          if (retriesCount === 0 && retries < maxRetriesOn503) {
+            return retryAfter
+          }
+        } else if (retriesCount > retries && err && err.code === retryOnError) {
+          return retryAfter
+        }
+      }
+      return null
     }
 
-    requestImpl({ method: req.method, url, qs, headers: requestHeaders, body }, (err, res) => {
+    if (retryDelay) {
+      requestImpl = createRequestRetry(request, this, (req, res, err, retries) => {
+        return retryDelay({ err, req, res, attempt: retries, getDefaultDelay, retriesCount })
+      })
+    } else {
+      requestImpl = createRequestRetry(request, this, getDefaultDelay)
+    }
+
+    requestImpl({ method, url, qs, headers: requestHeaders, body }, (err, res) => {
       if (err) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {
@@ -198,7 +221,6 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     // actually destroy those sockets
     setImmediate(next)
   })
-
   next()
 }, {
   fastify: '4.x',
@@ -249,28 +271,15 @@ function isFastifyMultipartRegistered (fastify) {
   return (fastify.hasContentTypeParser('multipart') || fastify.hasContentTypeParser('multipart/form-data')) && fastify.hasRequestDecorator('multipart')
 }
 
-function createRequestRetry (requestImpl, reply, retriesCount, retryOnError, maxRetriesOn503) {
+function createRequestRetry (requestImpl, reply, retryHandler) {
   function requestRetry (req, cb) {
     let retries = 0
 
     function run () {
       requestImpl(req, function (err, res) {
-        // Magic number, so why not 42? We might want to make this configurable.
-        let retryAfter = 42 * Math.random() * (retries + 1)
-
-        if (res && res.headers['retry-after']) {
-          retryAfter = res.headers['retry-after']
-        }
-        if (!reply.sent) {
-          // always retry on 503 errors
-          if (res && res.statusCode === 503 && req.method === 'GET') {
-            if (retriesCount === 0 && retries < maxRetriesOn503) {
-              // we should stop at some point
-              return retry(retryAfter)
-            }
-          } else if (retriesCount > retries && err && err.code === retryOnError) {
-            return retry(retryAfter)
-          }
+        const retryDelay = retryHandler(req, res, err, retries)
+        if (!reply.sent && retryDelay) {
+          return retry(retryDelay)
         }
         cb(err, res)
       })

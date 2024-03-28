@@ -7,7 +7,7 @@ const { test } = require('tap')
 
 let retryNum = 1
 
-const target = require('http').createServer(function (req, res) {
+const target = require('node:http').createServer(function (req, res) {
   if (retryNum % 2 !== 0) {
     req.socket.destroy()
   } else {

@@ -7,16 +7,13 @@ const http = require('node:http')
 const get = require('simple-get').concat
 
 const instance = Fastify()
-instance.register(From)
 
 t.plan(9)
 t.teardown(instance.close.bind(instance))
 
-const bodyString = `{
-  "hello": "world"
-}`
+const bodyString = JSON.stringify({ hello: 'world' })
 
-const parsedLength = Buffer.byteLength(JSON.stringify(JSON.parse(bodyString)))
+const parsedLength = Buffer.byteLength(bodyString)
 
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
@@ -36,21 +33,30 @@ const target = http.createServer((req, res) => {
   })
 })
 
-instance.post('/', (request, reply) => {
-  reply.from(`http://localhost:${target.address().port}`)
+instance.patch('/', (request, reply) => {
+  reply.from(`http://localhost:${target.address().port}`, { method: 'POST' })
 })
 
 t.teardown(target.close.bind(target))
 
-instance.listen({ port: 0 }, (err) => {
+target.listen({ port: 0 }, (err) => {
   t.error(err)
 
-  target.listen({ port: 0 }, (err) => {
+  instance.addContentTypeParser('application/json', function (req, payload, done) {
+    done(null, payload)
+  })
+
+  instance.register(From, {
+    base: `http://localhost:${target.address().port}`,
+    undici: true
+  })
+
+  instance.listen({ port: 0 }, (err) => {
     t.error(err)
 
     get({
       url: `http://localhost:${instance.server.address().port}`,
-      method: 'POST',
+      method: 'PATCH',
       headers: {
         'content-type': 'application/json'
       },

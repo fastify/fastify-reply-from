@@ -1,12 +1,12 @@
-import replyFrom, { FastifyReplyFromOptions } from "..";
-import fastify, {FastifyReply, FastifyRequest, RawReplyDefaultExpression, RawServerBase, RequestGenericInterface} from "fastify";
-import { AddressInfo } from "net";
-import { IncomingHttpHeaders } from "http2";
-import { expectType } from 'tsd';
+import fastify, { FastifyReply, FastifyRequest, RawReplyDefaultExpression, RawServerBase, RequestGenericInterface } from "fastify";
 import * as http from 'http';
+import { IncomingHttpHeaders } from "http2";
 import * as https from 'https';
+import { AddressInfo } from "net";
+import { expectType } from 'tsd';
+import replyFrom, { FastifyReplyFromOptions } from "..";
 // @ts-ignore
-import tap from 'tap'
+import tap from 'tap';
 
 const fullOptions: FastifyReplyFromOptions = {
   base: "http://example2.com",
@@ -45,6 +45,7 @@ const fullOptions: FastifyReplyFromOptions = {
   maxRetriesOn503: 10,
   disableRequestLogging: false,
   globalAgent: false,
+  destroyAgent: true
 };
 tap.autoend(false);
 
@@ -95,6 +96,16 @@ async function main() {
 
   instance.get("/http2", (request, reply) => {
       reply.from("/", {
+          method: "POST",
+          retryDelay: ({err, req, res, attempt, retriesCount, getDefaultDelay }) => {
+              const defaultDelay = getDefaultDelay();
+              if (defaultDelay) return defaultDelay;
+
+              if (res && res.statusCode === 500 && req.method === "GET") {
+                return 300;
+              }
+              return null;
+            },
           rewriteHeaders(headers, req) {
               return headers;
           },

@@ -14,7 +14,7 @@ npm i @fastify/reply-from
 ```
 
 ## Compatibility with @fastify/multipart
-`@fastify/reply-from` and [`@fastify/multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor should they be registered in plugins which have a parent-child relationship.<br> The two plugins are incompatible, in the sense that the behavior of `@fastify/reply-from` might not be the expected one when the above-mentioned conditions are not respected.<br> This is due to the fact that `@fastify/multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `@fastify/reply-from`.<br>
+`@fastify/reply-from` and [`@fastify/multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor should they be registered in plugins which have a parent-child relationship.`<br>` The two plugins are incompatible, in the sense that the behavior of `@fastify/reply-from` might not be the expected one when the above-mentioned conditions are not respected.`<br>` This is due to the fact that `@fastify/multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `@fastify/reply-from`.`<br>`
 However, the two plugins may be used within the same fastify instance, at the condition that they belong to disjoint branches of the fastify plugins hierarchy tree.
 
 ## Usage
@@ -74,7 +74,7 @@ socket server by using `querystring.escape(socketPath)` as the hostname.  This i
 for http2 nor undici.  To illustrate:
 
 ```js
-const socketPath = require('querystring').escape('/run/http-daemon.socket')
+const socketPath = require('node:querystring').escape('/run/http-daemon.socket')
 proxy.register(require('@fastify/reply-from'), {
   base: 'unix+http://${socketPath}/'
 });
@@ -115,7 +115,7 @@ proxy.register(require('@fastify/reply-from'), {
 
 #### `http`
 
-Set the `http` option to an Object to use 
+Set the `http` option to an Object to use
 Node's [`http.request`](https://nodejs.org/api/http.html#http_http_request_options_callback)
 will be used if you do not enable [`http2`](#http2). To customize the `request`,
 you can pass in [`agentOptions`](https://nodejs.org/api/http.html#http_new_agent_options) and
@@ -136,6 +136,7 @@ proxy.register(require('@fastify/reply-from'), {
 ```
 
 You can also pass custom HTTP agents. If you pass the agents, then the http.agentOptions will be ignored. To illustrate:
+
 ```js
 proxy.register(require('@fastify/reply-from'), {
   base: 'http://localhost:3001/',
@@ -192,27 +193,27 @@ The number of parsed URLs that will be cached. Default: `100`.
 
 #### `disableCache`
 
-This option will disable the URL caching. 
+This option will disable the URL caching.
 This cache is dedicated to reduce the amount of URL object generation.
 Generating URLs is a main bottleneck of this module, please disable this cache with caution.
 
 #### `contentTypesToEncode`
 
-An array of content types whose response body will be passed through `JSON.stringify()`. 
+An array of content types whose response body will be passed through `JSON.stringify()`.
 This only applies when a custom [`body`](#body) is not passed in. Defaults to:
 
 ```js
-[ 
+[
   'application/json'
 ]
 ```
 
 #### `retryMethods`
 
-On which methods should the connection be retried in case of socket hang up.  
+On which methods should the connection be retried in case of socket hang up.
 **Be aware** that setting here not idempotent method may lead to unexpected results on target.
 
-By default: `['GET', 'HEAD', 'OPTIONS', 'TRACE' ]`
+By default: `['GET', 'HEAD', 'OPTIONS', 'TRACE']`
 
 This plugin will always retry on 503 errors, _unless_ `retryMethods` does not contain `GET`.
 
@@ -221,6 +222,7 @@ This plugin will always retry on 503 errors, _unless_ `retryMethods` does not co
 Enables the possibility to explictly opt-in for global agents.
 
 Usage for undici global agent:
+
 ```js
 import { setGlobalDispatcher, ProxyAgent } from 'undici'
 
@@ -234,15 +236,25 @@ fastify.register(FastifyReplyFrom, {
 ```
 
 Usage for http/https global agent:
+
 ```js
 fastify.register(FastifyReplyFrom, {
   base: 'http://localhost:3001/',
   // http and https is allowed to use http.globalAgent or https.globalAgent
-  globalAgent: true, 
+  globalAgent: true,
   http: {
   }
 })
 ```
+
+---
+
+#### `destroyAgent`
+
+If set to `true`, it will destroy all agents when the Fastify is closed.
+If set to `false`, it will not destroy the agents.
+
+By Default: `false`
 
 ---
 
@@ -254,13 +266,66 @@ This option set the limit on how many times the plugin should retry the request,
 
 By Default: 10
 
+---
 
+### `retryDelay`
+
+- `handler`. Required
+
+This plugin gives the client an option to pass their own retry callback to allow the client to define what retryDelay they would like on any retries
+outside the scope of what is handled by default in fastify-reply-from. To see the default please refer to index.js `getDefaultDelay()`
+If a `handler` is passed to the `retryDelay` object the onus is on the client to invoke the default retry logic in their callback otherwise default cases such as 500 will not be handled
+
+- `err` is the error thrown by making a request using whichever agent is configured
+- `req` is the raw request details sent to the underlying agent. __Note__: this object is not a Fastify request object, but instead the low-level request for the agent.
+- `res` is the raw response returned by the underlying agent (if available) __Note__: this object is not a Fastify response, but instead the low-level response from the agent. This property may be null if no response was obtained at all, like from a connection reset or timeout.
+- `attempt` in the object callback refers to the current retriesAttempt number. You are given the freedom to use this in concert with the retryCount property set to handle retries
+- `getDefaultRetry` refers to the default retry handler. If this callback returns not null and you wish to handle those case of errors simply invoke it as done below.
+- `retriesCount` refers to the retriesCount property a client passes to reply-from. Note if the client does not explicitly set this value it will default to 0. The objective value here is to avoid hard-coding and seeing the retriesCount set. It is your perogative to ensure that you ensure the value here is as you wish (and not `0` if not intended to be as a result of a lack of not setting it).
+
+Given example
+
+```js
+   const customRetryLogic = ({err, req, res, attempt, getDefaultRetry}) => {
+    //If this block is not included all non 500 errors will not be retried
+    const defaultDelay = getDefaultDelay();
+    if (defaultDelay) return defaultDelay();
+
+    //Custom retry logic
+    if (res && res.statusCode === 500 && req.method === 'GET') {
+      return 300
+    }
+
+    if (err && err.code == "UND_ERR_SOCKET"){
+      return 600
+    }
+
+    return null
+  }
+
+.......
+
+fastify.register(FastifyReplyFrom, {
+  base: 'http://localhost:3001/',
+  retryDelay: customRetryLogic
+})
+
+```
+
+Note the Typescript Equivalent
+```
+const customRetryLogic = ({req, res, err, getDefaultRetry}: RetryDetails) => {
+  ...
+}
+...
+
+```
 ---
 
 ### `reply.from(source, [opts])`
 
 The plugin decorates the
-[`Reply`](https://github.com/fastify/fastify/blob/master/docs/Reply.md)
+[`Reply`](https://fastify.dev/docs/latest/Reference/Reply)
 instance with a `from` method, which will reply to the original request
 __from the desired source__. The options allows to override any part of
 the request or response being sent or received to/from the source.
@@ -322,6 +387,7 @@ ContraintStrategies.
 e.g.:
 
 Route grpc-web/http1 and grpc/http2 to different routes with a ContentType-ConstraintStrategy:
+
 ```
 const contentTypeMatchContraintStrategy = {
     // strategy name for referencing in the route handler `constraints` options
@@ -335,17 +401,18 @@ const contentTypeMatchContraintStrategy = {
       }
     },
     // function to get the value of the constraint from each incoming request
-    deriveConstraint: (req: any, ctx: any) => { 
+    deriveConstraint: (req: any, ctx: any) => {
       return req.headers['content-type']
     },
     // optional flag marking if handlers without constraints can match requests that have a value for this constraint
     mustMatchWhenDerived: true
   }
- 
+
   server.addConstraintStrategy(contentTypeMatchContraintStrategy);
 ```
 
 and then 2 different upstreams with different register's:
+
 ```
 // grpc-web / http1
 server.register(fastifyHttpProxy, {
@@ -353,17 +420,16 @@ server.register(fastifyHttpProxy, {
     // therefore we have to transport to the grpc-web-proxy via http1
     http2: false,
     upstream: 'http://grpc-web-proxy',
-    constraints: { "contentType": "application/grpc-web+proto" }   
+    constraints: { "contentType": "application/grpc-web+proto" }
 });
 
 // grpc / http2
 server.register(fastifyHttpProxy, {
     http2: true,
     upstream: 'http://grpc.server',
-    constraints: { "contentType": "application/grpc+proto" }   
+    constraints: { "contentType": "application/grpc+proto" }
 });
 ```
-
 
 #### `queryString` or `queryString(search, reqUrl)`
 
@@ -382,10 +448,14 @@ through `JSON.stringify()`.
 Setting this option for GET, HEAD requests will throw an error "Rewriting the body when doing a {GET|HEAD} is not allowed".
 Setting this option to `null` will strip the body (and `content-type` header) entirely from the proxied request.
 
+#### `method`
+
+Replaces the original request method with what is specified.
+
 #### `retriesCount`
 
-How many times it will try to pick another connection on socket hangup (`ECONNRESET` error).  
-Useful when keeping the connection open (KeepAlive).  
+How many times it will try to pick another connection on socket hangup (`ECONNRESET` error).
+Useful when keeping the connection open (KeepAlive).
 This number should be a function of the number of connections and the number of instances of a target.
 
 By default: 0 (disabled)
@@ -397,13 +467,13 @@ already overriding the [`body`](#body).
 
 ### Combining with [@fastify/formbody](https://github.com/fastify/fastify-formbody)
 
-`formbody` expects the body to be returned as a string and not an object. 
+`formbody` expects the body to be returned as a string and not an object.
 Use the [`contentTypesToEncode`](#contentTypesToEncode) option to pass in `['application/x-www-form-urlencoded']`
-
 
 ### HTTP & HTTP2 timeouts
 
 This library has:
+
 - `timeout` for `http` set by default. The default value is 10 seconds (`10000`).
 - `requestTimeout` & `sessionTimeout` for `http2` set by default.
   - The default value for `requestTimeout` is 10 seconds (`10000`).
@@ -416,10 +486,10 @@ will be returned to the client.
 
 * [ ] support overriding the body with a stream
 * [ ] forward the request id to the other peer might require some
-      refactoring because we have to make the `req.id` unique
-      (see [hyperid](https://npm.im/hyperid)).
+  refactoring because we have to make the `req.id` unique
+  (see [hyperid](https://npm.im/hyperid)).
 * [ ] Support origin HTTP2 push
-* [x] benchmarks
+* [X] benchmarks
 
 ## License
 

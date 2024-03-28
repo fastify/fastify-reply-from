@@ -42,12 +42,19 @@ test('should handle default port in base', (t) => {
   t.equal(url.href, 'https://localhost/hi')
 })
 
+test('should append instead of override base', (t) => {
+  t.plan(2)
+  let url = buildURL('//10.0.0.10/hi', 'http://localhost')
+  t.equal(url.href, 'http://localhost//10.0.0.10/hi')
+
+  url = buildURL('//httpbin.org/hi', 'http://localhost')
+  t.equal(url.href, 'http://localhost//httpbin.org/hi')
+})
+
 const errorInputs = [
-  { source: '//10.0.0.10/hi', base: 'http://localhost' },
   { source: 'http://10.0.0.10/hi', base: 'http://localhost' },
   { source: 'https://10.0.0.10/hi', base: 'http://localhost' },
   { source: 'blah://10.0.0.10/hi', base: 'http://localhost' },
-  { source: '//httpbin.org/hi', base: 'http://localhost' },
   { source: 'urn:foo:bar', base: 'http://localhost' },
   { source: 'http://localhost/private', base: 'http://localhost/exposed/' },
   { source: 'http://localhost/exposed-extra', base: 'http://localhost/exposed' },

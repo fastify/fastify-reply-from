@@ -3,7 +3,7 @@
 const { test } = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
-const http = require('http')
+const http = require('node:http')
 const get = require('simple-get').concat
 
 test('http global agent is used, but not destroyed', async (t) => {
