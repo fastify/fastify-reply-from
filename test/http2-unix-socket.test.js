@@ -9,10 +9,8 @@ test('throw an error if http2 is used with a Unix socket destination', async t =
 
   const instance = Fastify()
 
-  t.throws(async () => {
-    await instance.register(From, {
-      base: 'unix+http://localhost:1337',
-      http2: { requestTimeout: 100 }
-    })
-  }, 'Unix socket destination is not supported when http2 is true')
+  await t.rejects(instance.register(From, {
+    base: 'unix+http://localhost:1337',
+    http2: { requestTimeout: 100 }
+  }), new Error('Unix socket destination is not supported when http2 is true'))
 })

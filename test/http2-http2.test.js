@@ -16,22 +16,25 @@ t.test('http2 -> http2', async (t) => {
     http2: true,
     https: certs
   })
+
+  t.teardown(instance.close.bind(instance))
+
   const target = Fastify({
     http2: true
   })
 
-  t.teardown(instance.close.bind(instance))
-  t.teardown(target.close.bind(target))
-
-  instance.get('/', (request, reply) => {
-    reply.from()
-  })
   target.get('/', (request, reply) => {
     t.pass('request proxied')
     reply.code(404).header('x-my-header', 'hello!').send({
       hello: 'world'
     })
   })
+
+  instance.get('/', (request, reply) => {
+    reply.from()
+  })
+
+  t.teardown(target.close.bind(target))
 
   await target.listen({ port: 0 })
 
