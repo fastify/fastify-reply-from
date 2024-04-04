@@ -48,7 +48,7 @@
     "split2": "^4.2.0",
     "standard": "^17.1.0",
     "tap": "^16.3.10",
-    "tsd": "^0.30.7"
+    "tsd": "^0.31.0"
   },
   "dependencies": {
     "@fastify/error": "^3.4.1",
@@ -56,7 +56,6 @@
     "fast-content-type-parse": "^1.1.0",
     "fast-querystring": "^1.1.2",
     "fastify-plugin": "^4.5.1",
-    "pump": "^3.0.0",
     "toad-cache": "^3.7.0",
     "undici": "^6.11.1"
   },
