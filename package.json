@@ -30,7 +30,7 @@
   "homepage": "https://github.com/fastify/fastify-reply-from#readme",
   "devDependencies": {
     "@fastify/formbody": "^7.4.0",
-    "@fastify/multipart": "^7.7.3",
+    "@fastify/multipart": "^8.2.0",
     "@fastify/pre-commit": "^2.1.0",
     "@sinonjs/fake-timers": "^11.2.2",
     "@types/node": "^20.11.30",
