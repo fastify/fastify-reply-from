@@ -122,4 +122,6 @@ test('http2 sse removes request and session timeout test', async (t) => {
 
   const { statusCode } = await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
   t.equal(statusCode, 200)
+  instance.close()
+  target.close()
 })

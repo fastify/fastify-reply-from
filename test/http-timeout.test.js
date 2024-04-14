@@ -9,8 +9,6 @@ const FakeTimers = require('@sinonjs/fake-timers')
 const clock = FakeTimers.createClock()
 
 test('http request timeout', async (t) => {
-  t.autoend(false)
-
   const target = Fastify()
   t.teardown(target.close.bind(target))
 

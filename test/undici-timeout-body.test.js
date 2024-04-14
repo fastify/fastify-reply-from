@@ -9,21 +9,19 @@ const FakeTimers = require('@sinonjs/fake-timers')
 
 const clock = FakeTimers.createClock()
 
-t.autoend(false)
-
-const target = http.createServer((req, res) => {
-  t.pass('request proxied')
-  req.on('data', () => undefined)
-  req.on('end', () => {
-    res.flushHeaders()
-    clock.setTimeout(() => {
-      res.end()
-      t.end()
-    }, 1000)
+t.test('undici body timeout', async (t) => {
+  const target = http.createServer((req, res) => {
+    t.pass('request proxied')
+    req.on('data', () => undefined)
+    req.on('end', () => {
+      res.flushHeaders()
+      clock.setTimeout(() => {
+        res.end()
+        t.end()
+      }, 1000)
+    })
   })
-})
 
-async function main () {
   await target.listen({ port: 0 })
 
   const instance = Fastify()
@@ -58,6 +56,4 @@ async function main () {
   }
 
   t.fail()
-}
-
-main()
+})
