@@ -82,7 +82,7 @@ proxy.register(require('@fastify/reply-from'), {
 
 #### `undici`
 
-By default, [undici](https://github.com/mcollina/undici) will be used to perform the HTTP/1.1
+By default, [undici](https://github.com/nodejs/undici) will be used to perform the HTTP/1.1
 requests. Enabling this flag should guarantee
 20-50% more throughput.
 
@@ -102,6 +102,18 @@ proxy.register(require('@fastify/reply-from'), {
   }
 })
 ```
+
+You can also include a proxy for the undici client:
+
+```js
+proxy.register(require('@fastify/reply-from'), {
+  base: 'http://localhost:3001/',
+  undici: {
+    proxy: 'http://my.proxy.server:8080',
+  }
+})
+```
+
 See undici own options for more configurations.
 
 You can also pass the plugin a custom instance:
