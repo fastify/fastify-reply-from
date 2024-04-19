@@ -428,7 +428,7 @@ server.register(fastifyHttpProxy, {
 });
 ```
 
-#### `queryString` or `queryString(search, reqUrl)`
+#### `queryString` or `queryString(search, reqUrl, request)`
 
 Replaces the original querystring of the request with what is specified.
 This will be passed to

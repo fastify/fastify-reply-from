@@ -40,7 +40,11 @@ declare module "fastify" {
 
 type FastifyReplyFrom = FastifyPluginCallback<fastifyReplyFrom.FastifyReplyFromOptions>
 declare namespace fastifyReplyFrom {
-  type QueryStringFunction = (search: string | undefined, reqUrl: string) => string;
+  type QueryStringFunction = (
+    search: string | undefined,
+    reqUrl: string,
+    request: FastifyRequest<RequestGenericInterface, RawServerBase>
+  ) => string;
 
   export type RetryDetails = {
     err: Error;

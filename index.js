@@ -80,7 +80,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const sourceHttp2 = req.httpVersionMajor === 2
     const headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : { ...req.headers }
     headers.host = url.host
-    const qs = getQueryString(url.search, req.url, opts)
+    const qs = getQueryString(url.search, req.url, opts, this.request)
     let body = ''
 
     if (opts.body !== undefined) {
@@ -227,9 +227,9 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   name: '@fastify/reply-from'
 })
 
-function getQueryString (search, reqUrl, opts) {
+function getQueryString (search, reqUrl, opts, request) {
   if (typeof opts.queryString === 'function') {
-    return '?' + opts.queryString(search, reqUrl)
+    return '?' + opts.queryString(search, reqUrl, request)
   }
 
   if (opts.queryString) {
