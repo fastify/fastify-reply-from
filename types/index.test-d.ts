@@ -111,7 +111,13 @@ async function main() {
           },
           onError(reply: FastifyReply<RawServerBase>, error) {
               return reply.send(error.error);
-          }
+          },
+          queryString(search, reqUrl, request) {
+              expectType<string | undefined>(search);
+              expectType<string>(reqUrl);
+              expectType<FastifyRequest<RequestGenericInterface, RawServerBase>>(request);
+              return '';
+          },
       });
   });
 
