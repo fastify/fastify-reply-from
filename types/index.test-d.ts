@@ -38,7 +38,8 @@ const fullOptions: FastifyReplyFromOptions = {
   disableCache: false,
   undici: {
     connections: 100,
-    pipelining: 10
+    pipelining: 10,
+    proxy: 'http://example2.com:8080'
   },
   contentTypesToEncode: ['application/x-www-form-urlencoded'],
   retryMethods: ['GET', 'HEAD', 'OPTIONS', 'TRACE'],
@@ -58,6 +59,10 @@ async function main() {
   server.register(replyFrom, {http2: true});
 
   server.register(replyFrom, fullOptions);
+
+  server.register(replyFrom, { undici: { proxy: new URL('http://example2.com:8080') } });
+
+  server.register(replyFrom, { undici: { proxy: { uri: 'http://example2.com:8080' } } });
 
   server.get("/v1", (request, reply) => {
       expectType<FastifyReply>(reply.from());
@@ -116,7 +121,13 @@ async function main() {
           },
           onError(reply: FastifyReply<RawServerBase>, error) {
               return reply.send(error.error);
-          }
+          },
+          queryString(search, reqUrl, request) {
+              expectType<string | undefined>(search);
+              expectType<string>(reqUrl);
+              expectType<FastifyRequest<RequestGenericInterface, RawServerBase>>(request);
+              return '';
+          },
       });
   });
 
