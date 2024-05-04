@@ -56,6 +56,8 @@ for (const [description, format] of Object.entries(configFormat)) {
           t.same(res.statusCode, 200)
           t.match(JSON.parse(data.toString()), { hello: 'world' })
           resolve()
+          instance.close()
+          target.close()
         })
       })
     })

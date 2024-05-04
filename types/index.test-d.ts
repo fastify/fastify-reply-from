@@ -48,7 +48,6 @@ const fullOptions: FastifyReplyFromOptions = {
   globalAgent: false,
   destroyAgent: true
 };
-tap.autoend(false);
 
 async function main() {
   const server = fastify();

@@ -43,6 +43,8 @@ test('http -> http2', async (t) => {
     t.equal(err.response.headers['x-my-header'], 'hello!')
     t.match(err.response.headers['content-type'], /application\/json/)
     t.same(JSON.parse(err.response.body), { hello: 'world' })
+    instance.close()
+    target.close()
     return
   }
 

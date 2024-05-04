@@ -51,6 +51,8 @@ target.listen({ port: 0 }, (err) => {
       t.equal(res.headers['x-my-header'], 'hello!')
       t.equal(res.statusCode, 205)
       t.equal(data.toString(), 'hello world')
+      instance.close()
+      target.close()
     })
   })
 })
