@@ -29,20 +29,14 @@ test('http2 request timeout disabled', async (t) => {
 
   await instance.listen({ port: 0 })
 
-  try {
-    await Promise.all([
-      got.get(`http://localhost:${instance.server.address().port}/`, {
-        retry: 0
-      }),
-      new Promise((resolve, reject) => setTimeout(reject, 11000, 'passed'))
-    ])
-  } catch (err) {
-    // if we wait 11000ms without a timeout error, we assume disabling the timeout worked
-    // 10000 ms is the default timeout
-    t.equal(err, 'passed')
+  const result = await Promise.race([
+    got.get(`http://localhost:${instance.server.address().port}/`, {
+      retry: 0
+    }),
+    new Promise(resolve => setTimeout(resolve, 11000, 'passed'))
+  ])
 
-    return
-  }
-
-  t.fail()
+  // if we wait 11000ms without a timeout error, we assume disabling the timeout worked
+  // 10000 ms is the default timeout
+  t.equal(result, 'passed')
 })
