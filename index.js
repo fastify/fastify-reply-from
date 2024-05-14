@@ -38,6 +38,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     http: opts.http,
     http2: opts.http2,
     base,
+    sessionTimeout: opts.sessionTimeout,
     undici: opts.undici,
     globalAgent: opts.globalAgent,
     destroyAgent: opts.destroyAgent
