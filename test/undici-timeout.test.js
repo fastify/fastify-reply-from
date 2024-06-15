@@ -8,21 +8,19 @@ const FakeTimers = require('@sinonjs/fake-timers')
 
 const clock = FakeTimers.createClock()
 
-t.autoend(false)
+t.test('undici request timeout', async (t) => {
+  const target = Fastify()
+  t.teardown(target.close.bind(target))
 
-const target = Fastify()
-t.teardown(target.close.bind(target))
+  target.get('/', (request, reply) => {
+    t.pass('request arrives')
 
-target.get('/', (request, reply) => {
-  t.pass('request arrives')
+    clock.setTimeout(() => {
+      reply.status(200).send('hello world')
+      t.end()
+    }, 1000)
+  })
 
-  clock.setTimeout(() => {
-    reply.status(200).send('hello world')
-    t.end()
-  }, 1000)
-})
-
-async function main () {
   await target.listen({ port: 0 })
 
   const instance = Fastify()
@@ -57,6 +55,4 @@ async function main () {
   }
 
   t.fail()
-}
-
-main()
+})

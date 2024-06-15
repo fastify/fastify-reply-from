@@ -344,10 +344,11 @@ the request or response being sent or received to/from the source.
 
 **Note: If `base` is specified in plugin options, the `source` here should not override the host/origin.**
 
-#### `onResponse(request, reply, res)`
+#### `onResponse(request, reply, response)`
 
-Called when a HTTP response is received from the source.
-The default behavior is `reply.send(res)`, which will be disabled if the
+Called when a HTTP response is received from the source. Passed the original source `request`, the in-progress reply to the source as `reply`, and the ongoing `response` from the upstream server.
+
+The default behavior is `reply.send(response.stream)`, which will be disabled if the
 option is specified.
 
 When replying with a body of a different length it is necessary to remove
@@ -361,6 +362,8 @@ the `content-length` header.
   }
 }
 ```
+
+**Note**: `onResponse` is called after headers have already been sent. If you want to modify response headers, use the `rewriteHeaders` hook.
 
 #### `onError(reply, error)`
 

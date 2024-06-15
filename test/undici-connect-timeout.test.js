@@ -7,18 +7,16 @@ const Fastify = require('fastify')
 const From = require('..')
 const got = require('got')
 
-t.autoend(false)
-
+t.test('undici connect timeout', async (t) => {
 // never connect
-net.connect = function (options) {
-  return new net.Socket(options)
-}
+  net.connect = function (options) {
+    return new net.Socket(options)
+  }
 
-const target = http.createServer((req, res) => {
-  t.fail('target never called')
-})
+  const target = http.createServer((req, res) => {
+    t.fail('target never called')
+  })
 
-async function main () {
   t.plan(2)
   await target.listen({ port: 0 })
 
@@ -53,6 +51,4 @@ async function main () {
   }
 
   t.fail()
-}
-
-main()
+})

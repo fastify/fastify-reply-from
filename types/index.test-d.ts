@@ -1,4 +1,4 @@
-import fastify, { FastifyReply, FastifyRequest, RawServerBase, RequestGenericInterface } from "fastify";
+import fastify, { FastifyReply, FastifyRequest, RawReplyDefaultExpression, RawServerBase, RequestGenericInterface } from "fastify";
 import * as http from 'http';
 import { IncomingHttpHeaders } from "http2";
 import * as https from 'https';
@@ -48,7 +48,6 @@ const fullOptions: FastifyReplyFromOptions = {
   globalAgent: false,
   destroyAgent: true
 };
-tap.autoend(false);
 
 async function main() {
   const server = fastify();
@@ -78,6 +77,12 @@ async function main() {
           getUpstream(req, base) {
               expectType<FastifyRequest<RequestGenericInterface, RawServerBase>>(req);
               return base;
+          },
+          onResponse(request, reply, res) {
+            expectType<FastifyRequest<RequestGenericInterface, RawServerBase>>(request);
+            expectType<FastifyReply<RawServerBase>>(reply);
+            expectType<RawReplyDefaultExpression<RawServerBase>>(res);
+            expectType<number>(res.statusCode);
           }
       });
   });

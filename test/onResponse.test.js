@@ -9,7 +9,7 @@ const get = require('simple-get').concat
 const instance = Fastify()
 instance.register(From)
 
-t.plan(8)
+t.plan(9)
 t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
@@ -22,8 +22,9 @@ const target = http.createServer((req, res) => {
 instance.get('/', (request1, reply) => {
   reply.from(`http://localhost:${target.address().port}`, {
     onResponse: (request2, reply, res) => {
+      t.equal(res.statusCode, 200)
       t.equal(request1.raw, request2.raw)
-      reply.send(res)
+      reply.send(res.stream)
     }
   })
 })

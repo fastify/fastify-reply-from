@@ -201,7 +201,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       }
       this.code(res.statusCode)
       if (onResponse) {
-        onResponse(this.request, this, res.stream)
+        onResponse(this.request, this, res)
       } else {
         this.send(res.stream)
       }
@@ -267,9 +267,7 @@ function onErrorDefault (reply, { error }) {
 }
 
 function isFastifyMultipartRegistered (fastify) {
-  // TODO: remove fastify.hasContentTypeParser('multipart') in next major
-  // It is used to be compatible with @fastify/multipart@<=7.3.0
-  return (fastify.hasContentTypeParser('multipart') || fastify.hasContentTypeParser('multipart/form-data')) && fastify.hasRequestDecorator('multipart')
+  return fastify.hasContentTypeParser('multipart/form-data')
 }
 
 function createRequestRetry (requestImpl, reply, retryHandler) {
