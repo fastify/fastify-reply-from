@@ -224,7 +224,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   })
   next()
 }, {
-  fastify: '4.x',
+  fastify: '5.x',
   name: '@fastify/reply-from'
 })
 
