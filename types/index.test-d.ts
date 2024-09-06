@@ -1,4 +1,4 @@
-import fastify, { FastifyReply, FastifyRequest, RawReplyDefaultExpression, RawServerBase, RequestGenericInterface } from "fastify";
+import fastify, { FastifyReply, FastifyRequest, RawReplyDefaultExpression, RawServerBase, RequestGenericInterface, RouteGenericInterface } from "fastify";
 import * as http from 'http';
 import { IncomingHttpHeaders } from "http2";
 import * as https from 'https';
@@ -80,7 +80,7 @@ async function main() {
           },
           onResponse(request, reply, res) {
             expectType<FastifyRequest<RequestGenericInterface, RawServerBase>>(request);
-            expectType<FastifyReply<RawServerBase>>(reply);
+            expectType<FastifyReply<RouteGenericInterface, RawServerBase>>(reply);
             expectType<RawReplyDefaultExpression<RawServerBase>>(res);
             expectType<number>(res.statusCode);
           }
@@ -119,7 +119,7 @@ async function main() {
           getUpstream(req, base) {
               return base;
           },
-          onError(reply: FastifyReply<RawServerBase>, error) {
+          onError(reply: FastifyReply<RouteGenericInterface, RawServerBase>, error) {
               return reply.send(error.error);
           },
           queryString(search, reqUrl, request) {

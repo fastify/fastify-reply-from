@@ -8,6 +8,7 @@ import {
   RawReplyDefaultExpression,
   RawServerBase,
   RequestGenericInterface,
+  RouteGenericInterface
 } from 'fastify';
 
 import {
@@ -50,7 +51,7 @@ declare namespace fastifyReplyFrom {
   export type RetryDetails = {
     err: Error;
     req: FastifyRequest<RequestGenericInterface, RawServerBase>;
-    res: FastifyReply<RawServerBase>;
+    res: FastifyReply<RouteGenericInterface, RawServerBase>;
     attempt: number;
     retriesCount: number;
     getDefaultDelay: () => number | null;
@@ -62,11 +63,11 @@ declare namespace fastifyReplyFrom {
     retriesCount?: number;
     onResponse?: (
       request: FastifyRequest<RequestGenericInterface, RawServerBase>,
-      reply: FastifyReply<RawServerBase>,
+      reply: FastifyReply<RouteGenericInterface, RawServerBase>,
       res: RawReplyDefaultExpression<RawServerBase>
     ) => void;
     onError?: (
-      reply: FastifyReply<RawServerBase>,
+      reply: FastifyReply<RouteGenericInterface, RawServerBase>,
       error: { error: Error }
     ) => void;
     body?: unknown;
