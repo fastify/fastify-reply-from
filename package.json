@@ -56,7 +56,7 @@
     "end-of-stream": "^1.4.4",
     "fast-content-type-parse": "^2.0.0",
     "fast-querystring": "^1.1.2",
-    "fastify-plugin": "^4.5.1",
+    "fastify-plugin": "^5.0.1",
     "toad-cache": "^3.7.0",
     "undici": "^6.11.1"
   },
