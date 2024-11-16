@@ -20,7 +20,8 @@ const {
   ConnectionResetError,
   ConnectTimeoutError,
   UndiciSocketError,
-  InternalServerError
+  InternalServerError,
+  BadGatewayError
 } = require('./lib/errors')
 
 const fastifyReplyFrom = fp(function from (fastify, opts, next) {
@@ -199,7 +200,16 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       } else {
         copyHeaders(rewriteHeaders(res.headers, this.request), this)
       }
-      this.code(res.statusCode)
+      try {
+        this.code(res.statusCode)
+        this.request.log.warn(err, 'response has invalid status code')
+      } catch (err) {
+        if (err.code === 'FST_ERR_BAD_STATUS_CODE') {
+          onError(this, { error: new BadGatewayError() })
+        } else {
+          onError(this, { error: new InternalServerError(err.message) })
+        }
+      }
       if (onResponse) {
         onResponse(this.request, this, res)
       } else {
