@@ -58,7 +58,7 @@
     "fast-querystring": "^1.1.2",
     "fastify-plugin": "^5.0.1",
     "toad-cache": "^3.7.0",
-    "undici": "^6.11.1"
+    "undici": "^7.0.0"
   },
   "pre-commit": [
     "lint",
