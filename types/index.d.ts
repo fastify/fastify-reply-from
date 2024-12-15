@@ -9,29 +9,28 @@ import {
   RawServerBase,
   RequestGenericInterface,
   RouteGenericInterface
-} from 'fastify';
+} from 'fastify'
 
 import {
   Agent,
   AgentOptions,
   IncomingHttpHeaders,
   RequestOptions,
-} from "http";
+} from 'http'
 import {
   ClientSessionOptions,
   ClientSessionRequestOptions,
   IncomingHttpHeaders as Http2IncomingHttpHeaders,
   SecureClientSessionOptions,
-} from "http2";
+} from 'http2'
 import {
   Agent as SecureAgent,
   AgentOptions as SecureAgentOptions,
   RequestOptions as SecureRequestOptions
-} from "https";
-import { Pool } from 'undici';
-import { ProxyAgent } from 'undici';
+} from 'https'
+import { Pool, ProxyAgent } from 'undici'
 
-declare module "fastify" {
+declare module 'fastify' {
   interface FastifyReply {
     from(
       source?: string,
@@ -46,7 +45,7 @@ declare namespace fastifyReplyFrom {
     search: string | undefined,
     reqUrl: string,
     request: FastifyRequest<RequestGenericInterface, RawServerBase>
-  ) => string;
+  ) => string
 
   export type RetryDetails = {
     err: Error;
@@ -105,7 +104,7 @@ declare namespace fastifyReplyFrom {
     disableCache?: boolean;
     http?: HttpOptions;
     http2?: Http2Options | boolean;
-    undici?: Pool.Options & { proxy?: string  | URL | ProxyAgent.Options };
+    undici?: Pool.Options & { proxy?: string | URL | ProxyAgent.Options };
     contentTypesToEncode?: string[];
     retryMethods?: (HTTPMethods | 'TRACE')[];
     maxRetriesOn503?: number;
@@ -115,8 +114,8 @@ declare namespace fastifyReplyFrom {
   }
 
   export const fastifyReplyFrom: FastifyReplyFrom
-  export { fastifyReplyFrom as default };
+  export { fastifyReplyFrom as default }
 }
 
-declare function fastifyReplyFrom(...params: Parameters<FastifyReplyFrom>): ReturnType<FastifyReplyFrom>
+declare function fastifyReplyFrom (...params: Parameters<FastifyReplyFrom>): ReturnType<FastifyReplyFrom>
 export = fastifyReplyFrom
