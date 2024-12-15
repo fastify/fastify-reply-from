@@ -1,7 +1,7 @@
 import fastify, { FastifyReply, FastifyRequest, RawReplyDefaultExpression, RawServerBase, RequestGenericInterface, RouteGenericInterface } from "fastify";
-import * as http from 'http';
+import * as http from 'node:http';
 import { IncomingHttpHeaders } from "http2";
-import * as https from 'https';
+import * as https from 'node:https';
 import { AddressInfo } from "net";
 import { expectType } from 'tsd';
 import replyFrom, { FastifyReplyFromOptions } from "..";
