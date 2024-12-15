@@ -28,8 +28,7 @@ import {
   AgentOptions as SecureAgentOptions,
   RequestOptions as SecureRequestOptions
 } from 'https'
-import { Pool } from 'undici'
-import { ProxyAgent } from 'undici'
+import { Pool, ProxyAgent } from 'undici'
 
 declare module 'fastify' {
   interface FastifyReply {

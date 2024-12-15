@@ -1,10 +1,10 @@
-import fastify, { FastifyReply, FastifyRequest, RawReplyDefaultExpression, RawServerBase, RequestGenericInterface, RouteGenericInterface } from "fastify";
-import * as http from 'node:http';
-import { IncomingHttpHeaders } from "http2";
-import * as https from 'node:https';
-import { AddressInfo } from "net";
-import { expectType } from 'tsd';
-import replyFrom, { FastifyReplyFromOptions } from "..";
+import fastify, { FastifyReply, FastifyRequest, RawReplyDefaultExpression, RawServerBase, RequestGenericInterface, RouteGenericInterface } from 'fastify'
+import * as http from 'node:http'
+import { IncomingHttpHeaders } from 'http2'
+import * as https from 'node:https'
+import { AddressInfo } from 'net'
+import { expectType } from 'tsd'
+import replyFrom, { FastifyReplyFromOptions } from '..'
 // @ts-ignore
 import tap from 'tap'
 
@@ -101,6 +101,7 @@ async function main () {
   instance.get('/http2', (request, reply) => {
     reply.from('/', {
       method: 'POST',
+      // eslint-disable-next-line n/handle-callback-err -- Not a real request, not handling errors
       retryDelay: ({ err, req, res, attempt, retriesCount, getDefaultDelay }) => {
         const defaultDelay = getDefaultDelay()
         if (defaultDelay) return defaultDelay
