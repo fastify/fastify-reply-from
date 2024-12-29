@@ -4,7 +4,7 @@ const { test, after } = require('node:test')
 const { createServer } = require('node:http')
 const Fastify = require('fastify')
 const { createProxy } = require('proxy')
-const fastifyFrom = require('..')
+const fastifyProxyFrom = require('..')
 const { isIPv6 } = require('node:net')
 
 const configFormat = {
@@ -55,7 +55,7 @@ for (const [description, format] of Object.entries(configFormat)) {
       instance.close()
     })
 
-    instance.register(fastifyFrom, {
+    instance.register(fastifyProxyFrom, {
       base: targetUrl,
       undici: {
         proxy: format(proxyUrl)

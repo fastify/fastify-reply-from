@@ -2,7 +2,7 @@
 
 const { describe, after, it } = require('node:test')
 const fastify = require('fastify')
-const fastifyFrom = require('..')
+const fastifyProxyFrom = require('..')
 const { isIPv6 } = require('node:net')
 
 describe('GHSA-v2v2-hph8-q5xp', function () {
@@ -27,7 +27,7 @@ describe('GHSA-v2v2-hph8-q5xp', function () {
     }
 
     const app = fastify()
-    app.register(fastifyFrom)
+    app.register(fastifyProxyFrom)
 
     app.post('/test', (request, reply) => {
       if (request.body.method === 'invalid_method') {
