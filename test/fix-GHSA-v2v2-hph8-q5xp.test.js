@@ -3,6 +3,7 @@
 const { describe, after, it } = require('node:test')
 const fastify = require('fastify')
 const fastifyFrom = require('..')
+const { isIPv6 } = require('node:net')
 
 describe('GHSA-v2v2-hph8-q5xp', function () {
   it('should not parse the body if it is an object', async function (t) {
@@ -19,6 +20,13 @@ describe('GHSA-v2v2-hph8-q5xp', function () {
 
     await upstream.listen({ port: 0 })
 
+
+    let upstreamAdress = upstream.server.address().address
+
+    if (isIPv6(upstreamAdress)) {
+      upstreamAdress = `[${upstreamAdress}]`
+    }
+
     const app = fastify()
     app.register(fastifyFrom)
 
@@ -26,7 +34,7 @@ describe('GHSA-v2v2-hph8-q5xp', function () {
       if (request.body.method === 'invalid_method') {
         return reply.code(400).send({ message: 'payload contains invalid method' })
       }
-      reply.from(`http://${upstream.server.address().address}:${upstream.server.address().port}/test`)
+      reply.from(`http://${upstreamAdress}:${upstream.server.address().port}/test`)
     })
 
     await app.listen({ port: 0 })
@@ -36,8 +44,14 @@ describe('GHSA-v2v2-hph8-q5xp', function () {
       app.close()
     })
 
+    const appAddress = app.server.address().address
+
+    if (isIPv6(appAddress)) {
+      appAddress = `[${appAddress}]`
+    }
+
     const response = await fetch(
-      `http://${app.server.address().address}:${app.server.address().port}/test`,
+      `http://${appAddress}:${app.server.address().port}/test`,
       {
         headers: { 'content-type': 'application/json ; charset=utf-8' },
         // eslint-disable-next-line no-useless-escape
