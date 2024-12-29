@@ -2,15 +2,17 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
-const From = require('..')
+const fastifyReplyFrom = require('..')
 const http = require('node:http')
 const get = require('simple-get').concat
-const msgpack = require('msgpack5')()
 
 const instance = Fastify()
-instance.register(From)
+instance.register(fastifyReplyFrom)
 
-t.plan(8)
+const payload = { hello: 'world' }
+const msgPackPayload = Buffer.from([0x81, 0xa5, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0xa5, 0x77, 0x6f, 0x72, 0x6c, 0x64])
+
+t.plan(9)
 t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
@@ -22,7 +24,7 @@ const target = http.createServer((req, res) => {
     data.push(d)
   })
   req.on('end', () => {
-    t.same(msgpack.decode(Buffer.concat(data)), { hello: 'world' })
+    t.same(Buffer.concat(data), msgPackPayload)
     res.statusCode = 200
     res.setHeader('content-type', 'application/json')
     res.end(JSON.stringify({ something: 'else' }))
@@ -30,9 +32,10 @@ const target = http.createServer((req, res) => {
 })
 
 instance.post('/', (request, reply) => {
+  t.same(request.body, payload)
   reply.from(`http://localhost:${target.address().port}`, {
     contentType: 'application/msgpack',
-    body: msgpack.encode(request.body)
+    body: msgPackPayload
   })
 })
 
