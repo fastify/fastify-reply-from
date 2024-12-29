@@ -1,36 +1,40 @@
 'use strict'
 
-const t = require('tap')
+const { describe, after, it } = require('node:test')
 const fastify = require('fastify')
-const From = require('..')
+const fastifyFrom = require('..')
 
-const upstream = fastify()
-t.teardown(upstream.close.bind(upstream))
-t.plan(3)
+describe('GHSA-v2v2-hph8-q5xp', function () {
+  it('should not parse the body if it is an object', async function (t) {
+    t.plan(1)
 
-upstream.post('/test', async (request, reply) => {
-  if (typeof request.body === 'object') {
-    return 'not ok'
-  }
-  return 'ok'
-})
+    const upstream = fastify()
 
-upstream.listen({ port: 0 }, function (err) {
-  t.error(err)
+    upstream.post('/test', async (request, reply) => {
+      if (typeof request.body === 'object') {
+        return 'not ok'
+      }
+      return 'ok'
+    })
 
-  const app = fastify()
-  app.register(From)
-  t.teardown(app.close.bind(app))
+    await upstream.listen({ port: 0 })
 
-  app.post('/test', (request, reply) => {
-    if (request.body.method === 'invalid_method') {
-      return reply.code(400).send({ message: 'payload contains invalid method' })
-    }
-    reply.from(`http://127.0.0.1:${upstream.server.address().port}/test`)
-  })
+    const app = fastify()
+    app.register(fastifyFrom)
 
-  app.listen({ port: 0 }, async function (err) {
-    t.error(err)
+    app.post('/test', (request, reply) => {
+      if (request.body.method === 'invalid_method') {
+        return reply.code(400).send({ message: 'payload contains invalid method' })
+      }
+      reply.from(`http://127.0.0.1:${upstream.server.address().port}/test`)
+    })
+
+    await app.listen({ port: 0 })
+
+    after(() => {
+      upstream.close()
+      app.close()
+    })
 
     const response = await fetch(
       `http://127.0.0.1:${app.server.address().port}/test`,
@@ -41,6 +45,6 @@ upstream.listen({ port: 0 }, function (err) {
         method: 'POST'
       })
 
-    t.equal(await response.text(), 'ok')
+    t.assert.strictEqual(await response.text(), 'ok')
   })
 })
