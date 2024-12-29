@@ -26,7 +26,7 @@ describe('GHSA-v2v2-hph8-q5xp', function () {
       if (request.body.method === 'invalid_method') {
         return reply.code(400).send({ message: 'payload contains invalid method' })
       }
-      reply.from(`http://127.0.0.1:${upstream.server.address().port}/test`)
+      reply.from(`http://${upstream.server.address().address}:${upstream.server.address().port}/test`)
     })
 
     await app.listen({ port: 0 })
@@ -37,7 +37,7 @@ describe('GHSA-v2v2-hph8-q5xp', function () {
     })
 
     const response = await fetch(
-      `http://127.0.0.1:${app.server.address().port}/test`,
+      `http://${app.server.address().address}:${app.server.address().port}/test`,
       {
         headers: { 'content-type': 'application/json ; charset=utf-8' },
         // eslint-disable-next-line no-useless-escape
