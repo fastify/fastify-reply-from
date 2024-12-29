@@ -20,7 +20,6 @@ describe('GHSA-v2v2-hph8-q5xp', function () {
 
     await upstream.listen({ port: 0 })
 
-
     let upstreamAdress = upstream.server.address().address
 
     if (isIPv6(upstreamAdress)) {
@@ -44,7 +43,7 @@ describe('GHSA-v2v2-hph8-q5xp', function () {
       app.close()
     })
 
-    const appAddress = app.server.address().address
+    let appAddress = app.server.address().address
 
     if (isIPv6(appAddress)) {
       appAddress = `[${appAddress}]`
