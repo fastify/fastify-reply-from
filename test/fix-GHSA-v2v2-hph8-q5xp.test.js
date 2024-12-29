@@ -2,12 +2,11 @@
 
 const t = require('tap')
 const fastify = require('fastify')
-const get = require('simple-get').concat
 const From = require('..')
 
 const upstream = fastify()
 t.teardown(upstream.close.bind(upstream))
-t.plan(4)
+t.plan(3)
 
 upstream.post('/test', async (request, reply) => {
   if (typeof request.body === 'object') {
@@ -30,18 +29,18 @@ upstream.listen({ port: 0 }, function (err) {
     reply.from(`http://127.0.0.1:${upstream.server.address().port}/test`)
   })
 
-  app.listen({ port: 0 }, function (err) {
+  app.listen({ port: 0 }, async function (err) {
     t.error(err)
 
-    get({
-      url: `http://127.0.0.1:${app.server.address().port}/test`,
-      headers: { 'content-type': 'application/json ; charset=utf-8' },
-      // eslint-disable-next-line no-useless-escape
-      body: '"{\\\"method\\\":\\\"invalid_method\\\"}"',
-      method: 'POST'
-    }, (err, res, data) => {
-      t.error(err)
-      t.equal(data.toString(), 'ok')
-    })
+    const response = await fetch(
+      `http://127.0.0.1:${app.server.address().port}/test`,
+      {
+        headers: { 'content-type': 'application/json ; charset=utf-8' },
+        // eslint-disable-next-line no-useless-escape
+        body: '"{\\\"method\\\":\\\"invalid_method\\\"}"',
+        method: 'POST'
+      })
+
+    t.equal(await response.text(), 'ok')
   })
 })
