@@ -1,11 +1,11 @@
 'use strict'
 
-const { test } = require('tap')
+const { test, after } = require('node:test')
 const { createServer } = require('node:http')
 const Fastify = require('fastify')
-const get = require('simple-get').concat
 const { createProxy } = require('proxy')
-const From = require('..')
+const fastifyProxyFrom = require('..')
+const { isIPv6 } = require('node:net')
 
 const configFormat = {
   string: (value) => value,
@@ -15,17 +15,33 @@ const configFormat = {
 
 for (const [description, format] of Object.entries(configFormat)) {
   test(`use undici ProxyAgent to connect through proxy - configured via ${description}`, async (t) => {
-    t.plan(5)
+    t.plan(3)
+
     const target = await buildServer()
     const proxy = await buildProxy()
-    t.teardown(target.close.bind(target))
-    t.teardown(proxy.close.bind(proxy))
 
-    const targetUrl = `http://localhost:${target.address().port}`
-    const proxyUrl = `http://localhost:${proxy.address().port}`
+    after(() => {
+      target.close()
+      proxy.close()
+    })
+
+    let targetAddress = target.address().address
+
+    if (isIPv6(targetAddress)) {
+      targetAddress = `[${targetAddress}]`
+    }
+
+    let proxyAddress = proxy.address().address
+
+    if (isIPv6(proxyAddress)) {
+      proxyAddress = `[${proxyAddress}]`
+    }
+
+    const targetUrl = `http://${targetAddress}:${target.address().port}`
+    const proxyUrl = `http://${proxyAddress}:${proxy.address().port}`
 
     proxy.on('connect', () => {
-      t.ok(true, 'should connect to proxy')
+      t.assert.ok(true, 'should connect to proxy')
     })
 
     target.on('request', (req, res) => {
@@ -34,9 +50,12 @@ for (const [description, format] of Object.entries(configFormat)) {
     })
 
     const instance = Fastify()
-    t.teardown(instance.close.bind(instance))
 
-    instance.register(From, {
+    after(() => {
+      instance.close()
+    })
+
+    instance.register(fastifyProxyFrom, {
       base: targetUrl,
       undici: {
         proxy: format(proxyUrl)
@@ -47,22 +66,22 @@ for (const [description, format] of Object.entries(configFormat)) {
       reply.from()
     })
 
-    const executionFlow = () => new Promise((resolve) => {
-      instance.listen({ port: 0 }, err => {
-        t.error(err)
+    await instance.listen({ port: 0 })
 
-        get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-          t.error(err)
-          t.same(res.statusCode, 200)
-          t.match(JSON.parse(data.toString()), { hello: 'world' })
-          resolve()
-          instance.close()
-          target.close()
-        })
-      })
-    })
+    let instanceAddress = proxy.address().address
 
-    await executionFlow()
+    if (isIPv6(instanceAddress)) {
+      if (instanceAddress === '::') {
+        instanceAddress = '::1'
+      } else {
+        instanceAddress = `[${instanceAddress}]`
+      }
+    }
+
+    const response = await fetch(`http://localhost:${instance.server.address().port}`)
+
+    t.assert.strictEqual(response.status, 200)
+    t.assert.deepStrictEqual(await response.json(), { hello: 'world' })
   })
 }
 
