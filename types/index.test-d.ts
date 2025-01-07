@@ -114,10 +114,10 @@ async function main () {
       rewriteHeaders (headers) {
         return headers
       },
-      rewriteRequestHeaders (headers: IncomingHttpHeaders) {
+      rewriteRequestHeaders (_req, headers: IncomingHttpHeaders) {
         return headers
       },
-      getUpstream (base) {
+      getUpstream (_req, base) {
         return base
       },
       onError (reply: FastifyReply<RouteGenericInterface, RawServerBase>, error) {
