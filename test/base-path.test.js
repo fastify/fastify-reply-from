@@ -10,7 +10,7 @@ const instance = Fastify()
 
 nock('http://httpbin.org')
   .get('/ip')
-  .reply(200, function (uri, requestBody) {
+  .reply(200, function () {
     t.equal(this.req.headers.host, 'httpbin.org')
     return { origin: '127.0.0.1' }
   })
@@ -18,7 +18,7 @@ nock('http://httpbin.org')
 t.plan(6)
 t.teardown(instance.close.bind(instance))
 
-instance.get('/', (request, reply) => {
+instance.get('/', (_request, reply) => {
   reply.from('http://httpbin.org/ip')
 })
 

@@ -12,7 +12,7 @@ instance.register(From)
 t.plan(8)
 t.teardown(instance.close.bind(instance))
 
-instance.addContentTypeParser('application/octet-stream', function (req, payload, done) {
+instance.addContentTypeParser('application/octet-stream', function (_req, payload, done) {
   done(null, payload)
 })
 
@@ -35,7 +35,7 @@ const target = http.createServer((req, res) => {
   })
 })
 
-instance.post('/', (request, reply) => {
+instance.post('/', (_request, reply) => {
   reply.from(`http://localhost:${target.address().port}`)
 })
 
@@ -56,7 +56,7 @@ instance.listen({ port: 0 }, (err) => {
       body: JSON.stringify({
         hello: 'world'
       })
-    }, (err, res, data) => {
+    }, (err, _res, data) => {
       t.error(err)
       t.same(JSON.parse(data), { something: 'else' })
     })

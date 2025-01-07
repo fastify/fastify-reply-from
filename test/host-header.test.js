@@ -12,12 +12,12 @@ test('hostname', async (t) => {
 
   nock('http://httpbin.org')
     .get('/ip')
-    .reply(200, function (uri, requestBody) {
+    .reply(200, function () {
       t.equal(this.req.headers.host, 'httpbin.org')
       return { origin: '127.0.0.1' }
     })
 
-  instance.get('*', (request, reply) => {
+  instance.get('*', (_request, reply) => {
     reply.from(null, {
       rewriteRequestHeaders: (originalReq, headers) => {
         t.equal(headers.host, 'httpbin.org')
@@ -48,7 +48,7 @@ test('hostname and port', async (t) => {
 
   nock('http://httpbin.org:8080')
     .get('/ip')
-    .reply(200, function (uri, requestBody) {
+    .reply(200, function () {
       t.equal(this.req.headers.host, 'httpbin.org:8080')
       return { origin: '127.0.0.1' }
     })
@@ -58,7 +58,7 @@ test('hostname and port', async (t) => {
     http: true
   })
 
-  instance.get('*', (request, reply) => {
+  instance.get('*', (_request, reply) => {
     reply.from()
   })
 

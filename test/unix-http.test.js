@@ -42,7 +42,7 @@ const target = http.createServer((req, res) => {
   res.end('hello world')
 })
 
-instance.get('/', (request, reply) => {
+instance.get('/', (_request, reply) => {
   reply.from('hello')
 })
 

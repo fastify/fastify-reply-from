@@ -14,14 +14,14 @@ test('http -> http2', async function (t) {
     http2: true
   })
 
-  target.delete('/', (request, reply) => {
+  target.delete('/', (_request, reply) => {
     t.pass('request proxied')
     reply.code(200).header('x-my-header', 'hello!').send({
       hello: 'world'
     })
   })
 
-  instance.delete('/', (request, reply) => {
+  instance.delete('/', (_request, reply) => {
     reply.from()
   })
 

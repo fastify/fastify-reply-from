@@ -13,7 +13,7 @@ t.test('undici connect timeout', async (t) => {
     return new net.Socket(options)
   }
 
-  const target = http.createServer((req, res) => {
+  const target = http.createServer(() => {
     t.fail('target never called')
   })
 
@@ -31,7 +31,7 @@ t.test('undici connect timeout', async (t) => {
     }
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from()
   })
 

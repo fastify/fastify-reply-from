@@ -6,7 +6,7 @@ const target = Fastify({
   logger: true
 })
 
-target.get('/', (request, reply) => {
+target.get('/', (_request, reply) => {
   reply.send('hello world')
 })
 
@@ -19,7 +19,7 @@ proxy.register(require('..'), {
   base: 'http://localhost:3001/'
 })
 
-proxy.get('/', (request, reply) => {
+proxy.get('/', (_request, reply) => {
   reply.from('/')
 })
 

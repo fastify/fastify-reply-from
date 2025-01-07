@@ -29,16 +29,16 @@ const target = http.createServer((req, res) => {
   res.end(req.headers.host)
 })
 
-instance.get('/test', (request, reply) => {
+instance.get('/test', (_request, reply) => {
   reply.from('/test', {
-    getUpstream: (req, base) => {
+    getUpstream: (_req, base) => {
       t.pass('getUpstream called')
       return `${base}:${target.address().port}`
     }
   })
 })
 
-instanceWithoutBase.get('/test2', (request, reply) => {
+instanceWithoutBase.get('/test2', (_request, reply) => {
   reply.from('/test2', {
     getUpstream: () => {
       t.pass('getUpstream called')

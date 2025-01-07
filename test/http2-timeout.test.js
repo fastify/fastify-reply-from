@@ -23,7 +23,7 @@ test('http2 request timeout', async (t) => {
     http2: { requestTimeout: 100, sessionTimeout: 6000 }
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.server.address().port}/`)
   })
 
@@ -67,7 +67,7 @@ test('http2 session timeout', async (t) => {
     http2: { sessionTimeout: 100 }
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.server.address().port}/`)
   })
 
@@ -96,7 +96,7 @@ test('http2 session timeout', async (t) => {
 test('http2 sse removes request and session timeout test', async (t) => {
   const target = Fastify({ http2: true, sessionTimeout: 0 })
 
-  target.get('/', (request, reply) => {
+  target.get('/', (_request, reply) => {
     t.pass('request arrives')
 
     reply.status(200).header('content-type', 'text/event-stream').send('hello world')
@@ -111,7 +111,7 @@ test('http2 sse removes request and session timeout test', async (t) => {
     http2: { sessionTimeout: 100 }
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.server.address().port}/`)
   })
 

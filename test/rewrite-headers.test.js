@@ -21,9 +21,9 @@ const target = http.createServer((req, res) => {
   res.end('hello world')
 })
 
-instance.get('/', (request, reply) => {
+instance.get('/', (_request, reply) => {
   reply.from(`http://localhost:${target.address().port}`, {
-    rewriteHeaders: (headers, req) => {
+    rewriteHeaders: (headers) => {
       t.pass('rewriteHeaders called')
       return {
         'content-type': headers['content-type'],
@@ -41,7 +41,7 @@ instance.listen({ port: 0 }, (err) => {
   target.listen({ port: 0 }, (err) => {
     t.error(err)
 
-    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
+    get(`http://localhost:${instance.server.address().port}`, (err, res) => {
       t.error(err)
       t.equal(res.headers['content-type'], 'text/plain')
       t.equal(res.headers['x-another-header'], 'so headers!')

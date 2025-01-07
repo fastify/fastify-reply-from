@@ -31,7 +31,7 @@ t.test('use a custom instance of \'undici\'', async t => {
       undici: new undici.Pool(`http://localhost:${target.address().port}`)
     })
 
-    instance.get('/', (request, reply) => {
+    instance.get('/', (_request, reply) => {
       reply.from()
     })
 
@@ -57,7 +57,7 @@ t.test('use a custom instance of \'undici\'', async t => {
       undici: new undici.Client(`http://localhost:${target.address().port}`)
     })
 
-    instance.get('/', (request, reply) => {
+    instance.get('/', (_request, reply) => {
       reply.from()
     })
 

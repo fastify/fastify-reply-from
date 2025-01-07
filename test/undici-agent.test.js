@@ -13,12 +13,12 @@ t.plan(10)
 const instance = Fastify()
 t.teardown(instance.close.bind(instance))
 
-const target = http.createServer((req, res) => {
+const target = http.createServer((_req, res) => {
   res.statusCode = 200
   res.end('hello world')
 })
 
-instance.get('/', (request, reply) => {
+instance.get('/', (_request, reply) => {
   reply.from()
 })
 

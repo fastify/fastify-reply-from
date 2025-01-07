@@ -223,7 +223,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     done()
   })
 
-  fastify.onClose((fastify, next) => {
+  fastify.onClose((_fastify, next) => {
     close()
     // let the event loop do a full run so that it can
     // actually destroy those sockets
@@ -257,15 +257,15 @@ function getQueryString (search, reqUrl, opts, request) {
   return ''
 }
 
-function headersNoOp (headers, originalReq) {
+function headersNoOp (headers) {
   return headers
 }
 
-function requestHeadersNoOp (originalReq, headers) {
+function requestHeadersNoOp (_originalReq, headers) {
   return headers
 }
 
-function upstreamNoOp (req, base) {
+function upstreamNoOp (_req, base) {
   return base
 }
 

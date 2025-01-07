@@ -23,7 +23,7 @@ const target = http.createServer((req, res) => {
   res.end('hello world')
 })
 
-instance.head('/', (request, reply) => {
+instance.head('/', (_request, reply) => {
   t.pass('head received')
   reply.from()
 })

@@ -16,7 +16,7 @@ test('with explicitly set content-type application/octet-stream', t => {
   instance.addContentTypeParser(
     'application/octet-stream',
     { parseAs: 'buffer', bodyLimit: 1000 },
-    (req, body, done) => done(null, parse(body.toString()))
+    (_req, body, done) => done(null, parse(body.toString()))
   )
 
   t.plan(9)
@@ -40,7 +40,7 @@ test('with explicitly set content-type application/octet-stream', t => {
     })
   })
 
-  instance.post('/', (request, reply) => {
+  instance.post('/', (_request, reply) => {
     reply.from(`http://localhost:${target.address().port}`)
   })
 
@@ -75,13 +75,13 @@ test('with implicit content-type application/octet-stream', t => {
   instance.addContentTypeParser(
     'application/octet-stream',
     { parseAs: 'buffer', bodyLimit: 1000 },
-    (req, body, done) => done(null, parse(body.toString()))
+    (_req, body, done) => done(null, parse(body.toString()))
   )
 
   instance.addContentTypeParser(
     '*',
     { parseAs: 'buffer', bodyLimit: 1000 },
-    (req, body, done) => done(null, parse(body.toString()))
+    (_req, body, done) => done(null, parse(body.toString()))
   )
 
   t.plan(9)
@@ -105,7 +105,7 @@ test('with implicit content-type application/octet-stream', t => {
     })
   })
 
-  instance.post('/', (request, reply) => {
+  instance.post('/', (_request, reply) => {
     reply.from(`http://localhost:${target.address().port}`)
   })
 

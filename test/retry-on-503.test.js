@@ -8,7 +8,7 @@ const got = require('got')
 
 function createTargetServer (withRetryAfterHeader, stopAfter = 1) {
   let requestCount = 0
-  return http.createServer((req, res) => {
+  return http.createServer((_req, res) => {
     if (requestCount++ < stopAfter) {
       res.statusCode = 503
       res.setHeader('Content-Type', 'text/plain')
@@ -35,7 +35,7 @@ test('Should retry on 503 HTTP error', async function (t) {
     base: `http://localhost:${target.address().port}`
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from()
   })
 
@@ -60,7 +60,7 @@ test('Should retry on 503 HTTP error with Retry-After response header', async fu
     base: `http://localhost:${target.address().port}`
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from()
   })
 
@@ -85,7 +85,7 @@ test('Should abort if server is always returning 503', async function (t) {
     base: `http://localhost:${target.address().port}`
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from()
   })
 

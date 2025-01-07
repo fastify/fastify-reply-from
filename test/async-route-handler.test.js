@@ -21,7 +21,7 @@ const target = http.createServer((req, res) => {
   res.end('hello world')
 })
 
-instance.get('/', async (request, reply) => {
+instance.get('/', async (_request, reply) => {
   const p = reply.from()
   t.equal(p, reply)
   return p

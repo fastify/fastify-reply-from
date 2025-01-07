@@ -21,7 +21,7 @@ const target = http.createServer((req, res) => {
 
 instance.get('/', (request, reply) => {
   reply.from(`http://localhost:${target.address().port}`, {
-    rewriteRequestHeaders: (originalReq, headers) => {
+    rewriteRequestHeaders: (originalReq) => {
       t.pass('rewriteRequestHeaders called with correct request parameter')
       t.equal(originalReq, request)
       return {}
@@ -37,7 +37,7 @@ instance.listen({ port: 0 }, (err) => {
   target.listen({ port: 0 }, (err) => {
     t.error(err)
 
-    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
+    get(`http://localhost:${instance.server.address().port}`, (err, res) => {
       t.error(err)
       t.equal(res.statusCode, 205)
     })

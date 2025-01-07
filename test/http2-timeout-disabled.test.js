@@ -23,7 +23,7 @@ test('http2 request timeout disabled', async (t) => {
     http2: { requestTimeout: 0, sessionTimeout: 16000 }
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.server.address().port}/`)
   })
 
@@ -59,7 +59,7 @@ test('http2 session timeout disabled', async (t) => {
     http2: { requestTimeout: 0, sessionTimeout: 0 }
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.server.address().port}/`)
   })
 

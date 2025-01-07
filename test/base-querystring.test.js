@@ -21,7 +21,7 @@ const target = http.createServer((req, res) => {
   res.end('hello world')
 })
 
-instance.get('/hello', (request, reply) => {
+instance.get('/hello', (_request, reply) => {
   reply.from()
 })
 

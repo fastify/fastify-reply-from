@@ -12,7 +12,7 @@ t.test('undici request timeout', async (t) => {
   const target = Fastify()
   t.teardown(target.close.bind(target))
 
-  target.get('/', (request, reply) => {
+  target.get('/', (_request, reply) => {
     t.pass('request arrives')
 
     clock.setTimeout(() => {
@@ -33,7 +33,7 @@ t.test('undici request timeout', async (t) => {
     }
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from()
   })
 

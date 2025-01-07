@@ -29,7 +29,7 @@ test('Will retry', async function (t) {
 
   instance.register(From, { undici: true })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.address().port}/`, {
       retriesCount: 1,
       onError: (reply, { error }) => {
@@ -56,7 +56,7 @@ test('will not retry', async function (t) {
 
   instance.register(From, { undici: true })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.address().port}/`, {
       retriesCount: 0,
       onError: (reply, { error }) => {
@@ -87,7 +87,7 @@ test('will not retry unsupported method', async function (t) {
 
   instance.register(From, { undici: true, retryMethods: ['DELETE'] })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.address().port}/`, {
       retriesCount: 1,
       onError: (reply, { error }) => {

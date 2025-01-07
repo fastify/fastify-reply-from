@@ -26,12 +26,12 @@ try {
 } catch (_) {
 }
 
-const target = http.createServer((req, res) => {
+const target = http.createServer((_req, res) => {
   t.fail('no response')
   res.end()
 })
 
-instance.get('/', (request, reply) => {
+instance.get('/', (_request, reply) => {
   reply.from(`unix+http://${querystring.escape(socketPath)}/hello`)
 })
 
@@ -43,7 +43,7 @@ instance.listen({ port: 0 }, (err) => {
   target.listen(socketPath, (err) => {
     t.error(err)
 
-    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
+    get(`http://localhost:${instance.server.address().port}`, (err, res) => {
       t.error(err)
       t.equal(res.statusCode, 500)
     })

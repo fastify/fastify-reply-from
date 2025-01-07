@@ -9,7 +9,7 @@ const querystring = require('node:querystring')
 
 const instance = Fastify()
 
-instance.addHook('preHandler', (request, reply, done) => {
+instance.addHook('preHandler', (request, _reply, done) => {
   request.addedVal = 'test'
   done()
 })
@@ -27,9 +27,9 @@ const target = http.createServer((req, res) => {
   res.end('hello world')
 })
 
-instance.get('/hello', (request, reply) => {
+instance.get('/hello', (_request, reply) => {
   reply.from(`http://localhost:${target.address().port}/world?a=b`, {
-    queryString (search, reqUrl, request) {
+    queryString (_search, _reqUrl, request) {
       return querystring.stringify({ q: request.addedVal })
     }
   })

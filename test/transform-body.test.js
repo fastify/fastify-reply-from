@@ -22,13 +22,13 @@ const target = http.createServer((req, res) => {
   res.end('hello world')
 })
 
-instance.get('/', (request, reply) => {
+instance.get('/', (_request, reply) => {
   reply.from(`http://localhost:${target.address().port}`, {
-    onResponse: (request, reply, res) => {
+    onResponse: (_request, reply, res) => {
       reply.send(
         res.stream.pipe(
           new Transform({
-            transform: function (chunk, enc, cb) {
+            transform: function (chunk, _enc, cb) {
               this.push(chunk.toString().toUpperCase())
               cb()
             }
