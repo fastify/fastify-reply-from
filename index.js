@@ -149,7 +149,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
         // Magic number, so why not 42? We might want to make this configurable.
         let retryAfter = 42 * Math.random() * (retries + 1)
 
-        if (res && res.headers['retry-after']) {
+        if (res?.headers['retry-after']) {
           retryAfter = res.headers['retry-after']
         }
         if (res && res.statusCode === 503 && req.method === 'GET') {
