@@ -20,9 +20,9 @@ const target = http.createServer((req, res) => {
   res.end(req.headers.host)
 })
 
-instance.get('/', (request, reply) => {
+instance.get('/', (_request, reply) => {
   reply.from(`http://localhost:${target.address().port}`, {
-    rewriteRequestHeaders: (originalReq, headers) => {
+    rewriteRequestHeaders: (_originalReq, headers) => {
       t.pass('rewriteRequestHeaders called')
       return Object.assign(headers, { host: 'host-override' })
     }

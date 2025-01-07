@@ -11,7 +11,7 @@ describe('GHSA-v2v2-hph8-q5xp', function () {
 
     const upstream = fastify()
 
-    upstream.post('/test', async (request, reply) => {
+    upstream.post('/test', async (request) => {
       if (typeof request.body === 'object') {
         return 'not ok'
       }

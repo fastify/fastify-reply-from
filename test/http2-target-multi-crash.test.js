@@ -10,7 +10,7 @@ test('http -> http2 crash multiple times', async (t) => {
 
   t.teardown(instance.close.bind(instance))
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from()
   })
 

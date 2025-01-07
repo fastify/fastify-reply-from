@@ -44,7 +44,7 @@ for (const [description, format] of Object.entries(configFormat)) {
       t.assert.ok(true, 'should connect to proxy')
     })
 
-    target.on('request', (req, res) => {
+    target.on('request', (_req, res) => {
       res.setHeader('content-type', 'application/json')
       res.end(JSON.stringify({ hello: 'world' }))
     })
@@ -62,7 +62,7 @@ for (const [description, format] of Object.entries(configFormat)) {
       }
     })
 
-    instance.get('/', (request, reply) => {
+    instance.get('/', (_request, reply) => {
       reply.from()
     })
 

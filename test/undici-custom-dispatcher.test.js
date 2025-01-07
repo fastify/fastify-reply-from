@@ -28,7 +28,7 @@ test('use a custom instance of \'undici\'', async t => {
     keepAliveTimeout: 1
   })
 
-  target.get('/', (req, reply) => {
+  target.get('/', (_req, reply) => {
     t.pass('request proxied')
 
     reply.headers({
@@ -53,7 +53,7 @@ test('use a custom instance of \'undici\'', async t => {
     undici: new CustomDispatcher('http://localhost:3001')
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from('http://myserver.local')
   })
 

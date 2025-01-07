@@ -12,7 +12,7 @@ test('http request timeout', async (t) => {
   const target = Fastify()
   t.teardown(target.close.bind(target))
 
-  target.get('/', (request, reply) => {
+  target.get('/', (_request, reply) => {
     t.pass('request arrives')
 
     clock.setTimeout(() => {
@@ -28,7 +28,7 @@ test('http request timeout', async (t) => {
 
   instance.register(From, { http: { requestOptions: { timeout: 100 } } })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.server.address().port}/`)
   })
 
@@ -56,7 +56,7 @@ test('http sse removes timeout test', async (t) => {
   const target = Fastify()
   t.teardown(target.close.bind(target))
 
-  target.get('/', (request, reply) => {
+  target.get('/', (_request, reply) => {
     t.pass('request arrives')
 
     reply.header('content-type', 'text/event-stream').status(200).send('hello world')
@@ -69,7 +69,7 @@ test('http sse removes timeout test', async (t) => {
 
   instance.register(From, { http: { requestOptions: { timeout: 100 } } })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.server.address().port}/`)
   })
 

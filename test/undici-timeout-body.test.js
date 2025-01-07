@@ -35,7 +35,7 @@ t.test('undici body timeout', async (t) => {
     }
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from()
   })
 

@@ -21,7 +21,7 @@ const target = http.createServer((req, res) => {
 
 instance.get('/', (_, reply) => {
   reply.from(`http://localhost:${target.address().port}`, {
-    onResponse: (_, reply, res) => {
+    onResponse: (_, _reply, res) => {
       t.equal(res.statusCode, 888)
     }
   })

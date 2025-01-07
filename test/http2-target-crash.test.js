@@ -14,14 +14,14 @@ test('http -> http2 crash', async (t) => {
     http2: true
   })
 
-  target.get('/', (request, reply) => {
+  target.get('/', (_request, reply) => {
     t.pass('request proxied')
     reply.code(200).send({
       hello: 'world'
     })
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from()
   })
 

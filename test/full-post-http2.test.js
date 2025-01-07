@@ -22,7 +22,7 @@ test('http -> http2', async function (t) {
     })
   })
 
-  instance.post('/', (request, reply) => {
+  instance.post('/', (_request, reply) => {
     reply.from()
   })
 

@@ -54,7 +54,7 @@ instance.listen({ port: 0 }, (err) => {
       body: {
         hello: 'world'
       }
-    }, (err, res, data) => {
+    }, (err, _res, data) => {
       t.error(err)
       t.same(data, { something: 'else' })
     })

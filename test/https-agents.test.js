@@ -31,7 +31,7 @@ const target = https.createServer(certs, (req, res) => {
   res.end('hello world')
 })
 
-instance.get('/', (request, reply) => {
+instance.get('/', (_request, reply) => {
   reply.from()
 })
 

@@ -15,7 +15,7 @@ instance.register(From, {
 instance.addContentTypeParser(
   'application/x-www-form-urlencoded',
   { parseAs: 'buffer', bodyLimit: 1000 },
-  (req, body, done) => done(null, parse(body.toString()))
+  (_req, body, done) => done(null, parse(body.toString()))
 )
 
 t.plan(9)
@@ -39,7 +39,7 @@ const target = http.createServer((req, res) => {
   })
 })
 
-instance.post('/', (request, reply) => {
+instance.post('/', (_request, reply) => {
   reply.from(`http://localhost:${target.address().port}`)
 })
 

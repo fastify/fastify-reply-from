@@ -13,12 +13,12 @@ instance.register(From)
 t.plan(5)
 t.teardown(instance.close.bind(instance))
 
-const target = http.createServer((req, res) => {
+const target = http.createServer((_req, res) => {
   t.fail('the target server should never be called')
   res.end()
 })
 
-instance.post('/', (request, reply) => {
+instance.post('/', (_request, reply) => {
   const body = new Readable({
     read: function () {
       t.fail('the read function should never be called')

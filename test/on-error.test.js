@@ -12,7 +12,7 @@ t.test('on-error', async (t) => {
   const target = Fastify()
   t.teardown(target.close.bind(target))
 
-  target.get('/', (request, reply) => {
+  target.get('/', (_request, reply) => {
     t.pass('request arrives')
 
     clock.setTimeout(() => {
@@ -28,7 +28,7 @@ t.test('on-error', async (t) => {
 
   instance.register(From, { http: { requestOptions: { timeout: 100 } } })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.server.address().port}/`,
       {
         onError: (reply, { error }) => {

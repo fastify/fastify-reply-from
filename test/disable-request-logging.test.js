@@ -38,7 +38,7 @@ t.test('use a custom instance of \'undici\'', async t => {
       disableRequestLogging: true
     })
 
-    instance.get('/', (request, reply) => {
+    instance.get('/', (_request, reply) => {
       reply.from()
     })
 
@@ -82,7 +82,7 @@ t.test('use a custom instance of \'undici\'', async t => {
       disableRequestLogging: false
     })
 
-    instance.get('/', (request, reply) => {
+    instance.get('/', (_request, reply) => {
       reply.from()
     })
 
@@ -125,7 +125,7 @@ t.test('use a custom instance of \'undici\'', async t => {
       base: `http://localhost:${target.address().port}`
     })
 
-    instance.get('/', (request, reply) => {
+    instance.get('/', (_request, reply) => {
       reply.from()
     })
 

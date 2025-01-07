@@ -11,12 +11,12 @@ const instance = Fastify()
 t.plan(6)
 t.teardown(instance.close.bind(instance))
 
-const target = http.createServer((req, res) => {
+const target = http.createServer((_req, res) => {
   t.fail('this should never get called')
   res.end('hello world')
 })
 
-instance.get('/', (request, reply) => {
+instance.get('/', (_request, reply) => {
   try {
     reply.from(null, { body: 'this is the new body' })
   } catch (e) {

@@ -64,10 +64,10 @@ async function main () {
 
   server.register(replyFrom, { undici: { proxy: { uri: 'http://example2.com:8080' } } })
 
-  server.get('/v1', (request, reply) => {
+  server.get('/v1', (_request, reply) => {
     expectType<FastifyReply>(reply.from())
   })
-  server.get('/v3', (request, reply) => {
+  server.get('/v3', (_request, reply) => {
     reply.from('/v3', {
       body: { hello: 'world' },
       rewriteRequestHeaders (req, headers) {
@@ -94,15 +94,15 @@ async function main () {
   const target = fastify({ http2: true })
   // @ts-ignore
   tap.tearDown(target.close.bind(target))
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from()
   })
 
-  instance.get('/http2', (request, reply) => {
+  instance.get('/http2', (_request, reply) => {
     reply.from('/', {
       method: 'POST',
       // eslint-disable-next-line n/handle-callback-err -- Not a real request, not handling errors
-      retryDelay: ({ err, req, res, attempt, retriesCount, getDefaultDelay }) => {
+      retryDelay: ({ req, res, getDefaultDelay }) => {
         const defaultDelay = getDefaultDelay()
         if (defaultDelay) return defaultDelay
 
@@ -111,13 +111,13 @@ async function main () {
         }
         return null
       },
-      rewriteHeaders (headers, req) {
+      rewriteHeaders (headers) {
         return headers
       },
-      rewriteRequestHeaders (req, headers: IncomingHttpHeaders) {
+      rewriteRequestHeaders (headers: IncomingHttpHeaders) {
         return headers
       },
-      getUpstream (req, base) {
+      getUpstream (base) {
         return base
       },
       onError (reply: FastifyReply<RouteGenericInterface, RawServerBase>, error) {

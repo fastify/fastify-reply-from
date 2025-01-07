@@ -21,7 +21,7 @@ test('https global agent is used, but not destroyed', async (t) => {
     https: certs
   })
   t.teardown(instance.close.bind(instance))
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from()
   })
 

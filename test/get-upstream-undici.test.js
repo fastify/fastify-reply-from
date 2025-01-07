@@ -20,7 +20,7 @@ const target = http.createServer((req, res) => {
   res.end(req.headers.host)
 })
 
-instance.get('/test', (request, reply) => {
+instance.get('/test', (_request, reply) => {
   reply.from('/test', {
     getUpstream: () => {
       t.pass('getUpstream called')

@@ -25,14 +25,14 @@ const target = Fastify({
   https: certs
 })
 
-target.get('/', (request, reply) => {
+target.get('/', (_request, reply) => {
   t.pass('request proxied')
   reply.code(404).header('x-my-header', 'hello!').send({
     hello: 'world'
   })
 })
 
-instance.get('/', (request, reply) => {
+instance.get('/', (_request, reply) => {
   reply.from()
 })
 

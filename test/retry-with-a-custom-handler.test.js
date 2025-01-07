@@ -33,7 +33,7 @@ async function setupServer (t, fromOptions = {}, statusCodeToFailOn = 500, stopA
     base: `http://localhost:${target.address().port}`
   })
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.address().port}`, fromOptions)
   })
 
@@ -59,7 +59,7 @@ test('a 500 status code with no custom handler should fail', async (t) => {
 })
 
 test("a server 500's with a custom handler and should revive", async (t) => {
-  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
+  const customRetryLogic = ({ req, res, getDefaultDelay }) => {
     const defaultDelay = getDefaultDelay()
     if (defaultDelay) return defaultDelay
 
@@ -80,7 +80,7 @@ test("a server 500's with a custom handler and should revive", async (t) => {
 
 test('custom retry does not invoke the default delay causing a 501', async (t) => {
   // the key here is our retryDelay doesn't register the deefault handler and as a result it doesn't work
-  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
+  const customRetryLogic = ({ req, res }) => {
     if (res && res.statusCode === 500 && req.method === 'GET') {
       return 0
     }
@@ -100,7 +100,7 @@ test('custom retry does not invoke the default delay causing a 501', async (t) =
 })
 
 test('custom retry delay functions can invoke the default delay', async (t) => {
-  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
+  const customRetryLogic = ({ req, res, getDefaultDelay }) => {
     // registering the default retry logic for non 500 errors if it occurs
     const defaultDelay = getDefaultDelay()
     if (defaultDelay) return defaultDelay
@@ -122,7 +122,7 @@ test('custom retry delay functions can invoke the default delay', async (t) => {
 })
 
 test('custom retry delay function inspects the err paramater', async (t) => {
-  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
+  const customRetryLogic = ({ err }) => {
     if (err && (err.code === 'UND_ERR_SOCKET' || err.code === 'ECONNRESET')) {
       return 0.1
     }
@@ -141,7 +141,7 @@ test('custom retry delay function inspects the err paramater', async (t) => {
 test('we can exceed our retryCount and introspect attempts independently', async (t) => {
   const attemptCounter = []
 
-  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
+  const customRetryLogic = ({ err, attempt }) => {
     attemptCounter.push(attempt)
 
     if (err && (err.code === 'UND_ERR_SOCKET' || err.code === 'ECONNRESET')) {
@@ -163,7 +163,7 @@ test('we can exceed our retryCount and introspect attempts independently', async
 
 test('we handle our retries based on the retryCount', async (t) => {
   const attemptCounter = []
-  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay, retriesCount }) => {
+  const customRetryLogic = ({ req, res, attempt, retriesCount }) => {
     if (retriesCount < attempt) {
       return null
     }

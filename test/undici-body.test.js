@@ -33,7 +33,7 @@ const target = http.createServer((req, res) => {
   })
 })
 
-instance.post('/', (request, reply) => {
+instance.post('/', (_request, reply) => {
   reply.from(`http://localhost:${target.address().port}`)
 })
 
@@ -42,7 +42,7 @@ t.teardown(target.close.bind(target))
 target.listen({ port: 0 }, (err) => {
   t.error(err)
 
-  instance.addContentTypeParser('application/json', function (req, payload, done) {
+  instance.addContentTypeParser('application/json', function (_req, payload, done) {
     done(null, payload)
   })
 
@@ -61,7 +61,7 @@ target.listen({ port: 0 }, (err) => {
         'content-type': 'application/json'
       },
       body: bodyString
-    }, (err, res, data) => {
+    }, (err, _res, data) => {
       t.error(err)
       const parsed = JSON.parse(data)
       t.same(parsed, { something: 'else' })

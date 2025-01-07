@@ -16,7 +16,7 @@ t.teardown(proxy1.close.bind(proxy1))
 const proxy2 = Fastify()
 t.teardown(proxy2.close.bind(proxy2))
 
-instance.get('/', (request, reply) => {
+instance.get('/', (_request, reply) => {
   reply.header('content-disposition', header).send('OK')
 })
 
@@ -25,7 +25,7 @@ proxy1.register(From, {
     keepAliveMaxTimeout: 10
   }
 })
-proxy1.get('/', (request, reply) => {
+proxy1.get('/', (_request, reply) => {
   return reply.from(`http://localhost:${instance.server.address().port}`)
 })
 
@@ -34,7 +34,7 @@ proxy2.register(From, {
     keepAliveMaxTimeout: 10
   }
 })
-proxy2.get('/', (request, reply) => {
+proxy2.get('/', (_request, reply) => {
   return reply.from(`http://localhost:${proxy1.server.address().port}`)
 })
 

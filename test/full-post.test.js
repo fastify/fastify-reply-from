@@ -29,7 +29,7 @@ const target = http.createServer((req, res) => {
   })
 })
 
-instance.post('/', (request, reply) => {
+instance.post('/', (_request, reply) => {
   reply.from(`http://localhost:${target.address().port}`)
 })
 
@@ -48,7 +48,7 @@ instance.listen({ port: 0 }, (err) => {
       body: {
         hello: 'world'
       }
-    }, (err, res, data) => {
+    }, (err, _res, data) => {
       t.error(err)
       t.same(data, { something: 'else' })
     })

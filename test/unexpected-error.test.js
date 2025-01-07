@@ -9,7 +9,7 @@ const proxyquire = require('proxyquire')
 const From = proxyquire('..', {
   './lib/request': function () {
     return {
-      request: (opts, callback) => { callback(new Error('foo')) },
+      request: (_opts, callback) => { callback(new Error('foo')) },
       close: () => {}
     }
   }
@@ -20,7 +20,7 @@ test('unexpected error renders 500', async (t) => {
 
   t.teardown(instance.close.bind(instance))
 
-  instance.get('/', (request, reply) => {
+  instance.get('/', (_request, reply) => {
     reply.code(201)
     reply.from()
   })
