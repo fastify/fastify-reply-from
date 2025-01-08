@@ -257,7 +257,7 @@ function getQueryString (search, reqUrl, opts, request) {
   return ''
 }
 
-function headersNoOp (headers) {
+function headersNoOp (headers, _originalReq) {
   return headers
 }
 
