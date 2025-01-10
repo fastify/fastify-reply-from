@@ -14,7 +14,7 @@ npm i @fastify/reply-from
 ```
 
 ## Compatibility with @fastify/multipart
-`@fastify/reply-from` and [`@fastify/multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor should they be registered in plugins which have a parent-child relationship.`<br>` The two plugins are incompatible, in the sense that the behavior of `@fastify/reply-from` might not be the expected one when the above-mentioned conditions are not respected.`<br>` This is due to the fact that `@fastify/multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `@fastify/reply-from`.`<br>`
+`@fastify/reply-from` and [`@fastify/multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor should they be registered in plugins that have a parent-child relationship.`<br>` The two plugins are incompatible, in the sense that the behavior of `@fastify/reply-from` might not be the expected one when the above-mentioned conditions are not respected.`<br>` This is due to the fact that `@fastify/multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `@fastify/reply-from`.`<br>`
 However, the two plugins may be used within the same fastify instance, at the condition that they belong to disjoint branches of the fastify plugins hierarchy tree.
 
 ## Usage
@@ -83,10 +83,10 @@ proxy.register(require('@fastify/reply-from'), {
 #### `undici`
 
 By default, [undici](https://github.com/nodejs/undici) will be used to perform the HTTP/1.1
-requests. Enabling this flag should guarantee
+requests. Enabling this option should guarantee
 20-50% more throughput.
 
-This flag could controls the settings of the undici client, like so:
+This option controls the settings of the undici client, like so:
 
 ```js
 proxy.register(require('@fastify/reply-from'), {
@@ -167,7 +167,7 @@ proxy.register(require('@fastify/reply-from'), {
 
 #### `http2`
 
-You can either set `http2` to `true` or set the settings object to connect to a HTTP/2 server.
+You can either set `http2` to `true` or set the settings object to connect to an HTTP/2 server.
 The `http2` settings object has the shape of:
 
 ```js
@@ -188,7 +188,7 @@ proxy.register(require('@fastify/reply-from'), {
 
 #### `disableRequestLogging`
 
-By default package will issue log messages when a request is received. By setting this option to true, these log messages will be disabled.
+By default, the package will issue log messages when a request is received. By setting this option to true, these log messages will be disabled.
 
 Default for `disableRequestLogging` will be `false`. To disable the log messages set `disableRequestLogging` to `true`.
 
@@ -206,7 +206,7 @@ The number of parsed URLs that will be cached. Default: `100`.
 #### `disableCache`
 
 This option will disable the URL caching.
-This cache is dedicated to reduce the amount of URL object generation.
+This cache is dedicated to reducing the amount of URL object generation.
 Generating URLs is a main bottleneck of this module, please disable this cache with caution.
 
 #### `contentTypesToEncode`
@@ -231,7 +231,7 @@ This plugin will always retry on 503 errors, _unless_ `retryMethods` does not co
 
 #### `globalAgent`
 
-Enables the possibility to explictly opt-in for global agents.
+Enables the possibility to explicitly opt-in for global agents.
 
 Usage for undici global agent:
 
@@ -274,7 +274,7 @@ By Default: `false`
 
 This plugin will always retry on `GET` requests that returns 503 errors, _unless_ `retryMethods` does not contain `GET`.
 
-This option set the limit on how many times the plugin should retry the request, specifically for 503 errors.
+This option sets the limit on how many times the plugin should retry the request, specifically for 503 errors.
 
 By Default: 10
 
@@ -293,7 +293,7 @@ If a `handler` is passed to the `retryDelay` object the onus is on the client to
 - `res` is the raw response returned by the underlying agent (if available) __Note__: this object is not a Fastify response, but instead the low-level response from the agent. This property may be null if no response was obtained at all, like from a connection reset or timeout.
 - `attempt` in the object callback refers to the current retriesAttempt number. You are given the freedom to use this in concert with the retryCount property set to handle retries
 - `getDefaultRetry` refers to the default retry handler. If this callback returns not null and you wish to handle those case of errors simply invoke it as done below.
-- `retriesCount` refers to the retriesCount property a client passes to reply-from. Note if the client does not explicitly set this value it will default to 0. The objective value here is to avoid hard-coding and seeing the retriesCount set. It is your perogative to ensure that you ensure the value here is as you wish (and not `0` if not intended to be as a result of a lack of not setting it).
+- `retriesCount` refers to the retriesCount property a client passes to reply-from. Note if the client does not explicitly set this value it will default to 0. The objective value here is to avoid hard-coding and seeing the retriesCount set. It is your prerogative to ensure that you ensure the value here is as you wish (and not `0` if not intended to be as a result of a lack of not setting it).
 
 Given example
 
@@ -339,14 +339,14 @@ const customRetryLogic = ({req, res, err, getDefaultRetry}: RetryDetails) => {
 The plugin decorates the
 [`Reply`](https://fastify.dev/docs/latest/Reference/Reply)
 instance with a `from` method, which will reply to the original request
-__from the desired source__. The options allows to override any part of
+__from the desired source__. The options allows overrides of any part of
 the request or response being sent or received to/from the source.
 
 **Note: If `base` is specified in plugin options, the `source` here should not override the host/origin.**
 
 #### `onResponse(request, reply, response)`
 
-Called when a HTTP response is received from the source. Passed the original source `request`, the in-progress reply to the source as `reply`, and the ongoing `response` from the upstream server.
+Called when an HTTP response is received from the source. Passed the original source `request`, the in-progress reply to the source as `reply`, and the ongoing `response` from the upstream server.
 
 The default behavior is `reply.send(response.stream)`, which will be disabled if the
 option is specified.
@@ -367,10 +367,10 @@ the `content-length` header.
 
 #### `onError(reply, error)`
 
-Called when a HTTP response is received with error from the source.
+Called when an HTTP response is received with error from the source.
 The default behavior is `reply.send(error)`, which will be disabled if the
 option is specified.
-It must reply the error.
+It must reply with the error.
 
 #### `rewriteHeaders(headers, request)`
 
@@ -387,7 +387,7 @@ It must return the new headers object.
 
 #### `getUpstream(request, base)`
 
-Called to get upstream destination, before the request is being sent. Useful when you want to decide which target server to call based on the request data.
+Called to get upstream destination, before the request is sent. Useful when you want to decide which target server to call based on the request data.
 Helpful for a gradual rollout of new services.
 Parameters are the Fastify request and the base string from the plugin options.
 It must return the upstream destination.
