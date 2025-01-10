@@ -164,9 +164,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     }
 
     if (retryDelay) {
-      requestImpl = createRequestRetry(request, this, (req, res, err, retries) => {
-        return retryDelay({ err, req, res, attempt: retries, getDefaultDelay, retriesCount })
-      })
+      requestImpl = createRequestRetry(request, this, (req, res, err, retries) => retryDelay({ err, req, res, attempt: retries, getDefaultDelay, retriesCount }))
     } else {
       requestImpl = createRequestRetry(request, this, getDefaultDelay)
     }
