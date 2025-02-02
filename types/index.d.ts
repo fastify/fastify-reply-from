@@ -28,7 +28,7 @@ import {
   AgentOptions as SecureAgentOptions,
   RequestOptions as SecureRequestOptions
 } from 'https'
-import { Pool, ProxyAgent } from 'undici'
+import { Pool, ProxyAgent, Dispatcher } from 'undici'
 
 declare module 'fastify' {
   interface FastifyReply {
@@ -104,7 +104,7 @@ declare namespace fastifyReplyFrom {
     disableCache?: boolean;
     http?: HttpOptions;
     http2?: Http2Options | boolean;
-    undici?: Pool.Options & { proxy?: string | URL | ProxyAgent.Options };
+    undici?: Pool.Options & { proxy?: string | URL | ProxyAgent.Options } | { request: Dispatcher['request'] };
     contentTypesToEncode?: string[];
     retryMethods?: (HTTPMethods | 'TRACE')[];
     maxRetriesOn503?: number;

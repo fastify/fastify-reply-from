@@ -4,6 +4,7 @@ import { IncomingHttpHeaders } from 'http2'
 import * as https from 'node:https'
 import { AddressInfo } from 'net'
 import { expectType } from 'tsd'
+import { Agent, Client, Dispatcher, Pool } from 'undici'
 import replyFrom, { FastifyReplyFromOptions } from '..'
 // @ts-ignore
 import tap from 'tap'
@@ -157,6 +158,34 @@ async function main () {
     }
   })
   await undiciInstance.ready()
+
+  const undiciInstanceAgent = fastify()
+  undiciInstance.register(replyFrom, {
+    base: 'http://example2.com',
+    undici: new Agent()
+  })
+  await undiciInstanceAgent.ready()
+
+  const undiciInstancePool = fastify()
+  undiciInstance.register(replyFrom, {
+    base: 'http://example2.com',
+    undici: new Pool('http://example2.com')
+  })
+  await undiciInstancePool.ready()
+
+  const undiciInstanceClient = fastify()
+  undiciInstance.register(replyFrom, {
+    base: 'http://example2.com',
+    undici: new Client('http://example2.com')
+  })
+  await undiciInstanceClient.ready()
+
+  const undiciInstanceDispatcher = fastify()
+  undiciInstance.register(replyFrom, {
+    base: 'http://example2.com',
+    undici: new Dispatcher()
+  })
+  await undiciInstanceDispatcher.ready()
 
   tap.pass('done')
   tap.end()
