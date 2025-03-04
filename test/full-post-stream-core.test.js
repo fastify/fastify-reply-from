@@ -10,7 +10,7 @@ instance.register(From, {
   http: true
 })
 
-t.plan(8)
+t.plan(7)
 t.teardown(instance.close.bind(instance))
 
 instance.addContentTypeParser('application/octet-stream', function (_req, payload, done) {

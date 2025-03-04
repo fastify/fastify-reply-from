@@ -47,7 +47,7 @@ t.test('http2 -> http2', async (t) => {
   await instance.listen({ port: 0 })
 
   const { headers, body } = await h2url.concat({
-    url: `https://localhost:${instance.server.address().port}`
+    url: `http://localhost:${instance.server.address().port}`
   })
 
   t.equal(headers[':status'], 404)

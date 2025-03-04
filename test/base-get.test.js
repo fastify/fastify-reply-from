@@ -36,7 +36,7 @@ target.listen({ port: 0 }, (err) => {
   instance.listen({ port: 0 }, async (err) => {
     t.error(err)
 
-    const result = await fetch(`https://localhost:${instance.server.address().port}`)
+    const result = await fetch(`http://localhost:${instance.server.address().port}`)
 
     t.equal(result.headers.get('content-type'), 'text/plain')
     t.equal(result.headers.get('x-my-header'), 'hello!')

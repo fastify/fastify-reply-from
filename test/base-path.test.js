@@ -3,6 +3,7 @@
 const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
+const { fetch, Agent } = require('undici')
 const nock = require('nock')
 
 const instance = Fastify()
@@ -28,7 +29,11 @@ instance.register(From, {
 instance.listen({ port: 0 }, async (err) => {
   t.error(err)
 
-  const result = await fetch(`http://localhost:${instance.server.address().port}`)
+  const result = await fetch(`http://localhost:${instance.server.address().port}`, {
+    dispatcher: new Agent({
+      pipelining: 0
+    })
+  })
 
   t.equal(result.status, 200)
   t.equal(result.headers.get('content-type'), 'application/json')
