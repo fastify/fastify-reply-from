@@ -4,7 +4,6 @@ const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
 const http = require('node:http')
-const get = require('simple-get').concat
 const split = require('split2')
 
 const target = http.createServer((req, res) => {
@@ -54,17 +53,15 @@ t.test('use a custom instance of \'undici\'', async t => {
       }
     })
 
-    instance.listen({ port: 0 }, (err) => {
+    instance.listen({ port: 0 }, async (err) => {
       t.error(err)
 
-      get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-        t.error(err)
-        t.equal(res.headers['content-type'], 'text/plain')
-        t.equal(res.headers['x-my-header'], 'hello!')
-        t.equal(res.statusCode, 205)
-        t.equal(data.toString(), 'hello world')
-        t.end()
-      })
+      const result = await fetch(`http://localhost:${instance.server.address().port}`)
+      t.equal(result.headers.get('content-type'), 'text/plain')
+      t.equal(result.headers.get('x-my-header'), 'hello!')
+      t.equal(result.status, 205)
+      t.equal(await result.text(), 'hello world')
+      t.end()
     })
   })
 
@@ -98,17 +95,15 @@ t.test('use a custom instance of \'undici\'', async t => {
       }
     })
 
-    instance.listen({ port: 0 }, (err) => {
+    instance.listen({ port: 0 }, async (err) => {
       t.error(err)
 
-      get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-        t.error(err)
-        t.equal(res.headers['content-type'], 'text/plain')
-        t.equal(res.headers['x-my-header'], 'hello!')
-        t.equal(res.statusCode, 205)
-        t.equal(data.toString(), 'hello world')
-        t.end()
-      })
+      const result = await fetch(`http://localhost:${instance.server.address().port}`)
+      t.equal(result.headers.get('content-type'), 'text/plain')
+      t.equal(result.headers.get('x-my-header'), 'hello!')
+      t.equal(result.status, 205)
+      t.equal(await result.text(), 'hello world')
+      t.end()
     })
   })
 
@@ -141,17 +136,15 @@ t.test('use a custom instance of \'undici\'', async t => {
       }
     })
 
-    instance.listen({ port: 0 }, (err) => {
+    instance.listen({ port: 0 }, async (err) => {
       t.error(err)
 
-      get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-        t.error(err)
-        t.equal(res.headers['content-type'], 'text/plain')
-        t.equal(res.headers['x-my-header'], 'hello!')
-        t.equal(res.statusCode, 205)
-        t.equal(data.toString(), 'hello world')
-        t.end()
-      })
+      const result = await fetch(`http://localhost:${instance.server.address().port}`)
+      t.equal(result.headers.get('content-type'), 'text/plain')
+      t.equal(result.headers.get('x-my-header'), 'hello!')
+      t.equal(result.status, 205)
+      t.equal(await result.text(), 'hello world')
+      t.end()
     })
   })
 })
