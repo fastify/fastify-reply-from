@@ -15,7 +15,7 @@ nock('http://httpbin.org')
     return { origin: '127.0.0.1' }
   })
 
-t.plan(6)
+t.plan(5)
 t.teardown(instance.close.bind(instance))
 
 instance.get('/', (_request, reply) => {
@@ -26,13 +26,12 @@ instance.register(From, {
   undici: false
 })
 
-instance.listen({ port: 0 }, (err) => {
+instance.listen({ port: 0 }, async (err) => {
   t.error(err)
 
-  get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-    t.error(err)
-    t.equal(res.statusCode, 200)
-    t.equal(res.headers['content-type'], 'application/json')
-    t.equal(typeof JSON.parse(data).origin, 'string')
-  })
+  const result = await fetch(`http://localhost:${instance.server.address().port}`)
+
+  t.equal(result.status, 200)
+  t.equal(result.headers.get('content-type'), 'application/json')
+  t.equal(typeof (await result.json()).origin, 'string')
 })
