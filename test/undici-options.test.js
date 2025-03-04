@@ -9,7 +9,7 @@ const { getUndiciOptions } = require('../lib/request')
 
 const instance = Fastify()
 
-t.plan(6)
+t.plan(5)
 t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((_req, res) => {
