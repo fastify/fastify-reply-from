@@ -4,7 +4,6 @@ const test = require('tap').test
 const Fastify = require('fastify')
 const From = require('../index')
 const http = require('node:http')
-const get = require('simple-get').concat
 const { parse } = require('node:querystring')
 
 test('with explicitly set content-type application/octet-stream', t => {
@@ -19,7 +18,7 @@ test('with explicitly set content-type application/octet-stream', t => {
     (_req, body, done) => done(null, parse(body.toString()))
   )
 
-  t.plan(9)
+  t.plan(8)
   t.teardown(instance.close.bind(instance))
 
   const target = http.createServer((req, res) => {
@@ -49,19 +48,17 @@ test('with explicitly set content-type application/octet-stream', t => {
   instance.listen({ port: 0 }, (err) => {
     t.error(err)
 
-    target.listen({ port: 0 }, (err) => {
+    target.listen({ port: 0 }, async (err) => {
       t.error(err)
 
-      get({
-        url: `http://localhost:${instance.server.address().port}`,
+      const result = await fetch(`http://localhost:${instance.server.address().port}`, {
         method: 'POST',
         headers: { 'content-type': 'application/octet-stream' },
         body: 'some=info&another=detail'
-      }, (err, res, data) => {
-        t.error(err)
-        t.equal(res.headers['content-type'], 'application/octet-stream')
-        t.same(JSON.parse(data), { some: 'info', another: 'detail' })
       })
+
+      t.equal(result.headers.get('content-type'), 'application/octet-stream')
+      t.same(await result.json(), { some: 'info', another: 'detail' })
     })
   })
 })
@@ -84,7 +81,7 @@ test('with implicit content-type application/octet-stream', t => {
     (_req, body, done) => done(null, parse(body.toString()))
   )
 
-  t.plan(9)
+  t.plan(8)
   t.teardown(instance.close.bind(instance))
 
   const target = http.createServer((req, res) => {
@@ -114,18 +111,16 @@ test('with implicit content-type application/octet-stream', t => {
   instance.listen({ port: 0 }, (err) => {
     t.error(err)
 
-    target.listen({ port: 0 }, (err) => {
+    target.listen({ port: 0 }, async (err) => {
       t.error(err)
 
-      get({
-        url: `http://localhost:${instance.server.address().port}`,
+      const result = await fetch(`http://localhost:${instance.server.address().port}`, {
         method: 'POST',
         body: 'some=info&another=detail'
-      }, (err, res, data) => {
-        t.error(err)
-        t.equal(res.headers['content-type'], 'application/octet-stream')
-        t.same(JSON.parse(data), { some: 'info', another: 'detail' })
       })
+
+      t.equal(result.headers.get('content-type'), 'application/octet-stream')
+      t.same(await result.json(), { some: 'info', another: 'detail' })
     })
   })
 })
