@@ -6,7 +6,6 @@ const From = require('..')
 const fs = require('node:fs')
 const querystring = require('node:querystring')
 const http = require('node:http')
-const get = require('simple-get').concat
 
 if (process.platform === 'win32') {
   t.pass()
@@ -16,7 +15,7 @@ if (process.platform === 'win32') {
 const instance = Fastify()
 instance.register(From)
 
-t.plan(4)
+t.plan(3)
 t.teardown(instance.close.bind(instance))
 
 const socketPath = `${__filename}.socket`
@@ -40,12 +39,10 @@ t.teardown(target.close.bind(target))
 instance.listen({ port: 0 }, (err) => {
   t.error(err)
 
-  target.listen(socketPath, (err) => {
+  target.listen(socketPath, async (err) => {
     t.error(err)
 
-    get(`http://localhost:${instance.server.address().port}`, (err, res) => {
-      t.error(err)
-      t.equal(res.statusCode, 500)
-    })
+    const result = await fetch(`http://localhost:${instance.server.address().port}`)
+    t.equal(result.status, 500)
   })
 })
