@@ -4,12 +4,11 @@ const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
 const http = require('node:http')
-const get = require('simple-get')
 
 const instance = Fastify()
 instance.register(From)
 
-t.plan(9)
+t.plan(8)
 t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
@@ -38,11 +37,10 @@ t.teardown(target.close.bind(target))
 instance.listen({ port: 0 }, (err) => {
   t.error(err)
 
-  target.listen({ port: 0 }, (err) => {
+  target.listen({ port: 0 }, async (err) => {
     t.error(err)
 
-    get.concat({
-      url: `http://localhost:${instance.server.address().port}`,
+    const result = await fetch(`http://localhost:${instance.server.address().port}`, {
       method: 'POST',
       body: JSON.stringify({
         hello: 'world'
@@ -50,10 +48,9 @@ instance.listen({ port: 0 }, (err) => {
       headers: {
         'content-type': 'application/json;charset=utf-8'
       }
-    }, (err, res, data) => {
-      t.error(err)
-      t.equal(res.headers['content-type'], 'application/json')
-      t.same(JSON.parse(data.toString()), { something: 'else' })
     })
+
+    t.equal(result.headers.get('content-type'), 'application/json')
+    t.same(await result.json(), { something: 'else' })
   })
 })
