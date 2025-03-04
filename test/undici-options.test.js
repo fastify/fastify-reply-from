@@ -4,7 +4,6 @@ const t = require('tap')
 const Fastify = require('fastify')
 const proxyquire = require('proxyquire')
 const http = require('node:http')
-const get = require('simple-get').concat
 const undici = require('undici')
 const { getUndiciOptions } = require('../lib/request')
 
@@ -38,14 +37,12 @@ target.listen({ port: 0 }, err => {
     undici: buildUndiciOptions()
   })
 
-  instance.listen({ port: 0 }, err => {
+  instance.listen({ port: 0 }, async err => {
     t.error(err)
 
-    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-      t.error(err)
-      t.equal(res.statusCode, 200)
-      t.equal(data.toString(), 'hello world')
-    })
+    const result = await fetch(`http://localhost:${instance.server.address().port}`)
+    t.equal(result.status, 200)
+    t.equal(await result.text(), 'hello world')
   })
 })
 
