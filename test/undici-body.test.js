@@ -4,11 +4,10 @@ const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
 const http = require('node:http')
-const get = require('simple-get').concat
 
 const instance = Fastify()
 
-t.plan(9)
+t.plan(8)
 t.teardown(instance.close.bind(instance))
 
 const bodyString = JSON.stringify({ hello: 'world' })
@@ -51,20 +50,17 @@ target.listen({ port: 0 }, (err) => {
     undici: true
   })
 
-  instance.listen({ port: 0 }, (err) => {
+  instance.listen({ port: 0 }, async (err) => {
     t.error(err)
 
-    get({
-      url: `http://localhost:${instance.server.address().port}`,
+    const result = await fetch(`http://localhost:${instance.server.address().port}`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json'
       },
       body: bodyString
-    }, (err, _res, data) => {
-      t.error(err)
-      const parsed = JSON.parse(data)
-      t.same(parsed, { something: 'else' })
     })
+
+    t.same(await result.json(), { something: 'else' })
   })
 })
