@@ -9,7 +9,7 @@ const Transform = require('node:stream').Transform
 const instance = Fastify()
 instance.register(From)
 
-t.plan(9)
+t.plan(8)
 t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {

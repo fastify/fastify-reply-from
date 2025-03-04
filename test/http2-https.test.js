@@ -42,7 +42,7 @@ async function run () {
   await target.listen({ port: 0 })
 
   instance.register(From, {
-    base: `http://localhost:${target.server.address().port}`,
+    base: `https://localhost:${target.server.address().port}`,
     rejectUnauthorized: false
   })
 
@@ -50,7 +50,7 @@ async function run () {
 
   t.test('http2 -> https', async (t) => {
     const { headers, body } = await h2url.concat({
-      url: `http://localhost:${instance.server.address().port}`
+      url: `https://localhost:${instance.server.address().port}`
     })
 
     t.equal(headers[':status'], 404)
@@ -61,7 +61,7 @@ async function run () {
 
   t.test('https -> https', async (t) => {
     try {
-      await got(`http://localhost:${instance.server.address().port}`, {
+      await got(`https://localhost:${instance.server.address().port}`, {
         https: {
           rejectUnauthorized: false
         }
