@@ -2,12 +2,11 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
-const get = require('simple-get').concat
 const From = require('..')
 
 const header = 'attachment; filename="år.pdf"'
 
-t.plan(6)
+t.plan(5)
 
 const instance = Fastify()
 t.teardown(instance.close.bind(instance))
@@ -44,14 +43,13 @@ instance.listen({ port: 0 }, err => {
   proxy1.listen({ port: 0 }, err => {
     t.error(err)
 
-    proxy2.listen({ port: 0 }, err => {
+    proxy2.listen({ port: 0 }, async err => {
       t.error(err)
 
-      get(`http://localhost:${proxy2.server.address().port}`, (err, res, data) => {
-        t.error(err)
-        t.equal(res.statusCode, 200)
-        t.equal(data.toString(), 'OK')
-      })
+      const result = await fetch(`http://localhost:${proxy2.server.address().port}`)
+
+      t.equal(result.status, 200)
+      t.equal(await result.text(), 'OK')
     })
   })
 })
