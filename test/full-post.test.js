@@ -4,7 +4,6 @@ const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
 const http = require('node:http')
-const get = require('simple-get').concat
 
 const instance = Fastify()
 instance.register(From)
@@ -38,19 +37,19 @@ t.teardown(target.close.bind(target))
 instance.listen({ port: 0 }, (err) => {
   t.error(err)
 
-  target.listen({ port: 0 }, (err) => {
+  target.listen({ port: 0 }, async (err) => {
     t.error(err)
 
-    get({
-      url: `http://localhost:${instance.server.address().port}`,
+    const result = await fetch(`http://localhost:${instance.server.address().port}`, {
       method: 'POST',
-      json: true,
-      body: {
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
         hello: 'world'
-      }
-    }, (err, _res, data) => {
-      t.error(err)
-      t.same(data, { something: 'else' })
+      })
     })
+
+    t.same(await result.json(), { something: 'else' })
   })
 })
