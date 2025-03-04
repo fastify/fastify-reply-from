@@ -5,11 +5,10 @@ const Fastify = require('fastify')
 const From = require('..')
 const http = require('node:http')
 const https = require('node:https')
-const get = require('simple-get').concat
 
 const instance = Fastify()
 
-t.plan(10)
+t.plan(9)
 t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
@@ -41,7 +40,7 @@ target.listen({ port: 0 }, (err) => {
     }
   })
 
-  instance.listen({ port: 0 }, (err) => {
+  instance.listen({ port: 0 }, async (err) => {
     t.error(err)
 
     const result = await fetch(`https://localhost:${instance.server.address().port}`)

@@ -2,6 +2,7 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
+const { fetch, Agent } = require('undici')
 const From = require('..')
 const http = require('node:http')
 
@@ -38,7 +39,11 @@ target.listen({ port: 0 }, (err) => {
   instance.listen({ port: 0 }, async (err) => {
     t.error(err)
 
-    const result = await fetch(`http://localhost:${instance.server.address().port}`)
+    const result = await fetch(`http://localhost:${instance.server.address().port}`, {
+      dispatcher: new Agent({
+        pipelining: 0
+      })
+    })
     t.equal(result.headers.get('content-type'), 'text/plain')
     t.equal(result.headers.get('x-my-header'), 'hello!')
     t.equal(result.status, 205)
