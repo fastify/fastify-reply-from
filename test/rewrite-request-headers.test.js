@@ -4,12 +4,11 @@ const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
 const http = require('node:http')
-const get = require('simple-get').concat
 
 const instance = Fastify()
 instance.register(From)
 
-t.plan(9)
+t.plan(8)
 t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
@@ -34,14 +33,13 @@ t.teardown(target.close.bind(target))
 instance.listen({ port: 0 }, (err) => {
   t.error(err)
 
-  target.listen({ port: 0 }, (err) => {
+  target.listen({ port: 0 }, async (err) => {
     t.error(err)
 
-    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-      t.error(err)
-      t.equal(res.headers['content-type'], 'text/plain')
-      t.equal(res.statusCode, 205)
-      t.equal(data.toString(), 'host-override')
-    })
+    const result = await fetch(`http://localhost:${instance.server.address().port}`)
+
+    t.equal(result.headers.get('content-type'), 'text/plain')
+    t.equal(result.status, 205)
+    t.equal(await result.text(), 'host-override')
   })
 })
