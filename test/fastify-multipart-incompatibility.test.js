@@ -7,7 +7,6 @@ const Fastify = require('fastify')
 const From = require('..')
 const Multipart = require('@fastify/multipart')
 const http = require('node:http')
-const get = require('simple-get').concat
 const FormData = require('form-data')
 
 const split = require('split2')
@@ -23,7 +22,7 @@ const instance = Fastify({
 instance.register(Multipart)
 instance.register(From)
 
-t.plan(12)
+t.plan(11)
 
 t.teardown(instance.close.bind(instance))
 
@@ -68,23 +67,19 @@ instance.listen({ port: 0 }, (err) => {
     }
   })
 
-  target.listen({ port: 0 }, (err) => {
+  target.listen({ port: 0 }, async (err) => {
     t.error(err)
 
     const form = new FormData()
     form.append('key', 'value')
     form.append('file', fs.createReadStream(filetPath, { encoding: 'utf-8' }))
 
-    get({
-      url: `http://localhost:${instance.server.address().port}`,
+    const result = await fetch(`http://localhost:${instance.server.address().port}`, {
       method: 'POST',
-      headers: {
-        ...form.getHeaders()
-      },
+      headers: form.getHeaders(),
       body: form
-    }, (err, _res, data) => {
-      t.error(err)
-      t.same(JSON.parse(data), { something: 'else' })
     })
+
+    t.same(await result.json(), { something: 'else' })
   })
 })
