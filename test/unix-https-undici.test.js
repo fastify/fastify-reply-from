@@ -4,8 +4,8 @@ const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
 const https = require('node:https')
-const get = require('simple-get').concat
 const fs = require('node:fs')
+const { fetch, Agent } = require('undici')
 const querystring = require('node:querystring')
 const path = require('node:path')
 const certs = {
@@ -32,7 +32,7 @@ instance.register(From, {
   base: `unix+https://${querystring.escape(socketPath)}`
 })
 
-t.plan(10)
+t.plan(9)
 t.teardown(instance.close.bind(instance))
 
 const target = https.createServer(certs, (req, res) => {
@@ -54,18 +54,20 @@ t.teardown(target.close.bind(target))
 instance.listen({ port: 0 }, (err) => {
   t.error(err)
 
-  target.listen(socketPath, (err) => {
+  target.listen(socketPath, async (err) => {
     t.error(err)
 
-    get({
-      url: `https://localhost:${instance.server.address().port}`,
-      rejectUnauthorized: false
-    }, (err, res, data) => {
-      t.error(err)
-      t.equal(res.headers['content-type'], 'text/plain')
-      t.equal(res.headers['x-my-header'], 'hello!')
-      t.equal(res.statusCode, 205)
-      t.equal(data.toString(), 'hello world')
+    const result = await fetch(`https://localhost:${instance.server.address().port}`, {
+      dispatcher: new Agent({
+        connect: {
+          rejectUnauthorized: false
+        }
+      })
     })
+
+    t.equal(result.headers.get('content-type'), 'text/plain')
+    t.equal(result.headers.get('x-my-header'), 'hello!')
+    t.equal(result.status, 205)
+    t.equal(await result.text(), 'hello world')
   })
 })
