@@ -3,7 +3,6 @@
 const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
-const get = require('simple-get').concat
 const nock = require('nock')
 
 const instance = Fastify()

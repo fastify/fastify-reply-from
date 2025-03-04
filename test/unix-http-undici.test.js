@@ -6,7 +6,6 @@ const From = require('..')
 const fs = require('node:fs')
 const querystring = require('node:querystring')
 const http = require('node:http')
-const get = require('simple-get').concat
 
 if (process.platform === 'win32') {
   t.pass()
@@ -21,7 +20,7 @@ instance.register(From, {
   base: upstream
 })
 
-t.plan(10)
+t.plan(9)
 t.teardown(instance.close.bind(instance))
 
 try {
@@ -48,15 +47,14 @@ t.teardown(target.close.bind(target))
 instance.listen({ port: 0 }, (err) => {
   t.error(err)
 
-  target.listen(socketPath, (err) => {
+  target.listen(socketPath, async (err) => {
     t.error(err)
 
-    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-      t.error(err)
-      t.equal(res.headers['content-type'], 'text/plain')
-      t.equal(res.headers['x-my-header'], 'hello!')
-      t.equal(res.statusCode, 205)
-      t.equal(data.toString(), 'hello world')
-    })
+    const result = await fetch(`https://localhost:${instance.server.address().port}`)
+
+    t.equal(result.headers.get('content-type'), 'text/plain')
+    t.equal(result.headers.get('x-my-header'), 'hello!')
+    t.equal(result.status, 205)
+    t.equal(await result.text(), 'hello world')
   })
 })
