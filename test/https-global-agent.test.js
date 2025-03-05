@@ -4,7 +4,7 @@ const { test } = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
 const https = require('node:https')
-const get = require('simple-get').concat
+const { fetch, Agent } = require('undici')
 
 const fs = require('node:fs')
 const path = require('node:path')
@@ -45,20 +45,19 @@ test('https global agent is used, but not destroyed', async (t) => {
         }
       })
 
-      instance.listen({ port: 0 }, (err) => {
+      instance.listen({ port: 0 }, async (err) => {
         t.error(err)
 
-        get(
-          {
-            url: `https://localhost:${instance.server.address().port}`,
-            rejectUnauthorized: false
-          },
-          (err, res) => {
-            t.error(err)
-            t.equal(res.statusCode, 200)
-            resolve()
-          }
-        )
+        const result = await fetch(`https://localhost:${instance.server.address().port}`, {
+          dispatcher: new Agent({
+            connect: {
+              rejectUnauthorized: false
+            }
+          })
+        })
+
+        t.equal(result.status, 200)
+        resolve()
       })
     })
   })
