@@ -4,7 +4,6 @@ const t = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
 const http = require('node:http')
-const get = require('simple-get').concat
 
 const instance = Fastify()
 const instanceWithoutBase = Fastify()
@@ -19,7 +18,7 @@ instanceWithoutBase.register(From, {
   disableCache: true
 })
 
-t.plan(13)
+t.plan(11)
 t.teardown(instance.close.bind(instance))
 t.teardown(instanceWithoutBase.close.bind(instanceWithoutBase))
 
@@ -53,18 +52,14 @@ instance.listen({ port: 0 }, (err) => {
   t.error(err)
   instanceWithoutBase.listen({ port: 0 }, (err) => {
     t.error(err)
-    target.listen({ port: 0 }, (err) => {
+    target.listen({ port: 0 }, async (err) => {
       t.error(err)
 
-      get(`http://localhost:${instance.server.address().port}/test`, (err, res) => {
-        t.error(err)
-        t.equal(res.statusCode, 200)
-      })
+      const result = await fetch(`http://localhost:${instance.server.address().port}/test`)
+      t.equal(result.status, 200)
 
-      get(`http://localhost:${instanceWithoutBase.server.address().port}/test2`, (err, res) => {
-        t.error(err)
-        t.equal(res.statusCode, 200)
-      })
+      const result1 = await fetch(`http://localhost:${instanceWithoutBase.server.address().port}/test2`)
+      t.equal(result1.status, 200)
     })
   })
 })
