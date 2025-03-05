@@ -57,7 +57,7 @@ instance.listen({ port: 0 }, (err) => {
   target.listen(socketPath, async (err) => {
     t.error(err)
 
-    const result = await fetch(`http://localhost:${instance.server.address().port}`, {
+    const result = await fetch(`https://localhost:${instance.server.address().port}`, {
       dispatcher: new Agent({
         connect: {
           rejectUnauthorized: false
