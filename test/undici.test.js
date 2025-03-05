@@ -15,7 +15,7 @@ const target = http.createServer((req, res) => {
   t.equal(req.method, 'GET')
   t.equal(req.url, '/')
   t.equal(req.headers.connection, 'keep-alive')
-  res.statusCode = 205
+  res.statusCode = 201
   res.setHeader('Content-Type', 'text/plain')
   res.setHeader('x-my-header', 'hello!')
   res.end('hello world')
@@ -42,7 +42,7 @@ target.listen({ port: 0 }, (err) => {
 
     t.equal(result.headers.get('content-type'), 'text/plain')
     t.equal(result.headers.get('x-my-header'), 'hello!')
-    t.equal(result.status, 205)
+    t.equal(result.status, 201)
     t.equal(await result.text(), 'hello world')
   })
 })

@@ -14,7 +14,7 @@ t.teardown(instance.close.bind(instance))
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'GET')
-  res.statusCode = 205
+  res.statusCode = 201
   res.setHeader('Content-Type', 'text/plain')
   res.end(req.headers.host)
 })
@@ -39,7 +39,7 @@ instance.listen({ port: 0 }, (err) => {
     const result = await fetch(`http://localhost:${instance.server.address().port}`)
 
     t.equal(result.headers.get('content-type'), 'text/plain')
-    t.equal(result.status, 205)
+    t.equal(result.status, 201)
     t.equal(await result.text(), 'host-override')
   })
 })

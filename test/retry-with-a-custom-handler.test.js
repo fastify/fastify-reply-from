@@ -15,7 +15,7 @@ function serverWithCustomError (stopAfter, statusCodeToFailOn, closeSocket) {
       res.setHeader('Content-Type', 'text/plain')
       return res.end('This Service is Unavailable')
     } else {
-      res.statusCode = 205
+      res.statusCode = 201
       res.setHeader('Content-Type', 'text/plain')
       return res.end(`Hello World ${requestCount}!`)
     }
@@ -74,7 +74,7 @@ test("a server 500's with a custom handler and should revive", async (t) => {
   const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
 
   t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.statusCode, 205)
+  t.equal(res.statusCode, 201)
   t.equal(res.body.toString(), 'Hello World 5!')
 })
 
@@ -117,7 +117,7 @@ test('custom retry delay functions can invoke the default delay', async (t) => {
   const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
 
   t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.statusCode, 205)
+  t.equal(res.statusCode, 201)
   t.equal(res.body.toString(), 'Hello World 5!')
 })
 
@@ -134,7 +134,7 @@ test('custom retry delay function inspects the err paramater', async (t) => {
   const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
 
   t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.statusCode, 205)
+  t.equal(res.statusCode, 201)
   t.equal(res.body.toString(), 'Hello World 5!')
 })
 
@@ -157,7 +157,7 @@ test('we can exceed our retryCount and introspect attempts independently', async
 
   t.match(attemptCounter, [0, 1, 2, 3, 4])
   t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.statusCode, 205)
+  t.equal(res.statusCode, 201)
   t.equal(res.body.toString(), 'Hello World 5!')
 })
 
@@ -181,6 +181,6 @@ test('we handle our retries based on the retryCount', async (t) => {
 
   t.match(attemptCounter, [0, 1])
   t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.statusCode, 205)
+  t.equal(res.statusCode, 201)
   t.equal(res.body.toString(), 'Hello World 5!')
 })

@@ -14,7 +14,7 @@ t.teardown(instance.close.bind(instance))
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'GET')
-  res.statusCode = 205
+  res.statusCode = 201
   res.end('hello world')
 })
 
@@ -37,6 +37,6 @@ instance.listen({ port: 0 }, (err) => {
     t.error(err)
 
     const result = await fetch(`http://localhost:${instance.server.address().port}`)
-    t.equal(result.status, 205)
+    t.equal(result.status, 201)
   })
 })

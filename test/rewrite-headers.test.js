@@ -15,7 +15,7 @@ t.teardown(instance.close.bind(instance))
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'GET')
-  res.statusCode = 205
+  res.statusCode = 201
   res.setHeader('Content-Type', 'text/plain')
   res.setHeader('x-my-header', 'hello!')
   res.end('hello world')
@@ -46,7 +46,7 @@ instance.listen({ port: 0 }, (err) => {
       t.equal(res.headers['content-type'], 'text/plain')
       t.equal(res.headers['x-another-header'], 'so headers!')
       t.notOk(res.headers['x-my-header'])
-      t.equal(res.statusCode, 205)
+      t.equal(res.statusCode, 201)
     })
   })
 })

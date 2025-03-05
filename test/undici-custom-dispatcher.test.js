@@ -36,7 +36,7 @@ test('use a custom instance of \'undici\'', async t => {
       'x-my-header': 'hello!'
     })
 
-    reply.statusCode = 205
+    reply.statusCode = 201
     reply.send('hello world')
   })
 
@@ -66,7 +66,7 @@ test('use a custom instance of \'undici\'', async t => {
 
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.headers['x-my-header'], 'hello!')
-  t.equal(res.statusCode, 205)
+  t.equal(res.statusCode, 201)
 
   const data = await res.body.text()
   t.equal(data, 'hello world')
