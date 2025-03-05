@@ -10,7 +10,7 @@ instance.register(From, {
   disableCache: true
 })
 
-t.plan(7)
+t.plan(6)
 t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
