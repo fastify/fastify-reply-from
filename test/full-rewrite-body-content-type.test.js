@@ -4,7 +4,6 @@ const t = require('tap')
 const Fastify = require('fastify')
 const fastifyReplyFrom = require('..')
 const http = require('node:http')
-const get = require('simple-get').concat
 
 const instance = Fastify()
 instance.register(fastifyReplyFrom)
@@ -12,7 +11,7 @@ instance.register(fastifyReplyFrom)
 const payload = { hello: 'world' }
 const msgPackPayload = Buffer.from([0x81, 0xa5, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0xa5, 0x77, 0x6f, 0x72, 0x6c, 0x64])
 
-t.plan(9)
+t.plan(8)
 t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
@@ -44,19 +43,17 @@ t.teardown(target.close.bind(target))
 instance.listen({ port: 0 }, (err) => {
   t.error(err)
 
-  target.listen({ port: 0 }, (err) => {
+  target.listen({ port: 0 }, async (err) => {
     t.error(err)
 
-    get({
-      url: `http://localhost:${instance.server.address().port}`,
+    const result = await fetch(`http://localhost:${instance.server.address().port}`, {
       method: 'POST',
-      json: true,
-      body: {
-        hello: 'world'
-      }
-    }, (err, _res, data) => {
-      t.error(err)
-      t.same(data, { something: 'else' })
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({ hello: 'world' }),
     })
+
+    t.same(await result.json(), { something: 'else' })
   })
 })
