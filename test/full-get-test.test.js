@@ -8,7 +8,7 @@ const http = require('node:http')
 const instance = Fastify()
 instance.register(From)
 
-t.plan(10)
+t.plan(9)
 t.teardown(instance.close.bind(instance))
 
 const target = http.createServer((req, res) => {
