@@ -48,6 +48,4 @@ test('http -> http2', async function (t) {
   t.equal(headers['x-my-header'], 'hello!')
   t.match(headers['content-type'], /application\/json/)
   t.same(await body.json(), { hello: 'world' })
-  await instance.close()
-  await target.close()
 })

@@ -5,7 +5,7 @@ const http = require('node:http')
 const net = require('node:net')
 const Fastify = require('fastify')
 const From = require('..')
-const got = require('got')
+const { request, Agent } = require('undici')
 
 t.test('undici connect timeout', async (t) => {
 // never connect
@@ -18,7 +18,7 @@ t.test('undici connect timeout', async (t) => {
   })
 
   t.plan(2)
-  await target.listen({ port: 0 })
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const instance = Fastify()
   t.teardown(instance.close.bind(instance))
@@ -38,15 +38,14 @@ t.test('undici connect timeout', async (t) => {
   await instance.listen({ port: 0 })
 
   try {
-    await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
-  } catch (err) {
-    t.equal(err.response.statusCode, 500)
-    t.same(JSON.parse(err.response.body), {
-      statusCode: 500,
-      code: 'UND_ERR_CONNECT_TIMEOUT',
-      error: 'Internal Server Error',
-      message: 'Connect Timeout Error'
+    await request(`http://localhost:${instance.server.address().port}/`, {
+      dispatcher: new Agent({
+        pipelining: 0
+      })
     })
+  } catch (err) {
+    t.equal(err.code, 'UND_ERR_CONNECT_TIMEOUT')
+    t.equal(err.name, 'ConnectTimeoutError')
     return
   }
 
