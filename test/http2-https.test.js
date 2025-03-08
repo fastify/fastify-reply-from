@@ -62,7 +62,9 @@ async function run () {
   t.test('https -> https', async (t) => {
     const result = await request(`https://localhost:${instance.server.address().port}`, {
       dispatcher: new Agent({
-        rejectUnauthorized: false
+        connect: {
+          rejectUnauthorized: false
+        }
       })
     })
 

@@ -22,7 +22,7 @@ t.test('use a custom instance of \'undici\'', async t => {
 
   await new Promise((resolve, reject) => target.listen({ port: 0 }, err => err ? reject(err) : resolve()))
 
-  t.test('custom Pool', t => {
+  t.test('custom Pool', async t => {
     const instance = Fastify()
     t.teardown(instance.close.bind(instance))
     instance.register(From, {
@@ -34,17 +34,14 @@ t.test('use a custom instance of \'undici\'', async t => {
       reply.from()
     })
 
-    instance.listen({ port: 0 }, async (err) => {
-      t.error(err)
+    await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
-      const result = await request(`http://localhost:${instance.server.address().port}`)
+    const result = await request(`http://localhost:${instance.server.address().port}`)
 
-      t.equal(result.headers['content-type'], 'text/plain')
-      t.equal(result.headers['x-my-header'], 'hello!')
-      t.equal(result.statusCode, 205)
-      t.equal(await result.body.text(), 'hello world')
-      t.end()
-    })
+    t.equal(result.headers['content-type'], 'text/plain')
+    t.equal(result.headers['x-my-header'], 'hello!')
+    t.equal(result.statusCode, 205)
+    t.equal(await result.body.text(), 'hello world')
   })
 
   t.test('custom Client', async t => {

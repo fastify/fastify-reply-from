@@ -25,29 +25,20 @@ test('http global agent is used, but not destroyed', async (t) => {
   })
   t.teardown(target.close.bind(target))
 
-  const executionFlow = () => new Promise((resolve) => {
-    target.listen({ port: 0 }, (err) => {
-      t.error(err)
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
-      instance.register(From, {
-        base: `http://localhost:${target.address().port}`,
-        globalAgent: true,
-        http: {
-        }
-      })
-
-      instance.listen({ port: 0 }, async (err) => {
-        t.error(err)
-
-        const result = await request(`http://localhost:${instance.server.address().port}`)
-
-        t.equal(result.statusCode, 200)
-        resolve()
-      })
-    })
+  instance.register(From, {
+    base: `http://localhost:${target.address().port}`,
+    globalAgent: true,
+    http: {
+    }
   })
 
-  await executionFlow()
+  await new Promise(resolve => instance.listen({ port: 0 }, resolve))
+
+  const result = await request(`http://localhost:${instance.server.address().port}`)
+
+  t.equal(result.statusCode, 200)
 
   target.close()
 })

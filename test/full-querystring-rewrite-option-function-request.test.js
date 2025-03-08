@@ -15,7 +15,7 @@ instance.addHook('preHandler', (request, _reply, done) => {
 })
 
 t.test('full querystring rewrite option function request', async (t) => {
-  t.plan(9)
+  t.plan(7)
   t.teardown(instance.close.bind(instance))
 
   const target = http.createServer((req, res) => {
@@ -38,11 +38,11 @@ t.test('full querystring rewrite option function request', async (t) => {
 
   t.teardown(target.close.bind(target))
 
-  await Promise(resolve => target.listen({ port: 0 }, resolve))
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   instance.register(From)
 
-  await Promise(resolve => instance.listen({ port: 0 }, resolve))
+  await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}/hello?a=b`)
   t.equal(result.headers['content-type'], 'text/plain')

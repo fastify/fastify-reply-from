@@ -59,6 +59,6 @@ describe('GHSA-v2v2-hph8-q5xp', function () {
         method: 'POST'
       })
 
-    t.assert.strictEqual(await response.text(), 'ok')
+    t.assert.strictEqual(await response.body.text(), 'ok')
   })
 })

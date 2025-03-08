@@ -18,7 +18,7 @@ const instance = Fastify({
 instance.register(From)
 
 t.test('full-https-get', async (t) => {
-  t.plan(8)
+  t.plan(6)
   t.teardown(instance.close.bind(instance))
 
   const target = https.createServer(certs, (req, res) => {
