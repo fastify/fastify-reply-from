@@ -16,34 +16,32 @@ if (process.platform === 'win32') {
 const instance = Fastify()
 instance.register(From)
 
-t.plan(3)
-t.teardown(instance.close.bind(instance))
+t.test('unix http undici from', async (t) => {
+  t.plan(1)
+  t.teardown(instance.close.bind(instance))
 
-const socketPath = `${__filename}.socket`
+  const socketPath = `${__filename}.socket`
 
-try {
-  fs.unlinkSync(socketPath)
-} catch (_) {
-}
+  try {
+    fs.unlinkSync(socketPath)
+  } catch (_) {
+  }
 
-const target = http.createServer((_req, res) => {
-  t.fail('no response')
-  res.end()
-})
-
-instance.get('/', (_request, reply) => {
-  reply.from(`unix+http://${querystring.escape(socketPath)}/hello`)
-})
-
-t.teardown(target.close.bind(target))
-
-instance.listen({ port: 0 }, (err) => {
-  t.error(err)
-
-  target.listen(socketPath, async (err) => {
-    t.error(err)
-
-    const result = await request(`http://localhost:${instance.server.address().port}`)
-    t.equal(result.statusCode, 500)
+  const target = http.createServer((_req, res) => {
+    t.fail('no response')
+    res.end()
   })
+
+  instance.get('/', (_request, reply) => {
+    reply.from(`unix+http://${querystring.escape(socketPath)}/hello`)
+  })
+
+  t.teardown(target.close.bind(target))
+
+  await instance.listen({ port: 0 })
+
+  await new Promise(resolve => target.listen(socketPath, resolve))
+
+  const result = await request(`http://localhost:${instance.server.address().port}`)
+  t.equal(result.statusCode, 500)
 })

@@ -21,41 +21,39 @@ instance.register(From, {
   base: upstream
 })
 
-t.plan(9)
-t.teardown(instance.close.bind(instance))
+t.test('unix http undici', async t => {
+  t.plan(7)
+  t.teardown(instance.close.bind(instance))
 
-try {
-  fs.unlinkSync(socketPath)
-} catch (_) {
-}
+  try {
+    fs.unlinkSync(socketPath)
+  } catch (_) {
+  }
 
-const target = http.createServer((req, res) => {
-  t.pass('request proxied')
-  t.equal(req.method, 'GET')
-  t.equal(req.url, '/hello')
-  res.statusCode = 205
-  res.setHeader('Content-Type', 'text/plain')
-  res.setHeader('x-my-header', 'hello!')
-  res.end('hello world')
-})
-
-instance.get('/', (_request, reply) => {
-  reply.from('hello')
-})
-
-t.teardown(target.close.bind(target))
-
-instance.listen({ port: 0 }, (err) => {
-  t.error(err)
-
-  target.listen(socketPath, async (err) => {
-    t.error(err)
-
-    const result = await request(`http://localhost:${instance.server.address().port}`)
-
-    t.equal(result.headers['content-type'], 'text/plain')
-    t.equal(result.headers['x-my-header'], 'hello!')
-    t.equal(result.statusCode, 205)
-    t.equal(await result.body.text(), 'hello world')
+  const target = http.createServer((req, res) => {
+    t.pass('request proxied')
+    t.equal(req.method, 'GET')
+    t.equal(req.url, '/hello')
+    res.statusCode = 205
+    res.setHeader('Content-Type', 'text/plain')
+    res.setHeader('x-my-header', 'hello!')
+    res.end('hello world')
   })
+
+  instance.get('/', (_request, reply) => {
+    reply.from('hello')
+  })
+
+  t.teardown(target.close.bind(target))
+
+  await instance.listen({ port: 0 })
+
+  await new Promise(resolve => target.listen(socketPath, resolve))
+
+  const result = await request(`http://localhost:${instance.server.address().port}`)
+
+  t.equal(result.headers['content-type'], 'text/plain')
+  t.equal(result.headers['x-my-header'], 'hello!')
+  t.equal(result.statusCode, 205)
+  t.equal(await result.body.text(), 'hello world')
 })
