@@ -7,7 +7,7 @@ const From = require('../index')
 const http = require('node:http')
 const { parse } = require('node:querystring')
 
-test('with explicitly set content-type application/octet-stream', t => {
+test('with explicitly set content-type application/octet-stream', async t => {
   const instance = Fastify()
   instance.register(From, {
     contentTypesToEncode: ['application/octet-stream']
@@ -19,7 +19,7 @@ test('with explicitly set content-type application/octet-stream', t => {
     (_req, body, done) => done(null, parse(body.toString()))
   )
 
-  t.plan(8)
+  t.plan(6)
   t.teardown(instance.close.bind(instance))
 
   const target = http.createServer((req, res) => {
@@ -46,20 +46,16 @@ test('with explicitly set content-type application/octet-stream', t => {
 
   t.teardown(target.close.bind(target))
 
-  instance.listen({ port: 0 }, (err) => {
-    t.error(err)
+  await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
-    target.listen({ port: 0 }, async (err) => {
-      t.error(err)
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
-      const result = await request(`http://localhost:${instance.server.address().port}`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/octet-stream' },
-        body: 'some=info&another=detail'
-      })
-
-      t.equal(result.headers['content-type'), 'application/octet-stream')
-      t.same(await result.body.json(), { some: 'info', another: 'detail' })
-    })
+  const result = await request(`http://localhost:${instance.server.address().port}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/octet-stream' },
+    body: 'some=info&another=detail'
   })
+
+  t.equal(result.headers['content-type'], 'application/octet-stream')
+  t.same(await result.body.json(), { some: 'info', another: 'detail' })
 })

@@ -9,46 +9,44 @@ const http = require('node:http')
 const instance = Fastify()
 instance.register(From)
 
-t.plan(8)
-t.teardown(instance.close.bind(instance))
+t.test('post plain text', async (t) => {
+  t.plan(6)
+  t.teardown(instance.close.bind(instance))
 
-const target = http.createServer((req, res) => {
-  t.pass('request proxied')
-  t.equal(req.method, 'POST')
-  t.equal(req.headers['content-type'], 'text/plain')
-  let data = ''
-  req.setEncoding('utf8')
-  req.on('data', (d) => {
-    data += d
-  })
-  req.on('end', () => {
-    const str = data.toString()
-    t.same(str, 'this is plain text')
-    res.statusCode = 200
-    res.setHeader('content-type', 'text/plain')
-    res.end(str)
-  })
-})
-
-instance.post('/', (_request, reply) => {
-  reply.from(`http://localhost:${target.address().port}`)
-})
-
-t.teardown(target.close.bind(target))
-
-instance.listen({ port: 0 }, (err) => {
-  t.error(err)
-
-  target.listen({ port: 0 }, async (err) => {
-    t.error(err)
-
-    const result = await request(`http://localhost:${instance.server.address().port}`, {
-      method: 'POST',
-      headers: { 'content-type': 'text/plain' },
-      body: 'this is plain text'
+  const target = http.createServer((req, res) => {
+    t.pass('request proxied')
+    t.equal(req.method, 'POST')
+    t.equal(req.headers['content-type'], 'text/plain')
+    let data = ''
+    req.setEncoding('utf8')
+    req.on('data', (d) => {
+      data += d
     })
-
-    t.equal(result.headers['content-type'], 'text/plain')
-    t.same(await result.body.text(), 'this is plain text')
+    req.on('end', () => {
+      const str = data.toString()
+      t.same(str, 'this is plain text')
+      res.statusCode = 200
+      res.setHeader('content-type', 'text/plain')
+      res.end(str)
+    })
   })
+
+  instance.post('/', (_request, reply) => {
+    reply.from(`http://localhost:${target.address().port}`)
+  })
+
+  t.teardown(target.close.bind(target))
+
+  await new Promise(resolve => instance.listen({ port: 0 }, resolve))
+
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
+
+  const result = await request(`http://localhost:${instance.server.address().port}`, {
+    method: 'POST',
+    headers: { 'content-type': 'text/plain' },
+    body: 'this is plain text'
+  })
+
+  t.equal(result.headers['content-type'], 'text/plain')
+  t.same(await result.body.text(), 'this is plain text')
 })
