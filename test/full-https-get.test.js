@@ -36,9 +36,9 @@ t.test('full-https-get', async (t) => {
 
   t.teardown(target.close.bind(target))
 
-  await Promise(resolve => instance.listen({ port: 0 }, resolve))
+  await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
-  await Promise(resolve => target.listen({ port: 0 }, resolve))
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const result = await request(`https://localhost:${instance.server.address().port}`, {
     dispatcher: new Agent({
