@@ -3,9 +3,8 @@
 const h2url = require('h2url')
 const t = require('tap')
 const Fastify = require('fastify')
-const { request } = require('undici')
+const { request, Agent } = require('undici')
 const From = require('..')
-const got = require('got')
 const fs = require('node:fs')
 const path = require('node:path')
 const certs = {
@@ -61,20 +60,16 @@ async function run () {
   })
 
   t.test('https -> https', async (t) => {
-    try {
-      await got(`https://localhost:${instance.server.address().port}`, {
-        https: {
-          rejectUnauthorized: false
-        }
+    const result = await request(`https://localhost:${instance.server.address().port}`, {
+      dispatcher: new Agent({
+        rejectUnauthorized: false
       })
-    } catch (err) {
-      t.equal(err.response.statusCode, 404)
-      t.equal(err.response.headers['x-my-header'], 'hello!')
-      t.match(err.response.headers['content-type'], /application\/json/)
-      t.same(JSON.parse(err.response.body), { hello: 'world' })
-      return
-    }
-    t.fail()
+    })
+
+    t.equal(result.statusCode, 404)
+    t.equal(result.headers['x-my-header'], 'hello!')
+    t.match(result.headers['content-type'], /application\/json/)
+    t.same(await result.body.json(), { hello: 'world' })
   })
 }
 

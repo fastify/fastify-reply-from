@@ -2,9 +2,8 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
-const { request } = require('undici')
+const { request, Agent } = require('undici')
 const From = require('..')
-const got = require('got')
 
 test('http2 request timeout disabled', async (t) => {
   const target = Fastify({ http2: true })
@@ -31,8 +30,10 @@ test('http2 request timeout disabled', async (t) => {
   await instance.listen({ port: 0 })
 
   const result = await Promise.race([
-    got.get(`http://localhost:${instance.server.address().port}/`, {
-      retry: 0
+    request(`http://localhost:${instance.server.address().port}/`, {
+      dispatcher: new Agent({
+        pipelining: 0
+      })
     }),
     new Promise(resolve => setTimeout(resolve, 11000, 'passed'))
   ])
@@ -66,17 +67,20 @@ test('http2 session timeout disabled', async (t) => {
 
   await instance.listen({ port: 0 })
 
-  const request = got.get(`http://localhost:${instance.server.address().port}/`, {
-    retry: 0
-  })
+  const abortController = new AbortController()
 
   const result = await Promise.race([
-    request,
+    request(`http://localhost:${instance.server.address().port}/`, {
+      dispatcher: new Agent({
+        pipelining: 0
+      }),
+      signal: abortController.signal
+    }),
     new Promise(resolve => setTimeout(resolve, 4000, 'passed'))
   ])
 
   // clean up right after the timeout, otherwise test will hang
-  request.cancel()
+  abortController.abort()
   target.close()
   instance.close()
 

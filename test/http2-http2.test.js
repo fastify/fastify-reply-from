@@ -3,7 +3,6 @@
 const h2url = require('h2url')
 const t = require('tap')
 const Fastify = require('fastify')
-const { request } = require('undici')
 const From = require('..')
 const fs = require('node:fs')
 const path = require('node:path')

@@ -2,7 +2,6 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
-const { request } = require('undici')
 const From = require('../index')
 
 test('http2 invalid base', async (t) => {
