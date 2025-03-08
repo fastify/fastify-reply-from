@@ -37,7 +37,7 @@ instance.listen({ port: 0 }, (err) => {
 
     const result = await request(`http://localhost:${instance.server.address().port}`)
     t.equal(result.statusCode, 502)
-    t.same(await result.json(), {
+    t.same(await result.body.json(), {
       statusCode: 502,
       code: 'FST_REPLY_FROM_BAD_GATEWAY',
       error: 'Bad Gateway',

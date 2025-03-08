@@ -1,7 +1,7 @@
 'use strict'
 
 const { describe, after, it } = require('node:test')
-const Fastify = require('fastify')
+const fastify = require('fastify')
 const { request } = require('undici')
 const fastifyProxyFrom = require('..')
 const { isIPv6 } = require('node:net')

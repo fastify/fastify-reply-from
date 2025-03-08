@@ -56,6 +56,6 @@ instance.listen({ port: 0 }, (err) => {
       body: bodyString
     })
 
-    t.same(await result.json(), { something: 'else' })
+    t.same(await result.body.json(), { something: 'else' })
   })
 })

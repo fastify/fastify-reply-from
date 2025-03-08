@@ -59,7 +59,7 @@ test('with explicitly set content-type application/octet-stream', t => {
       })
 
       t.equal(result.headers.get('content-type'), 'application/octet-stream')
-      t.same(await result.json(), { some: 'info', another: 'detail' })
+      t.same(await result.body.json(), { some: 'info', another: 'detail' })
     })
   })
 })

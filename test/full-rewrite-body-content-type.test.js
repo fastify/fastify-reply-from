@@ -55,6 +55,6 @@ instance.listen({ port: 0 }, (err) => {
       body: JSON.stringify({ hello: 'world' }),
     })
 
-    t.same(await result.json(), { something: 'else' })
+    t.same(await result.body.json(), { something: 'else' })
   })
 })
