@@ -3,6 +3,7 @@
 const { test, after } = require('node:test')
 const { createServer } = require('node:http')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const { createProxy } = require('proxy')
 const fastifyProxyFrom = require('..')
 const { isIPv6 } = require('node:net')
@@ -78,10 +79,10 @@ for (const [description, format] of Object.entries(configFormat)) {
       }
     }
 
-    const response = await fetch(`http://localhost:${instance.server.address().port}`)
+    const response = await request(`http://localhost:${instance.server.address().port}`)
 
-    t.assert.strictEqual(response.status, 200)
-    t.assert.deepStrictEqual(await response.json(), { hello: 'world' })
+    t.assert.strictEqual(response.statusCode, 200)
+    t.assert.deepStrictEqual(await response.body.json(), { hello: 'world' })
   })
 }
 

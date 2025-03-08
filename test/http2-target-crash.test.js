@@ -2,8 +2,8 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
-const got = require('got')
 
 test('http -> http2 crash', async (t) => {
   const instance = Fastify()
@@ -36,19 +36,15 @@ test('http -> http2 crash', async (t) => {
 
   await instance.listen({ port: 0 })
 
-  try {
-    await target.close()
-    await got(`http://localhost:${instance.server.address().port}`)
-  } catch (err) {
-    t.equal(err.response.statusCode, 503)
-    t.match(err.response.headers['content-type'], /application\/json/)
-    t.same(JSON.parse(err.response.body), {
-      statusCode: 503,
-      code: 'FST_REPLY_FROM_SERVICE_UNAVAILABLE',
-      error: 'Service Unavailable',
-      message: 'Service Unavailable'
-    })
-    return
-  }
-  t.fail()
+  await target.close()
+  const result = await request(`http://localhost:${instance.server.address().port}`)
+
+  t.equal(result.statusCode, 503)
+  t.match(result.headers['content-type'], /application\/json/)
+  t.same(await result.body.json(), {
+    statusCode: 503,
+    code: 'FST_REPLY_FROM_SERVICE_UNAVAILABLE',
+    error: 'Service Unavailable',
+    message: 'Service Unavailable'
+  })
 })
