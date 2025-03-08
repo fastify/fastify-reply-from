@@ -28,30 +28,20 @@ test('undici global agent is used, but not destroyed', async (t) => {
 
   t.teardown(target.close.bind(target))
 
-  const executionFlow = () => new Promise((resolve) => {
-    target.listen({ port: 0 }, (err) => {
-      t.error(err)
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
-      instance.register(From, {
-        base: `http://localhost:${target.address().port}`,
-        globalAgent: true
-      })
-
-      instance.listen({ port: 0 }, async (err) => {
-        t.error(err)
-
-        const result = await request(`http://localhost:${instance.server.address().port}`)
-        t.equal(result.statusCode, 200)
-
-        const result1 = await request(`http://localhost:${instance.server.address().port}`)
-        t.equal(result1.status, 200)
-
-        resolve()
-      })
-    })
+  instance.register(From, {
+    base: `http://localhost:${target.address().port}`,
+    globalAgent: true
   })
 
-  await executionFlow()
+  await new Promise(resolve => instance.listen({ port: 0 }, resolve))
+
+  const result = await request(`http://localhost:${instance.server.address().port}`)
+  t.equal(result.statusCode, 200)
+
+  const result1 = await request(`http://localhost:${instance.server.address().port}`)
+  t.equal(result1.statusCode, 200)
 
   target.close()
 })

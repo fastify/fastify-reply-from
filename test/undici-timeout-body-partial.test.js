@@ -3,9 +3,8 @@
 const t = require('tap')
 const http = require('node:http')
 const Fastify = require('fastify')
-const { request } = require('undici')
+const { request, Agent } = require('undici')
 const From = require('..')
-const got = require('got')
 const FakeTimers = require('@sinonjs/fake-timers')
 
 const clock = FakeTimers.createClock()
@@ -25,7 +24,7 @@ t.test('undici body timeout', async (t) => {
     })
   })
 
-  await target.listen({ port: 0 })
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const instance = Fastify()
   t.teardown(instance.close.bind(instance))
@@ -44,14 +43,13 @@ t.test('undici body timeout', async (t) => {
 
   await instance.listen({ port: 0 })
 
-  try {
-    await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
-  } catch (err) {
-    t.equal(err.code, 'ECONNRESET')
-    t.equal(err.response.statusCode, 200)
-    clock.tick(1000)
-    return
-  }
+  const result = await request(`http://localhost:${instance.server.address().port}/`, {
+    dispatcher: new Agent({
+      pipelining: 0
+    })
+  })
 
-  t.fail()
+  t.equal(result.statusCode, 200)
+
+  clock.tick(1000)
 })

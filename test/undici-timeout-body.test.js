@@ -3,9 +3,8 @@
 const t = require('tap')
 const http = require('node:http')
 const Fastify = require('fastify')
-const { request } = require('undici')
+const { request, Agent } = require('undici')
 const From = require('..')
-const got = require('got')
 const FakeTimers = require('@sinonjs/fake-timers')
 
 const clock = FakeTimers.createClock()
@@ -42,19 +41,18 @@ t.test('undici body timeout', async (t) => {
 
   await instance.listen({ port: 0 })
 
-  try {
-    await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
-  } catch (err) {
-    t.equal(err.response.statusCode, 500)
-    t.same(JSON.parse(err.response.body), {
-      statusCode: 500,
-      code: 'UND_ERR_BODY_TIMEOUT',
-      error: 'Internal Server Error',
-      message: 'Body Timeout Error'
+  const result = await request(`http://localhost:${instance.server.address().port}`, {
+    dispatcher: new Agent({
+      pipelining: 0
     })
-    clock.tick(1000)
-    return
-  }
+  })
 
-  t.fail()
+  t.equal(result.statusCode, 500)
+  t.same(await result.body.json(), {
+    statusCode: 500,
+    code: 'UND_ERR_BODY_TIMEOUT',
+    error: 'Internal Server Error',
+    message: 'Body Timeout Error'
+  })
+  clock.tick(1000)
 })
