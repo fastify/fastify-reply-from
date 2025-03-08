@@ -3,7 +3,7 @@
 const { test } = require('tap')
 const Fastify = require('fastify')
 const From = require('..')
-const { request } = require('undici')
+const { request, Agent } = require('undici')
 
 test('http -> http2', async function (t) {
   const instance = Fastify()
@@ -42,10 +42,15 @@ test('http -> http2', async function (t) {
     body: JSON.stringify({ something: 'else' }),
     headers: {
       'content-type': 'application/json'
-    }
+    },
+    dispatcher: new Agent({
+      pipelining: 0
+    })
   })
   t.equal(statusCode, 200)
   t.equal(headers['x-my-header'], 'hello!')
   t.match(headers['content-type'], /application\/json/)
   t.same(await body.json(), { hello: 'world' })
+  instance.close()
+  target.close()
 })
