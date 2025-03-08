@@ -2,8 +2,7 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
-const { request } = require('undici')
-const undici = require('undici')
+const { Pool, request, Client } = require('undici')
 const http = require('node:http')
 const From = require('..')
 
@@ -28,7 +27,7 @@ t.test('use a custom instance of \'undici\'', async t => {
     t.teardown(instance.close.bind(instance))
     instance.register(From, {
       base: `http://localhost:${target.address().port}`,
-      undici: new undici.Pool(`http://localhost:${target.address().port}`)
+      undici: new Pool(`http://localhost:${target.address().port}`)
     })
 
     instance.get('/', (_request, reply) => {
@@ -40,36 +39,33 @@ t.test('use a custom instance of \'undici\'', async t => {
 
       const result = await request(`http://localhost:${instance.server.address().port}`)
 
-      t.equal(result.headers.get('content-type'), 'text/plain')
-      t.equal(result.headers.get('x-my-header'), 'hello!')
+      t.equal(result.headers['content-type'], 'text/plain')
+      t.equal(result.headers['x-my-header'], 'hello!')
       t.equal(result.statusCode, 205)
       t.equal(await result.body.text(), 'hello world')
       t.end()
     })
   })
 
-  t.test('custom Client', t => {
+  t.test('custom Client', async t => {
     const instance = Fastify()
     t.teardown(instance.close.bind(instance))
     instance.register(From, {
       base: `http://localhost:${target.address().port}`,
-      undici: new undici.Client(`http://localhost:${target.address().port}`)
+      undici: new Client(`http://localhost:${target.address().port}`)
     })
 
     instance.get('/', (_request, reply) => {
       reply.from()
     })
 
-    instance.listen({ port: 0 }, async (err) => {
-      t.error(err)
+    await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
-      const result = await request(`http://localhost:${instance.server.address().port}`)
+    const result = await request(`http://localhost:${instance.server.address().port}`)
 
-      t.equal(result.headers.get('content-type'), 'text/plain')
-      t.equal(result.headers.get('x-my-header'), 'hello!')
-      t.equal(result.statusCode, 205)
-      t.equal(await result.body.text(), 'hello world')
-      t.end()
-    })
+    t.equal(result.headers['content-type'], 'text/plain')
+    t.equal(result.headers['x-my-header'], 'hello!')
+    t.equal(result.statusCode, 205)
+    t.equal(await result.body.text(), 'hello world')
   })
 })
