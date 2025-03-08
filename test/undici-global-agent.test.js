@@ -2,6 +2,7 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const http = require('node:http')
 const undici = require('undici')
 const From = require('..')
@@ -39,10 +40,10 @@ test('undici global agent is used, but not destroyed', async (t) => {
       instance.listen({ port: 0 }, async (err) => {
         t.error(err)
 
-        const result = await fetch(`http://localhost:${instance.server.address().port}`)
-        t.equal(result.status, 200)
+        const result = await request(`http://localhost:${instance.server.address().port}`)
+        t.equal(result.statusCode, 200)
 
-        const result1 = await fetch(`http://localhost:${instance.server.address().port}`)
+        const result1 = await request(`http://localhost:${instance.server.address().port}`)
         t.equal(result1.status, 200)
 
         resolve()

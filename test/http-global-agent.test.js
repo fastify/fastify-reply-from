@@ -2,6 +2,7 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const http = require('node:http')
 
@@ -38,9 +39,9 @@ test('http global agent is used, but not destroyed', async (t) => {
       instance.listen({ port: 0 }, async (err) => {
         t.error(err)
 
-        const result = await fetch(`http://localhost:${instance.server.address().port}`)
+        const result = await request(`http://localhost:${instance.server.address().port}`)
 
-        t.equal(result.status, 200)
+        t.equal(result.statusCode, 200)
         resolve()
       })
     })

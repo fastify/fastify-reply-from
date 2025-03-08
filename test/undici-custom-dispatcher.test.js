@@ -3,6 +3,7 @@
 const { test } = require('tap')
 const undici = require('undici')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 
 class CustomDispatcher {
@@ -36,7 +37,7 @@ test('use a custom instance of \'undici\'', async t => {
       'x-my-header': 'hello!'
     })
 
-    reply.statusCode = 201
+    reply.statusCode = 205
     reply.send('hello world')
   })
 
@@ -66,7 +67,7 @@ test('use a custom instance of \'undici\'', async t => {
 
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.headers['x-my-header'], 'hello!')
-  t.equal(res.statusCode, 201)
+  t.equal(res.statusCode, 205)
 
   const data = await res.body.text()
   t.equal(data, 'hello world')

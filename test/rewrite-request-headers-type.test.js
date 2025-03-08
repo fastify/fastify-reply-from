@@ -2,6 +2,7 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const http = require('node:http')
 const get = require('simple-get').concat
@@ -15,7 +16,7 @@ t.teardown(instance.close.bind(instance))
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'GET')
-  res.statusCode = 201
+  res.statusCode = 205
   res.end(req.headers.host)
 })
 
@@ -39,7 +40,7 @@ instance.listen({ port: 0 }, (err) => {
 
     get(`http://localhost:${instance.server.address().port}`, (err, res) => {
       t.error(err)
-      t.equal(res.statusCode, 201)
+      t.equal(res.statusCode, 205)
     })
   })
 })

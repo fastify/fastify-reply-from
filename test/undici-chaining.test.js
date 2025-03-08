@@ -2,6 +2,7 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 
 const header = 'attachment; filename="år.pdf"'
@@ -46,10 +47,10 @@ instance.listen({ port: 0 }, err => {
     proxy2.listen({ port: 0 }, async err => {
       t.error(err)
 
-      const result = await fetch(`http://localhost:${proxy2.server.address().port}`)
+      const result = await request(`http://localhost:${proxy2.server.address().port}`)
 
-      t.equal(result.status, 200)
-      t.equal(await result.text(), 'OK')
+      t.equal(result.statusCode, 200)
+      t.equal(await result.body.text(), 'OK')
     })
   })
 })

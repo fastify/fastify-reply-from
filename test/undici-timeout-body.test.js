@@ -3,6 +3,7 @@
 const t = require('tap')
 const http = require('node:http')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const got = require('got')
 const FakeTimers = require('@sinonjs/fake-timers')

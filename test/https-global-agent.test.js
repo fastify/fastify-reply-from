@@ -2,6 +2,7 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const https = require('node:https')
 const { fetch, Agent } = require('undici')
@@ -48,7 +49,7 @@ test('https global agent is used, but not destroyed', async (t) => {
       instance.listen({ port: 0 }, async (err) => {
         t.error(err)
 
-        const result = await fetch(`https://localhost:${instance.server.address().port}`, {
+        const result = await request(`https://localhost:${instance.server.address().port}`, {
           dispatcher: new Agent({
             connect: {
               rejectUnauthorized: false
@@ -56,7 +57,7 @@ test('https global agent is used, but not destroyed', async (t) => {
           })
         })
 
-        t.equal(result.status, 200)
+        t.equal(result.statusCode, 200)
         resolve()
       })
     })

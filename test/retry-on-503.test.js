@@ -2,6 +2,7 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const http = require('node:http')
 const got = require('got')
@@ -17,7 +18,7 @@ function createTargetServer (withRetryAfterHeader, stopAfter = 1) {
       }
       return res.end('This Service is Unavailable')
     }
-    res.statusCode = 201
+    res.statusCode = 205
     res.setHeader('Content-Type', 'text/plain')
     return res.end(`Hello World ${requestCount}!`)
   })
@@ -44,7 +45,7 @@ test('Should retry on 503 HTTP error', async function (t) {
 
   const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
   t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.statusCode, 201)
+  t.equal(res.statusCode, 205)
   t.equal(res.body.toString(), 'Hello World 2!')
 })
 
@@ -69,7 +70,7 @@ test('Should retry on 503 HTTP error with Retry-After response header', async fu
 
   const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
   t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.statusCode, 201)
+  t.equal(res.statusCode, 205)
   t.equal(res.body.toString(), 'Hello World 2!')
 })
 

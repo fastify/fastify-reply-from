@@ -2,6 +2,7 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const http = require('node:http')
 
@@ -34,8 +35,8 @@ instance.listen({ port: 0 }, (err) => {
   target.listen({ port: 0 }, async (err) => {
     t.error(err)
 
-    const result = await fetch(`http://localhost:${instance.server.address().port}`)
-    t.equal(result.status, 502)
+    const result = await request(`http://localhost:${instance.server.address().port}`)
+    t.equal(result.statusCode, 502)
     t.same(await result.json(), {
       statusCode: 502,
       code: 'FST_REPLY_FROM_BAD_GATEWAY',

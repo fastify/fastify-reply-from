@@ -2,6 +2,7 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const http = require('node:http')
 const get = require('simple-get').concat
@@ -15,7 +16,7 @@ t.teardown(instance.close.bind(instance))
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'GET')
-  res.statusCode = 201
+  res.statusCode = 205
   res.setHeader('Content-Type', 'text/plain')
   res.setHeader('x-my-header', 'hello!')
   res.end('hello world')
@@ -46,7 +47,7 @@ instance.listen({ port: 0 }, (err) => {
       t.equal(res.headers['content-type'], 'text/plain')
       t.equal(res.headers['x-another-header'], 'so headers!')
       t.notOk(res.headers['x-my-header'])
-      t.equal(res.statusCode, 201)
+      t.equal(res.statusCode, 205)
     })
   })
 })

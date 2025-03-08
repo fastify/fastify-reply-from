@@ -4,6 +4,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 const t = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const Multipart = require('@fastify/multipart')
 const http = require('node:http')
@@ -74,7 +75,7 @@ instance.listen({ port: 0 }, (err) => {
     form.append('key', 'value')
     form.append('file', fs.createReadStream(filetPath, { encoding: 'utf-8' }))
 
-    const result = await fetch(`http://localhost:${instance.server.address().port}`, {
+    const result = await request(`http://localhost:${instance.server.address().port}`, {
       method: 'POST',
       headers: form.getHeaders(),
       body: form

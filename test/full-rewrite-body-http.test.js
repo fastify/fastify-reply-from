@@ -2,6 +2,7 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const http = require('node:http')
 
@@ -47,7 +48,7 @@ instance.listen({ port: 0 }, (err) => {
   target.listen({ port: 0 }, async (err) => {
     t.error(err)
 
-    const result = await fetch(`http://localhost:${instance.server.address().port}`, {
+    const result = await request(`http://localhost:${instance.server.address().port}`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json'

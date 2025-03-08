@@ -2,6 +2,7 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const fs = require('node:fs')
 const querystring = require('node:querystring')
@@ -42,7 +43,7 @@ instance.listen({ port: 0 }, (err) => {
   target.listen(socketPath, async (err) => {
     t.error(err)
 
-    const result = await fetch(`http://localhost:${instance.server.address().port}`)
-    t.equal(result.status, 500)
+    const result = await request(`http://localhost:${instance.server.address().port}`)
+    t.equal(result.statusCode, 500)
   })
 })

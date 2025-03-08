@@ -2,6 +2,7 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const proxyquire = require('proxyquire')
 const http = require('node:http')
 const undici = require('undici')
@@ -40,9 +41,9 @@ target.listen({ port: 0 }, err => {
   instance.listen({ port: 0 }, async err => {
     t.error(err)
 
-    const result = await fetch(`http://localhost:${instance.server.address().port}`)
-    t.equal(result.status, 200)
-    t.equal(await result.text(), 'hello world')
+    const result = await request(`http://localhost:${instance.server.address().port}`)
+    t.equal(result.statusCode, 200)
+    t.equal(await result.body.text(), 'hello world')
   })
 })
 

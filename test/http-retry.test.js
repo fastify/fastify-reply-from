@@ -1,6 +1,7 @@
 'use strict'
 
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const got = require('got')
 const { test } = require('tap')

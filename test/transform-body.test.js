@@ -2,6 +2,7 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const http = require('node:http')
 const Transform = require('node:stream').Transform
@@ -15,7 +16,7 @@ t.teardown(instance.close.bind(instance))
 const target = http.createServer((req, res) => {
   t.pass('request proxied')
   t.equal(req.method, 'GET')
-  res.statusCode = 201
+  res.statusCode = 205
   res.setHeader('Content-Type', 'text/plain')
   res.setHeader('x-my-header', 'hello!')
   res.end('hello world')
@@ -46,11 +47,11 @@ instance.listen({ port: 0 }, err => {
   target.listen({ port: 0 }, async err => {
     t.error(err)
 
-    const result = await fetch(`http://localhost:${instance.server.address().port}`)
+    const result = await request(`http://localhost:${instance.server.address().port}`)
 
     t.equal(result.headers.get('content-type'), 'text/plain')
     t.equal(result.headers.get('x-my-header'), 'hello!')
-    t.equal(result.status, 201)
-    t.equal(await result.text(), 'HELLO WORLD')
+    t.equal(result.statusCode, 205)
+    t.equal(await result.body.text(), 'HELLO WORLD')
   })
 })

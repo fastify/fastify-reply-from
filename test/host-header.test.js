@@ -2,6 +2,7 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const nock = require('nock')
 const got = require('got')

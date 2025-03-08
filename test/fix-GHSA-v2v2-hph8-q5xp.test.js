@@ -1,7 +1,8 @@
 'use strict'
 
 const { describe, after, it } = require('node:test')
-const fastify = require('fastify')
+const Fastify = require('fastify')
+const { request } = require('undici')
 const fastifyProxyFrom = require('..')
 const { isIPv6 } = require('node:net')
 
@@ -49,7 +50,7 @@ describe('GHSA-v2v2-hph8-q5xp', function () {
       appAddress = `[${appAddress}]`
     }
 
-    const response = await fetch(
+    const response = await request(
       `http://${appAddress}:${app.server.address().port}/test`,
       {
         headers: { 'content-type': 'application/json ; charset=utf-8' },

@@ -2,6 +2,7 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('../index')
 
 test('throw an error if http2 is used with a Unix socket destination', async t => {

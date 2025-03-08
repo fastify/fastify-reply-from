@@ -2,6 +2,7 @@
 
 const test = require('tap').test
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('../index')
 const http = require('node:http')
 const { parse } = require('node:querystring')
@@ -51,7 +52,7 @@ test('with explicitly set content-type application/octet-stream', t => {
     target.listen({ port: 0 }, async (err) => {
       t.error(err)
 
-      const result = await fetch(`http://localhost:${instance.server.address().port}`, {
+      const result = await request(`http://localhost:${instance.server.address().port}`, {
         method: 'POST',
         headers: { 'content-type': 'application/octet-stream' },
         body: 'some=info&another=detail'

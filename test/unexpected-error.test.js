@@ -2,6 +2,7 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const got = require('got')
 const proxyquire = require('proxyquire')
 
@@ -21,7 +22,7 @@ test('unexpected error renders 500', async (t) => {
   t.teardown(instance.close.bind(instance))
 
   instance.get('/', (_request, reply) => {
-    reply.code(201)
+    reply.code(205)
     reply.from()
   })
   instance.register(From, {

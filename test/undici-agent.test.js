@@ -2,6 +2,7 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const proxyquire = require('proxyquire')
 const http = require('node:http')
 const get = require('simple-get').concat
