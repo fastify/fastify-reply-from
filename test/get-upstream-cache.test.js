@@ -2,7 +2,6 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
-const { request } = require('undici')
 const From = require('..')
 
 async function createTarget (i) {
