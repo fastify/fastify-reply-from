@@ -51,7 +51,7 @@ instance.listen({ port: 0 }, (err) => {
       body: 'some=info&another=detail'
     })
 
-    t.equal(result.headers.get('content-type'), 'application/x-www-form-urlencoded')
+    t.equal(result.headers['content-type'), 'application/x-www-form-urlencoded')
     t.same(await result.body.json(), { some: 'info', another: 'detail' })
   })
 })

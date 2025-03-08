@@ -48,7 +48,7 @@ instance.listen({ port: 0 }, (err) => {
       body: 'this is plain text'
     })
 
-    t.equal(result.headers.get('content-type'), 'text/plain')
+    t.equal(result.headers['content-type'], 'text/plain')
     t.same(await result.body.text(), 'this is plain text')
   })
 })

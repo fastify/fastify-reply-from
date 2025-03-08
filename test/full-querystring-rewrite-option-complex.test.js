@@ -8,39 +8,37 @@ const http = require('node:http')
 
 const instance = Fastify()
 
-t.plan(9)
-t.teardown(instance.close.bind(instance))
+t.test('full querystring rewrite option complex', async (t) => {
+  t.plan(7)
+  t.teardown(instance.close.bind(instance))
 
-const target = http.createServer((req, res) => {
-  t.pass('request proxied')
-  t.equal(req.method, 'GET')
-  t.equal(req.url, '/world?b=c')
-  res.statusCode = 205
-  res.setHeader('Content-Type', 'text/plain')
-  res.setHeader('x-my-header', 'hello!')
-  res.end('hello world')
-})
-
-instance.get('/hello', (_request, reply) => {
-  reply.from(`http://localhost:${target.address().port}/world?a=b`, {
-    queryString: { b: 'c' }
+  const target = http.createServer((req, res) => {
+    t.pass('request proxied')
+    t.equal(req.method, 'GET')
+    t.equal(req.url, '/world?b=c')
+    res.statusCode = 205
+    res.setHeader('Content-Type', 'text/plain')
+    res.setHeader('x-my-header', 'hello!')
+    res.end('hello world')
   })
-})
 
-t.teardown(target.close.bind(target))
+  instance.get('/hello', (_request, reply) => {
+    reply.from(`http://localhost:${target.address().port}/world?a=b`, {
+      queryString: { b: 'c' }
+    })
+  })
 
-target.listen({ port: 0 }, (err) => {
-  t.error(err)
+  t.teardown(target.close.bind(target))
+
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   instance.register(From)
 
-  instance.listen({ port: 0 }, async (err) => {
-    t.error(err)
+  await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
-    const result = await request(`http://localhost:${instance.server.address().port}/hello?a=b`)
-    t.equal(result.headers.get('content-type'), 'text/plain')
-    t.equal(result.headers.get('x-my-header'), 'hello!')
-    t.equal(result.statusCode, 205)
-    t.equal(await result.body.text(), 'hello world')
-  })
+  const result = await request(`http://localhost:${instance.server.address().port}/hello?a=b`)
+  t.equal(result.headers['content-type'], 'text/plain')
+  t.equal(result.headers['x-my-header'], 'hello!')
+  t.equal(result.statusCode, 205)
+  t.equal(await result.body.text(), 'hello world')
 })

@@ -46,8 +46,8 @@ target.listen({ port: 0 }, (err) => {
 
     const result = await request(`http://localhost:${instance.server.address().port}`)
 
-    t.equal(result.headers.get('content-type'), 'text/plain')
-    t.equal(result.headers.get('x-my-header'), 'hello!')
+    t.equal(result.headers['content-type'], 'text/plain')
+    t.equal(result.headers['x-my-header'], 'hello!')
     t.equal(result.statusCode, 205)
     t.equal(await result.body.text(), 'hello world')
   })
