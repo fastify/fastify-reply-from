@@ -81,8 +81,8 @@ for (const [description, format] of Object.entries(configFormat)) {
 
     const response = await request(`http://localhost:${instance.server.address().port}`)
 
-    t.assert.strictEqual(response.status, 200)
-    t.assert.deepStrictEqual(await response.json(), { hello: 'world' })
+    t.assert.strictEqual(response.statusCode, 200)
+    t.assert.deepStrictEqual(await response.body.json(), { hello: 'world' })
   })
 }
 

@@ -9,7 +9,7 @@ const http = require('node:http')
 const instance = Fastify()
 
 t.test('no body opts with get', async (t) => {
-  t.plan(4)
+  t.plan(3)
   t.teardown(instance.close.bind(instance))
 
   const target = http.createServer((_req, res) => {

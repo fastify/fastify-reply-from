@@ -30,17 +30,13 @@ t.test('async route handler', async () => {
 
   t.teardown(target.close.bind(target))
 
-  await new Promise(resolve => {
-    target.listen({ port: 0 }, resolve)
-  })
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   instance.register(From, {
     base: `http://localhost:${target.address().port}`
   })
 
-  await new Promise(resolve => {
-    instance.listen({ port: 0 }, resolve)
-  })
+  await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
