@@ -4,7 +4,6 @@ const { test } = require('tap')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
-const got = require('got')
 
 test('http -> http2', async (t) => {
   const instance = Fastify()
@@ -37,17 +36,12 @@ test('http -> http2', async (t) => {
 
   await instance.listen({ port: 0 })
 
-  try {
-    await got(`http://localhost:${instance.server.address().port}`)
-  } catch (err) {
-    t.equal(err.response.statusCode, 404)
-    t.equal(err.response.headers['x-my-header'], 'hello!')
-    t.match(err.response.headers['content-type'], /application\/json/)
-    t.same(JSON.parse(err.response.body), { hello: 'world' })
-    instance.close()
-    target.close()
-    return
-  }
+  const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.fail()
+  t.equal(result.statusCode, 404)
+  t.equal(result.headers['x-my-header'], 'hello!')
+  t.match(result.headers['content-type'], /application\/json/)
+  t.same(await result.body.json(), { hello: 'world' })
+  instance.close()
+  target.close()
 })
