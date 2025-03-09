@@ -16,18 +16,18 @@ import {
   AgentOptions,
   IncomingHttpHeaders,
   RequestOptions,
-} from 'http'
+} from 'node:http'
 import {
   ClientSessionOptions,
   ClientSessionRequestOptions,
   IncomingHttpHeaders as Http2IncomingHttpHeaders,
   SecureClientSessionOptions,
-} from 'http2'
+} from 'node:http2'
 import {
   Agent as SecureAgent,
   AgentOptions as SecureAgentOptions,
   RequestOptions as SecureRequestOptions
-} from 'https'
+} from 'node:https'
 import { Pool, ProxyAgent, Dispatcher } from 'undici'
 
 declare module 'fastify' {
