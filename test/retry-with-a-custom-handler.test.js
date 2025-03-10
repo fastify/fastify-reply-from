@@ -2,9 +2,9 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request, Agent } = require('undici')
 const From = require('..')
 const http = require('node:http')
-const got = require('got')
 
 function serverWithCustomError (stopAfter, statusCodeToFailOn, closeSocket) {
   let requestCount = 0
@@ -48,14 +48,10 @@ async function setupServer (t, fromOptions = {}, statusCodeToFailOn = 500, stopA
 test('a 500 status code with no custom handler should fail', async (t) => {
   const { instance } = await setupServer(t)
 
-  let errorMessage
-  try {
-    await got.get(`http://localhost:${instance.server.address().port}`, { retry: 3 })
-  } catch (error) {
-    errorMessage = error.message
-  }
+  const result = await request(`http://localhost:${instance.server.address().port}`, { dispatcher: new Agent({ pipelining: 3 }) })
 
-  t.equal(errorMessage, 'Response code 500 (Internal Server Error)')
+  t.equal(result.statusCode, 500)
+  t.equal(await result.body.text(), 'This Service is Unavailable')
 })
 
 test("a server 500's with a custom handler and should revive", async (t) => {
@@ -71,11 +67,11 @@ test("a server 500's with a custom handler and should revive", async (t) => {
 
   const { instance } = await setupServer(t, { retryDelay: customRetryLogic })
 
-  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
+  const res = await request(`http://localhost:${instance.server.address().port}`)
 
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.statusCode, 205)
-  t.equal(res.body.toString(), 'Hello World 5!')
+  t.equal(await res.body.text(), 'Hello World 5!')
 })
 
 test('custom retry does not invoke the default delay causing a 501', async (t) => {
@@ -89,14 +85,10 @@ test('custom retry does not invoke the default delay causing a 501', async (t) =
 
   const { instance } = await setupServer(t, { retryDelay: customRetryLogic }, 501)
 
-  let errorMessage
-  try {
-    await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
-  } catch (error) {
-    errorMessage = error.message
-  }
+  const res = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(errorMessage, 'Response code 501 (Not Implemented)')
+  t.equal(res.statusCode, 501)
+  t.equal(await res.body.text(), 'This Service is Unavailable')
 })
 
 test('custom retry delay functions can invoke the default delay', async (t) => {
@@ -114,11 +106,11 @@ test('custom retry delay functions can invoke the default delay', async (t) => {
 
   const { instance } = await setupServer(t, { retryDelay: customRetryLogic }, 500)
 
-  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
+  const res = await request(`http://localhost:${instance.server.address().port}`)
 
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.statusCode, 205)
-  t.equal(res.body.toString(), 'Hello World 5!')
+  t.equal(await res.body.text(), 'Hello World 5!')
 })
 
 test('custom retry delay function inspects the err paramater', async (t) => {
@@ -131,11 +123,11 @@ test('custom retry delay function inspects the err paramater', async (t) => {
 
   const { instance } = await setupServer(t, { retryDelay: customRetryLogic }, 500, 4, true)
 
-  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
+  const res = await request(`http://localhost:${instance.server.address().port}`)
 
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.statusCode, 205)
-  t.equal(res.body.toString(), 'Hello World 5!')
+  t.equal(await res.body.text(), 'Hello World 5!')
 })
 
 test('we can exceed our retryCount and introspect attempts independently', async (t) => {
@@ -153,12 +145,12 @@ test('we can exceed our retryCount and introspect attempts independently', async
 
   const { instance } = await setupServer(t, { retryDelay: customRetryLogic }, 500, 4, true)
 
-  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
+  const res = await request(`http://localhost:${instance.server.address().port}`)
 
   t.match(attemptCounter, [0, 1, 2, 3, 4])
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.statusCode, 205)
-  t.equal(res.body.toString(), 'Hello World 5!')
+  t.equal(await res.body.text(), 'Hello World 5!')
 })
 
 test('we handle our retries based on the retryCount', async (t) => {
@@ -177,10 +169,11 @@ test('we handle our retries based on the retryCount', async (t) => {
 
   const { instance } = await setupServer(t, { retryDelay: customRetryLogic, retriesCount: 2 }, 500)
 
-  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 5 })
+  await request(`http://localhost:${instance.server.address().port}`)
+  const res = await request(`http://localhost:${instance.server.address().port}`)
 
   t.match(attemptCounter, [0, 1])
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.statusCode, 205)
-  t.equal(res.body.toString(), 'Hello World 5!')
+  t.equal(await res.body.text(), 'Hello World 5!')
 })

@@ -2,9 +2,9 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const http = require('node:http')
-const get = require('simple-get').concat
 const split = require('split2')
 
 const target = http.createServer((req, res) => {
@@ -24,7 +24,7 @@ t.test('use a custom instance of \'undici\'', async t => {
 
   await new Promise((resolve, reject) => target.listen({ port: 0 }, err => err ? reject(err) : resolve()))
 
-  t.test('disableRequestLogging is set to true', t => {
+  t.test('disableRequestLogging is set to true', async t => {
     const logStream = split(JSON.parse)
     const instance = Fastify({
       logger: {
@@ -54,21 +54,16 @@ t.test('use a custom instance of \'undici\'', async t => {
       }
     })
 
-    instance.listen({ port: 0 }, (err) => {
-      t.error(err)
+    await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
-      get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-        t.error(err)
-        t.equal(res.headers['content-type'], 'text/plain')
-        t.equal(res.headers['x-my-header'], 'hello!')
-        t.equal(res.statusCode, 205)
-        t.equal(data.toString(), 'hello world')
-        t.end()
-      })
-    })
+    const result = await request(`http://localhost:${instance.server.address().port}`)
+    t.equal(result.headers['content-type'], 'text/plain')
+    t.equal(result.headers['x-my-header'], 'hello!')
+    t.equal(result.statusCode, 205)
+    t.equal(await result.body.text(), 'hello world')
   })
 
-  t.test('disableRequestLogging is set to false', t => {
+  t.test('disableRequestLogging is set to false', async t => {
     const logStream = split(JSON.parse)
     const instance = Fastify({
       logger: {
@@ -98,21 +93,16 @@ t.test('use a custom instance of \'undici\'', async t => {
       }
     })
 
-    instance.listen({ port: 0 }, (err) => {
-      t.error(err)
+    await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
-      get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-        t.error(err)
-        t.equal(res.headers['content-type'], 'text/plain')
-        t.equal(res.headers['x-my-header'], 'hello!')
-        t.equal(res.statusCode, 205)
-        t.equal(data.toString(), 'hello world')
-        t.end()
-      })
-    })
+    const result = await request(`http://localhost:${instance.server.address().port}`)
+    t.equal(result.headers['content-type'], 'text/plain')
+    t.equal(result.headers['x-my-header'], 'hello!')
+    t.equal(result.statusCode, 205)
+    t.equal(await result.body.text(), 'hello world')
   })
 
-  t.test('disableRequestLogging is not defined', t => {
+  t.test('disableRequestLogging is not defined', async t => {
     const logStream = split(JSON.parse)
     const instance = Fastify({
       logger: {
@@ -141,17 +131,12 @@ t.test('use a custom instance of \'undici\'', async t => {
       }
     })
 
-    instance.listen({ port: 0 }, (err) => {
-      t.error(err)
+    await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
-      get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-        t.error(err)
-        t.equal(res.headers['content-type'], 'text/plain')
-        t.equal(res.headers['x-my-header'], 'hello!')
-        t.equal(res.statusCode, 205)
-        t.equal(data.toString(), 'hello world')
-        t.end()
-      })
-    })
+    const result = await request(`http://localhost:${instance.server.address().port}`)
+    t.equal(result.headers['content-type'], 'text/plain')
+    t.equal(result.headers['x-my-header'], 'hello!')
+    t.equal(result.statusCode, 205)
+    t.equal(await result.body.text(), 'hello world')
   })
 })

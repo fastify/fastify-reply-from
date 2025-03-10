@@ -2,9 +2,9 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request, Agent } = require('undici')
 const From = require('..')
 const nock = require('nock')
-const got = require('got')
 
 test('hostname', async (t) => {
   const instance = Fastify()
@@ -34,12 +34,14 @@ test('hostname', async (t) => {
 
   await instance.listen({ port: 0 })
 
-  const res = await got.get(`http://localhost:${instance.server.address().port}/ip`, {
-    retry: 0
+  const res = await request(`http://localhost:${instance.server.address().port}/ip`, {
+    dispatcher: new Agent({
+      pipelining: 0
+    })
   })
   t.equal(res.statusCode, 200)
   t.equal(res.headers['content-type'], 'application/json')
-  t.equal(typeof JSON.parse(res.body).origin, 'string')
+  t.equal(typeof (await res.body.json()).origin, 'string')
 })
 
 test('hostname and port', async (t) => {
@@ -64,10 +66,12 @@ test('hostname and port', async (t) => {
 
   await instance.listen({ port: 0 })
 
-  const res = await got.get(`http://localhost:${instance.server.address().port}/ip`, {
-    retry: 0
+  const res = await request(`http://localhost:${instance.server.address().port}/ip`, {
+    dispatcher: new Agent({
+      pipelining: 0
+    })
   })
   t.equal(res.statusCode, 200)
   t.equal(res.headers['content-type'], 'application/json')
-  t.equal(typeof JSON.parse(res.body).origin, 'string')
+  t.equal(typeof (await res.body.json()).origin, 'string')
 })

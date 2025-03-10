@@ -2,30 +2,30 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const proxyquire = require('proxyquire')
 const http = require('node:http')
-const get = require('simple-get').concat
 const undici = require('undici')
 const { getUndiciOptions } = require('../lib/request')
 
 const instance = Fastify()
 
-t.plan(6)
-t.teardown(instance.close.bind(instance))
+t.test('undici options', async (t) => {
+  t.plan(2)
+  t.teardown(instance.close.bind(instance))
 
-const target = http.createServer((_req, res) => {
-  res.statusCode = 200
-  res.end('hello world')
-})
+  const target = http.createServer((_req, res) => {
+    res.statusCode = 200
+    res.end('hello world')
+  })
 
-instance.get('/', (_request, reply) => {
-  reply.from()
-})
+  instance.get('/', (_request, reply) => {
+    reply.from()
+  })
 
-t.teardown(target.close.bind(target))
+  t.teardown(target.close.bind(target))
 
-target.listen({ port: 0 }, err => {
-  t.error(err)
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const From = proxyquire('..', {
     './lib/request.js': proxyquire('../lib/request.js', {
@@ -38,15 +38,11 @@ target.listen({ port: 0 }, err => {
     undici: buildUndiciOptions()
   })
 
-  instance.listen({ port: 0 }, err => {
-    t.error(err)
+  await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
-    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-      t.error(err)
-      t.equal(res.statusCode, 200)
-      t.equal(data.toString(), 'hello world')
-    })
-  })
+  const result = await request(`http://localhost:${instance.server.address().port}`)
+  t.equal(result.statusCode, 200)
+  t.equal(await result.body.text(), 'hello world')
 })
 
 function undiciProxy () {}

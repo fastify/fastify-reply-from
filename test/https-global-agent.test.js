@@ -2,9 +2,10 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const https = require('node:https')
-const get = require('simple-get').concat
+const { Agent } = require('undici')
 
 const fs = require('node:fs')
 const path = require('node:path')
@@ -34,36 +35,26 @@ test('https global agent is used, but not destroyed', async (t) => {
   })
   t.teardown(target.close.bind(target))
 
-  const executionFlow = () => new Promise((resolve) => {
-    target.listen({ port: 0 }, (err) => {
-      t.error(err)
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
-      instance.register(From, {
-        base: `https://localhost:${target.address().port}`,
-        globalAgent: true,
-        http: {
-        }
-      })
+  instance.register(From, {
+    base: `https://localhost:${target.address().port}`,
+    globalAgent: true,
+    http: {
+    }
+  })
 
-      instance.listen({ port: 0 }, (err) => {
-        t.error(err)
+  await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
-        get(
-          {
-            url: `https://localhost:${instance.server.address().port}`,
-            rejectUnauthorized: false
-          },
-          (err, res) => {
-            t.error(err)
-            t.equal(res.statusCode, 200)
-            resolve()
-          }
-        )
-      })
+  const result = await request(`https://localhost:${instance.server.address().port}`, {
+    dispatcher: new Agent({
+      connect: {
+        rejectUnauthorized: false
+      }
     })
   })
 
-  await executionFlow()
+  t.equal(result.statusCode, 200)
 
   target.close()
 })

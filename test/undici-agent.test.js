@@ -2,30 +2,30 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
+const undici = require('undici')
 const proxyquire = require('proxyquire')
 const http = require('node:http')
-const get = require('simple-get').concat
-const undici = require('undici')
 const { getUndiciOptions } = require('../lib/request')
 
-t.plan(10)
+t.test('undici agent', async (t) => {
+  t.plan(6)
 
-const instance = Fastify()
-t.teardown(instance.close.bind(instance))
+  const instance = Fastify()
+  t.teardown(instance.close.bind(instance))
 
-const target = http.createServer((_req, res) => {
-  res.statusCode = 200
-  res.end('hello world')
-})
+  const target = http.createServer((_req, res) => {
+    res.statusCode = 200
+    res.end('hello world')
+  })
 
-instance.get('/', (_request, reply) => {
-  reply.from()
-})
+  instance.get('/', (_request, reply) => {
+    reply.from()
+  })
 
-t.teardown(target.close.bind(target))
+  t.teardown(target.close.bind(target))
 
-target.listen({ port: 0 }, err => {
-  t.error(err)
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
+
   let poolCreation = 0
 
   const From = proxyquire('..', {
@@ -48,23 +48,19 @@ target.listen({ port: 0 }, err => {
     undici: buildUndiciOptions()
   })
 
-  instance.listen({ port: 0 }, err => {
-    t.error(err)
+  await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
-    get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-      t.error(err)
-      t.equal(res.statusCode, 200)
-      t.equal(data.toString(), 'hello world')
-      t.equal(poolCreation, 1)
+  const result = await undici.request(`http://localhost:${instance.server.address().port}`)
 
-      get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-        t.error(err)
-        t.equal(res.statusCode, 200)
-        t.equal(data.toString(), 'hello world')
-        t.equal(poolCreation, 1)
-      })
-    })
-  })
+  t.equal(result.statusCode, 200)
+  t.equal(await result.body.text(), 'hello world')
+  t.equal(poolCreation, 1)
+
+  const result2 = await undici.request(`http://localhost:${instance.server.address().port}`)
+
+  t.equal(result2.statusCode, 200)
+  t.equal(await result2.body.text(), 'hello world')
+  t.equal(poolCreation, 1)
 })
 
 function buildUndiciOptions () {
