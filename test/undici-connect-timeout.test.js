@@ -40,7 +40,8 @@ t.test('undici connect timeout', async (t) => {
   try {
     await request(`http://localhost:${instance.server.address().port}/`, {
       dispatcher: new Agent({
-        pipelining: 0
+        pipelining: 0,
+        connectTimeout: 10
       })
     })
   } catch (err) {
