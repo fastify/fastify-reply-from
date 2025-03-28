@@ -83,6 +83,7 @@ declare namespace fastifyReplyFrom {
       base: string
     ) => string;
     method?: HTTPMethods;
+    timeout?: number;
   }
 
   interface Http2Options {

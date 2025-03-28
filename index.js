@@ -55,6 +55,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     opts = opts || {}
     const req = this.request.raw
     const method = opts.method || req.method
+    const timeout = opts.timeout
     const onResponse = opts.onResponse
     const rewriteHeaders = opts.rewriteHeaders || headersNoOp
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
@@ -169,7 +170,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       requestImpl = createRequestRetry(request, this, getDefaultDelay)
     }
 
-    requestImpl({ method, url, qs, headers: requestHeaders, body }, (err, res) => {
+    requestImpl({ method, url, qs, headers: requestHeaders, body, timeout }, (err, res) => {
       if (err) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {

@@ -70,6 +70,7 @@ async function main () {
   })
   server.get('/v3', (_request, reply) => {
     reply.from('/v3', {
+      timeout: 1000,
       body: { hello: 'world' },
       rewriteRequestHeaders (req, headers) {
         expectType<FastifyRequest<RequestGenericInterface, RawServerBase>>(req)
@@ -102,7 +103,7 @@ async function main () {
   instance.get('/http2', (_request, reply) => {
     reply.from('/', {
       method: 'POST',
-      // eslint-disable-next-line n/handle-callback-err -- Not a real request, not handling errors
+
       retryDelay: ({ req, res, getDefaultDelay }) => {
         const defaultDelay = getDefaultDelay()
         if (defaultDelay) return defaultDelay
