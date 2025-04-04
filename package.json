@@ -81,7 +81,7 @@
   "dependencies": {
     "@fastify/error": "^4.0.0",
     "end-of-stream": "^1.4.4",
-    "fast-content-type-parse": "^2.0.0",
+    "fast-content-type-parse": "^3.0.0",
     "fast-querystring": "^1.1.2",
     "fastify-plugin": "^5.0.1",
     "toad-cache": "^3.7.0",
