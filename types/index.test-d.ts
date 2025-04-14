@@ -1,8 +1,8 @@
 import fastify, { FastifyReply, FastifyRequest, RawReplyDefaultExpression, RawServerBase, RequestGenericInterface, RouteGenericInterface } from 'fastify'
 import * as http from 'node:http'
-import { IncomingHttpHeaders } from 'http2'
+import { IncomingHttpHeaders } from 'node:http2'
 import * as https from 'node:https'
-import { AddressInfo } from 'net'
+import { AddressInfo } from 'node:net'
 import { expectType } from 'tsd'
 import { Agent, Client, Dispatcher, Pool } from 'undici'
 import replyFrom, { FastifyReplyFromOptions } from '..'
@@ -70,6 +70,7 @@ async function main () {
   })
   server.get('/v3', (_request, reply) => {
     reply.from('/v3', {
+      timeout: 1000,
       body: { hello: 'world' },
       rewriteRequestHeaders (req, headers) {
         expectType<FastifyRequest<RequestGenericInterface, RawServerBase>>(req)

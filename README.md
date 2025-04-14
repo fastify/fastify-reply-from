@@ -477,6 +477,10 @@ By default: 0 (disabled)
 Override the `'Content-Type'` header of the forwarded request, if we are
 already overriding the [`body`](#body).
 
+#### `timeout`
+
+Set a specific timeout for the request. Override options `http.requestOptions.timeout`, `http2.requestOptions.timeout`, `undici.headersTimeout` and `undici.bodyTimeout` from the plugin config.
+
 ### Combining with [@fastify/formbody](https://github.com/fastify/fastify-formbody)
 
 `formbody` expects the body to be returned as a string and not an object.
