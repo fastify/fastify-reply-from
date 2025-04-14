@@ -2,7 +2,7 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
-const { request } = require('undici')
+const { request, Agent } = require('undici')
 const From = require('..')
 
 test('http -> http2', async (t) => {
@@ -36,7 +36,7 @@ test('http -> http2', async (t) => {
 
   await instance.listen({ port: 0 })
 
-  const result = await request(`http://localhost:${instance.server.address().port}`)
+  const result = await request(`http://localhost:${instance.server.address().port}`, { dispatcher: new Agent({ pipelining: 0 }) })
 
   t.equal(result.statusCode, 404)
   t.equal(result.headers['x-my-header'], 'hello!')

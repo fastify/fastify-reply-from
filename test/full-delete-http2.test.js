@@ -2,7 +2,7 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
-const { request } = require('undici')
+const { request, Agent } = require('undici')
 const From = require('..')
 
 test('http -> http2', async function (t) {
@@ -40,7 +40,8 @@ test('http -> http2', async function (t) {
     `http://localhost:${instance.server.address().port}`,
     {
       method: 'DELETE',
-      responseType: 'json'
+      responseType: 'json',
+      dispatcher: new Agent({ pipelining: 0 })
     }
   )
   t.equal(statusCode, 200)
