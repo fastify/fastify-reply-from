@@ -171,7 +171,7 @@ test('http2 sse removes request and session timeout test', async (t) => {
   t.teardown(instance.close.bind(instance))
   t.teardown(target.close.bind(target))
 
-  const { statusCode } = await request(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
+  const { statusCode } = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
   t.equal(statusCode, 200)
   instance.close()
   target.close()

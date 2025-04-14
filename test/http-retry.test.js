@@ -1,7 +1,7 @@
 'use strict'
 
 const Fastify = require('fastify')
-const { request } = require('undici')
+const { request, Agent } = require('undici')
 const From = require('..')
 const { test } = require('tap')
 
@@ -42,7 +42,7 @@ test('Will retry', async function (t) {
   await instance.listen({ port: 0 })
   t.teardown(instance.close.bind(instance))
 
-  const { statusCode } = await request(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
+  const { statusCode } = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
   t.equal(statusCode, 200)
 })
 
@@ -69,7 +69,7 @@ test('will not retry', async function (t) {
   await instance.listen({ port: 0 })
   t.teardown(instance.close.bind(instance))
 
-  const result = await request(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
+  const result = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
 
   t.equal(result.statusCode, 500)
 })
@@ -97,6 +97,6 @@ test('will not retry unsupported method', async function (t) {
   await instance.listen({ port: 0 })
   t.teardown(instance.close.bind(instance))
 
-  const result = await request(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
+  const result = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
   t.equal(result.statusCode, 500)
 })
