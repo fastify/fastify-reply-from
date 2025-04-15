@@ -2,8 +2,8 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
-const got = require('got')
 
 test('http -> http2 crash multiple times', async (t) => {
   const instance = Fastify()
@@ -23,29 +23,24 @@ test('http -> http2 crash multiple times', async (t) => {
   })
 
   await instance.listen({ port: 0 })
+  let target = setupTarget()
+  await target.listen({ port: 3128 })
+  await request(`http://localhost:${instance.server.address().port}`)
+  await target.close()
+  target = setupTarget()
+  await target.listen({ port: 3128 })
+  await request(`http://localhost:${instance.server.address().port}`)
+  await target.close()
+  const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  try {
-    let target = setupTarget()
-    await target.listen({ port: 3128 })
-    await got(`http://localhost:${instance.server.address().port}`)
-    await target.close()
-    target = setupTarget()
-    await target.listen({ port: 3128 })
-    await got(`http://localhost:${instance.server.address().port}`)
-    await target.close()
-    await got(`http://localhost:${instance.server.address().port}`)
-  } catch (err) {
-    t.equal(err.response.statusCode, 503)
-    t.match(err.response.headers['content-type'], /application\/json/)
-    t.same(JSON.parse(err.response.body), {
-      statusCode: 503,
-      code: 'FST_REPLY_FROM_SERVICE_UNAVAILABLE',
-      error: 'Service Unavailable',
-      message: 'Service Unavailable'
-    })
-    return
-  }
-  t.fail()
+  t.equal(result.statusCode, 503)
+  t.match(result.headers['content-type'], /application\/json/)
+  t.same(await result.body.json(), {
+    statusCode: 503,
+    code: 'FST_REPLY_FROM_SERVICE_UNAVAILABLE',
+    error: 'Service Unavailable',
+    message: 'Service Unavailable'
+  })
 
   function setupTarget () {
     const target = Fastify({

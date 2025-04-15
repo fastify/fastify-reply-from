@@ -2,8 +2,8 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request, Agent } = require('undici')
 const From = require('..')
-const got = require('got')
 const FakeTimers = require('@sinonjs/fake-timers')
 
 test('http2 request timeout', async (t) => {
@@ -30,24 +30,19 @@ test('http2 request timeout', async (t) => {
 
   await instance.listen({ port: 0 })
 
-  try {
-    await got.get(`http://localhost:${instance.server.address().port}/`, {
-      retry: 0
+  const result = await request(`http://localhost:${instance.server.address().port}/`, {
+    dispatcher: new Agent({
+      pipelining: 0
     })
-  } catch (err) {
-    t.equal(err.response.statusCode, 504)
-    t.match(err.response.headers['content-type'], /application\/json/)
-    t.same(JSON.parse(err.response.body), {
-      statusCode: 504,
-      code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
-      error: 'Gateway Timeout',
-      message: 'Gateway Timeout'
-    })
-
-    return
-  }
-
-  t.fail()
+  })
+  t.equal(result.statusCode, 504)
+  t.match(result.headers['content-type'], /application\/json/)
+  t.same(await result.body.json(), {
+    statusCode: 504,
+    code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
+    error: 'Gateway Timeout',
+    message: 'Gateway Timeout'
+  })
 })
 
 test('http2 request with specific timeout', async (t) => {
@@ -87,24 +82,26 @@ test('http2 request with specific timeout', async (t) => {
   })
 
   await instance.listen({ port: 0 })
-  const { statusCode } = await got.get(`http://localhost:${instance.server.address().port}/success`, { retry: 0 })
-  t.equal(statusCode, 200)
-
-  try {
-    await got.get(`http://localhost:${instance.server.address().port}/fail`, { retry: 0 })
-  } catch (err) {
-    t.equal(err.response.statusCode, 504)
-    t.match(err.response.headers['content-type'], /application\/json/)
-    t.same(JSON.parse(err.response.body), {
-      statusCode: 504,
-      code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
-      error: 'Gateway Timeout',
-      message: 'Gateway Timeout'
+  const result = await request(`http://localhost:${instance.server.address().port}/success`, {
+    dispatcher: new Agent({
+      pipelining: 0
     })
-    return
-  }
+  })
+  t.equal(result.statusCode, 200)
 
-  t.fail()
+  const result2 = await request(`http://localhost:${instance.server.address().port}/fail`, {
+    dispatcher: new Agent({
+      pipelining: 0
+    })
+  })
+  t.equal(result2.statusCode, 504)
+  t.match(result2.headers['content-type'], /application\/json/)
+  t.same(await result2.body.json(), {
+    statusCode: 504,
+    code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
+    error: 'Gateway Timeout',
+    message: 'Gateway Timeout'
+  })
 })
 
 test('http2 session timeout', async (t) => {
@@ -131,24 +128,20 @@ test('http2 session timeout', async (t) => {
 
   await instance.listen({ port: 0 })
 
-  try {
-    await got.get(`http://localhost:${instance.server.address().port}/`, {
-      retry: 0
+  const result = await request(`http://localhost:${instance.server.address().port}/`, {
+    dispatcher: new Agent({
+      pipelining: 0
     })
-  } catch (err) {
-    t.equal(err.response.statusCode, 504)
-    t.match(err.response.headers['content-type'], /application\/json/)
-    t.same(JSON.parse(err.response.body), {
-      statusCode: 504,
-      code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
-      error: 'Gateway Timeout',
-      message: 'Gateway Timeout'
-    })
+  })
 
-    return
-  }
-
-  t.fail()
+  t.equal(result.statusCode, 504)
+  t.match(result.headers['content-type'], /application\/json/)
+  t.same(await result.body.json(), {
+    statusCode: 504,
+    code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
+    error: 'Gateway Timeout',
+    message: 'Gateway Timeout'
+  })
 })
 
 test('http2 sse removes request and session timeout test', async (t) => {
@@ -178,7 +171,7 @@ test('http2 sse removes request and session timeout test', async (t) => {
   t.teardown(instance.close.bind(instance))
   t.teardown(target.close.bind(target))
 
-  const { statusCode } = await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
+  const { statusCode } = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
   t.equal(statusCode, 200)
   instance.close()
   target.close()

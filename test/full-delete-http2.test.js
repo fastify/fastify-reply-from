@@ -2,8 +2,8 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request, Agent } = require('undici')
 const From = require('..')
-const got = require('got')
 
 test('http -> http2', async function (t) {
   const instance = Fastify()
@@ -36,17 +36,18 @@ test('http -> http2', async function (t) {
 
   await instance.listen({ port: 0 })
 
-  const { headers, body, statusCode } = await got(
+  const { headers, body, statusCode } = await request(
     `http://localhost:${instance.server.address().port}`,
     {
       method: 'DELETE',
-      responseType: 'json'
+      responseType: 'json',
+      dispatcher: new Agent({ pipelining: 0 })
     }
   )
   t.equal(statusCode, 200)
   t.equal(headers['x-my-header'], 'hello!')
   t.match(headers['content-type'], /application\/json/)
-  t.same(body, { hello: 'world' })
+  t.same(await body.json(), { hello: 'world' })
   instance.close()
   target.close()
 })

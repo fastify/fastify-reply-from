@@ -2,9 +2,9 @@
 
 const { test } = require('tap')
 const Fastify = require('fastify')
+const { request } = require('undici')
 const From = require('..')
 const http = require('node:http')
-const got = require('got')
 
 function createTargetServer (withRetryAfterHeader, stopAfter = 1) {
   let requestCount = 0
@@ -26,7 +26,7 @@ function createTargetServer (withRetryAfterHeader, stopAfter = 1) {
 test('Should retry on 503 HTTP error', async function (t) {
   t.plan(3)
   const target = createTargetServer()
-  await target.listen({ port: 0 })
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
   t.teardown(target.close.bind(target))
 
   const instance = Fastify()
@@ -42,16 +42,16 @@ test('Should retry on 503 HTTP error', async function (t) {
   t.teardown(instance.close.bind(instance))
   await instance.listen({ port: 0 })
 
-  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
+  const res = await request(`http://localhost:${instance.server.address().port}`)
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.statusCode, 205)
-  t.equal(res.body.toString(), 'Hello World 2!')
+  t.equal(await res.body.text(), 'Hello World 2!')
 })
 
 test('Should retry on 503 HTTP error with Retry-After response header', async function (t) {
   t.plan(3)
   const target = createTargetServer(true)
-  await target.listen({ port: 0 })
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
   t.teardown(target.close.bind(target))
 
   const instance = Fastify()
@@ -67,16 +67,16 @@ test('Should retry on 503 HTTP error with Retry-After response header', async fu
   t.teardown(instance.close.bind(instance))
   await instance.listen({ port: 0 })
 
-  const res = await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
+  const res = await request(`http://localhost:${instance.server.address().port}`)
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.statusCode, 205)
-  t.equal(res.body.toString(), 'Hello World 2!')
+  t.equal(await res.body.text(), 'Hello World 2!')
 })
 
 test('Should abort if server is always returning 503', async function (t) {
   t.plan(2)
   const target = createTargetServer(true, Number.MAX_SAFE_INTEGER)
-  await target.listen({ port: 0 })
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
   t.teardown(target.close.bind(target))
 
   const instance = Fastify()
@@ -91,11 +91,12 @@ test('Should abort if server is always returning 503', async function (t) {
 
   t.teardown(instance.close.bind(instance))
   await instance.listen({ port: 0 })
-  try {
-    await got.get(`http://localhost:${instance.server.address().port}`, { retry: 0 })
-    t.fail()
-  } catch (err) {
-    t.equal(err.response.statusCode, 503)
-    t.equal(err.response.body.toString(), 'This Service is Unavailable')
-  }
+
+  await request(`http://localhost:${instance.server.address().port}`)
+  await request(`http://localhost:${instance.server.address().port}`)
+  await request(`http://localhost:${instance.server.address().port}`)
+  await request(`http://localhost:${instance.server.address().port}`)
+  const result = await request(`http://localhost:${instance.server.address().port}`)
+  t.equal(result.statusCode, 503)
+  t.equal(await result.body.text(), 'This Service is Unavailable')
 })

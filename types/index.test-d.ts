@@ -103,7 +103,6 @@ async function main () {
   instance.get('/http2', (_request, reply) => {
     reply.from('/', {
       method: 'POST',
-
       retryDelay: ({ req, res, getDefaultDelay }) => {
         const defaultDelay = getDefaultDelay()
         if (defaultDelay) return defaultDelay

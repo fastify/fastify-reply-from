@@ -1,13 +1,13 @@
 'use strict'
 
 const { test } = require('tap')
-const undici = require('undici')
 const Fastify = require('fastify')
+const { request, Pool } = require('undici')
 const From = require('..')
 
 class CustomDispatcher {
   constructor (...args) {
-    this._dispatcher = new undici.Pool(...args)
+    this._dispatcher = new Pool(...args)
   }
 
   request (...args) {
@@ -62,7 +62,7 @@ test('use a custom instance of \'undici\'', async t => {
     await instance.close()
   })
 
-  const res = await undici.request(`http://localhost:${instance.server.address().port}`)
+  const res = await request(`http://localhost:${instance.server.address().port}`)
 
   t.equal(res.headers['content-type'], 'text/plain')
   t.equal(res.headers['x-my-header'], 'hello!')

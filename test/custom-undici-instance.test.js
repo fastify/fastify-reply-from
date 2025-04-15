@@ -2,9 +2,8 @@
 
 const t = require('tap')
 const Fastify = require('fastify')
-const undici = require('undici')
+const { Pool, request, Client } = require('undici')
 const http = require('node:http')
-const get = require('simple-get').concat
 const From = require('..')
 
 const target = http.createServer((req, res) => {
@@ -23,55 +22,47 @@ t.test('use a custom instance of \'undici\'', async t => {
 
   await new Promise((resolve, reject) => target.listen({ port: 0 }, err => err ? reject(err) : resolve()))
 
-  t.test('custom Pool', t => {
+  t.test('custom Pool', async t => {
     const instance = Fastify()
     t.teardown(instance.close.bind(instance))
     instance.register(From, {
       base: `http://localhost:${target.address().port}`,
-      undici: new undici.Pool(`http://localhost:${target.address().port}`)
+      undici: new Pool(`http://localhost:${target.address().port}`)
     })
 
     instance.get('/', (_request, reply) => {
       reply.from()
     })
 
-    instance.listen({ port: 0 }, (err) => {
-      t.error(err)
+    await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
-      get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-        t.error(err)
-        t.equal(res.headers['content-type'], 'text/plain')
-        t.equal(res.headers['x-my-header'], 'hello!')
-        t.equal(res.statusCode, 205)
-        t.equal(data.toString(), 'hello world')
-        t.end()
-      })
-    })
+    const result = await request(`http://localhost:${instance.server.address().port}`)
+
+    t.equal(result.headers['content-type'], 'text/plain')
+    t.equal(result.headers['x-my-header'], 'hello!')
+    t.equal(result.statusCode, 205)
+    t.equal(await result.body.text(), 'hello world')
   })
 
-  t.test('custom Client', t => {
+  t.test('custom Client', async t => {
     const instance = Fastify()
     t.teardown(instance.close.bind(instance))
     instance.register(From, {
       base: `http://localhost:${target.address().port}`,
-      undici: new undici.Client(`http://localhost:${target.address().port}`)
+      undici: new Client(`http://localhost:${target.address().port}`)
     })
 
     instance.get('/', (_request, reply) => {
       reply.from()
     })
 
-    instance.listen({ port: 0 }, (err) => {
-      t.error(err)
+    await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
-      get(`http://localhost:${instance.server.address().port}`, (err, res, data) => {
-        t.error(err)
-        t.equal(res.headers['content-type'], 'text/plain')
-        t.equal(res.headers['x-my-header'], 'hello!')
-        t.equal(res.statusCode, 205)
-        t.equal(data.toString(), 'hello world')
-        t.end()
-      })
-    })
+    const result = await request(`http://localhost:${instance.server.address().port}`)
+
+    t.equal(result.headers['content-type'], 'text/plain')
+    t.equal(result.headers['x-my-header'], 'hello!')
+    t.equal(result.statusCode, 205)
+    t.equal(await result.body.text(), 'hello world')
   })
 })

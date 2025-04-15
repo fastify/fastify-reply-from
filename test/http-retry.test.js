@@ -1,8 +1,8 @@
 'use strict'
 
 const Fastify = require('fastify')
+const { request, Agent } = require('undici')
 const From = require('..')
-const got = require('got')
 const { test } = require('tap')
 
 let retryNum = 1
@@ -42,7 +42,7 @@ test('Will retry', async function (t) {
   await instance.listen({ port: 0 })
   t.teardown(instance.close.bind(instance))
 
-  const { statusCode } = await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
+  const { statusCode } = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
   t.equal(statusCode, 200)
 })
 
@@ -69,18 +69,15 @@ test('will not retry', async function (t) {
   await instance.listen({ port: 0 })
   t.teardown(instance.close.bind(instance))
 
-  try {
-    await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
-    t.fail()
-  } catch (err) {
-    t.equal(err.response.statusCode, 500)
-  }
+  const result = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
+
+  t.equal(result.statusCode, 500)
 })
 
 test('will not retry unsupported method', async function (t) {
   t.teardown(() => { retryNum = 1 })
 
-  await target.listen({ port: 0 })
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
   t.teardown(target.close.bind(target))
 
   const instance = Fastify()
@@ -100,10 +97,6 @@ test('will not retry unsupported method', async function (t) {
   await instance.listen({ port: 0 })
   t.teardown(instance.close.bind(instance))
 
-  try {
-    await got.get(`http://localhost:${instance.server.address().port}/`, { retry: 0 })
-    t.fail()
-  } catch (err) {
-    t.equal(err.response.statusCode, 500)
-  }
+  const result = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
+  t.equal(result.statusCode, 500)
 })
