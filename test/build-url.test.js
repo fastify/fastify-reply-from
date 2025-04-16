@@ -64,13 +64,15 @@ const errorInputs = [
   { source: 'exposed-extra', base: 'http://localhost/exposed' }
 ]
 
-test('should throw when trying to override base', (t) => {
+test('should throw when trying to override base', async (t) => {
   t.plan(errorInputs.length)
 
-  errorInputs.forEach(({ source, base }) => {
-    t.test(source, (t) => {
+  const promises = errorInputs.map(({ source, base }) => {
+    return t.test(source, (t) => {
       t.plan(1)
-      t.throws(() => buildURL(source, base))
+      t.assert.throws(() => buildURL(source, base))
     })
   })
+
+  await Promise.all(promises)
 })

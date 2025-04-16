@@ -26,7 +26,7 @@ t.test('no stream body option', async (t) => {
       }
     })
 
-    t.throws(() => {
+    t.assert.throws(() => {
       reply.from(`http://localhost:${target.address().port}`, {
         body
       })
