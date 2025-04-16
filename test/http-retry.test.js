@@ -20,7 +20,7 @@ const target = require('node:http').createServer(function (req, res) {
 })
 
 test('Will retry', async function (t) {
-  t.teardown(() => { retryNum = 1 })
+  t.after(() => { retryNum = 1 })
 
   await target.listen({ port: 0 })
   t.after(() => target.close())
@@ -47,7 +47,7 @@ test('Will retry', async function (t) {
 })
 
 test('will not retry', async function (t) {
-  t.teardown(() => { retryNum = 1 })
+  t.after(() => { retryNum = 1 })
 
   await target.listen({ port: 0 })
   t.after(() => target.close())
@@ -75,7 +75,7 @@ test('will not retry', async function (t) {
 })
 
 test('will not retry unsupported method', async function (t) {
-  t.teardown(() => { retryNum = 1 })
+  t.after(() => { retryNum = 1 })
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
   t.after(() => target.close())

@@ -22,7 +22,7 @@ instanceWithoutBase.register(From, {
 t.test('getUpstream http', async (t) => {
   t.plan(8)
   t.after(() => instance.close())
-  t.teardown(instanceWithoutBase.close.bind(instanceWithoutBase))
+  t.after(instanceWithoutBase.close.bind(instanceWithoutBase))
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')

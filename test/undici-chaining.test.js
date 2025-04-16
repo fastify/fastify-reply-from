@@ -13,9 +13,9 @@ t.test('undici chaining', async (t) => {
   const instance = Fastify()
   t.after(() => instance.close())
   const proxy1 = Fastify()
-  t.teardown(proxy1.close.bind(proxy1))
+  t.after(() => proxy1.close())
   const proxy2 = Fastify()
-  t.teardown(proxy2.close.bind(proxy2))
+  t.after(() => proxy2.close())
 
   instance.get('/', (_request, reply) => {
     reply.header('content-disposition', header).send('OK')

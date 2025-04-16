@@ -13,13 +13,11 @@ async function createTarget (i) {
     return `Hello from target ${i}`
   })
 
-  t.teardown(() => target.close())
+  t.after(() => target.close())
   await target.listen({ port: 3000 + i })
 }
 
-t.plan(4)
-
-async function run () {
+async function run (t) {
   await Promise.all([
     createTarget(1),
     createTarget(2)
@@ -45,7 +43,7 @@ async function run () {
     })
   })
 
-  t.teardown(() => instance.close())
+  t.after(() => instance.close())
   await instance.listen({ port: 3000 })
 
   const res1 = await instance.inject({
@@ -69,4 +67,7 @@ async function run () {
   t.assert.deepEqual(res2.body, 'Hello from target 2')
 }
 
-run()
+t.test('get-upstream-cache', async (t) => {
+  t.plan(4)
+  await run(t)
+})

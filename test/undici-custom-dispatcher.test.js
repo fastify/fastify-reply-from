@@ -41,7 +41,7 @@ test('use a custom instance of \'undici\'', async t => {
   })
 
   await target.listen({ port: 3001 })
-  t.teardown(async () => {
+  t.after(async () => {
     await target.close()
   })
 
@@ -58,7 +58,7 @@ test('use a custom instance of \'undici\'', async t => {
   })
 
   await instance.listen({ port: 0 })
-  t.teardown(async () => {
+  t.after(async () => {
     await instance.close()
   })
 
