@@ -1,6 +1,7 @@
 'use strict'
 
 const t = require('node:test')
+const assert = require('node:assert')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -8,10 +9,10 @@ const http = require('node:http')
 const split = require('split2')
 
 const target = http.createServer((req, res) => {
-  t.assert.ok('request proxied')
-  t.assert.deepEqual(req.method, 'GET')
-  t.assert.deepEqual(req.url, '/')
-  t.assert.deepEqual(req.headers.connection, 'keep-alive')
+  assert.ok('request proxied')
+  assert.deepEqual(req.method, 'GET')
+  assert.deepEqual(req.url, '/')
+  assert.deepEqual(req.headers.connection, 'keep-alive')
   res.statusCode = 205
   res.setHeader('Content-Type', 'text/plain')
   res.setHeader('x-my-header', 'hello!')
@@ -24,7 +25,7 @@ t.test('use a custom instance of \'undici\'', async t => {
 
   await new Promise((resolve, reject) => target.listen({ port: 0 }, err => err ? reject(err) : resolve()))
 
-  t.test('disableRequestLogging is set to true', async t => {
+  await t.test('disableRequestLogging is set to true', async t => {
     const logStream = split(JSON.parse)
     const instance = Fastify({
       logger: {
@@ -63,7 +64,7 @@ t.test('use a custom instance of \'undici\'', async t => {
     t.assert.deepEqual(await result.body.text(), 'hello world')
   })
 
-  t.test('disableRequestLogging is set to false', async t => {
+  await t.test('disableRequestLogging is set to false', async t => {
     const logStream = split(JSON.parse)
     const instance = Fastify({
       logger: {
@@ -102,7 +103,7 @@ t.test('use a custom instance of \'undici\'', async t => {
     t.assert.deepEqual(await result.body.text(), 'hello world')
   })
 
-  t.test('disableRequestLogging is not defined', async t => {
+  await t.test('disableRequestLogging is not defined', async t => {
     const logStream = split(JSON.parse)
     const instance = Fastify({
       logger: {
