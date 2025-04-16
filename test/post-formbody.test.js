@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -27,7 +27,7 @@ t.test('post-formbody', async (t) => {
     })
     req.on('end', () => {
       const str = data.toString()
-      t.same(JSON.parse(data), { some: 'info', another: 'detail' })
+      t.assert.deepStrictEqual(JSON.parse(data), { some: 'info', another: 'detail' })
       res.statusCode = 200
       res.setHeader('content-type', 'application/x-www-form-urlencoded')
       res.end(str)
@@ -50,5 +50,5 @@ t.test('post-formbody', async (t) => {
   })
 
   t.assert.deepEqual(result.headers['content-type'], 'application/x-www-form-urlencoded')
-  t.same(await result.body.json(), { some: 'info', another: 'detail' })
+  t.assert.deepStrictEqual(await result.body.json(), { some: 'info', another: 'detail' })
 })

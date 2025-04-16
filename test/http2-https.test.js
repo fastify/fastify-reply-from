@@ -1,7 +1,7 @@
 'use strict'
 
 const h2url = require('h2url')
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
 const From = require('..')
@@ -55,8 +55,8 @@ async function run () {
 
     t.assert.deepEqual(headers[':status'], 404)
     t.assert.deepEqual(headers['x-my-header'], 'hello!')
-    t.match(headers['content-type'], /application\/json/)
-    t.same(JSON.parse(body), { hello: 'world' })
+    t.assert.match(headers['content-type'], /application\/json/)
+    t.assert.deepStrictEqual(JSON.parse(body), { hello: 'world' })
   })
 
   t.test('https -> https', async (t) => {
@@ -70,8 +70,8 @@ async function run () {
 
     t.assert.deepEqual(result.statusCode, 404)
     t.assert.deepEqual(result.headers['x-my-header'], 'hello!')
-    t.match(result.headers['content-type'], /application\/json/)
-    t.same(await result.body.json(), { hello: 'world' })
+    t.assert.match(result.headers['content-type'], /application\/json/)
+    t.assert.deepStrictEqual(await result.body.json(), { hello: 'world' })
   })
 }
 

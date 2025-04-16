@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -23,14 +23,14 @@ t.test('padded body', async (t) => {
     t.assert.ok('request proxied')
     t.assert.deepEqual(req.method, 'POST')
     t.assert.deepEqual(req.headers['content-type'], 'application/json')
-    t.same(req.headers['content-length'], parsedLength)
+    t.assert.deepStrictEqual(req.headers['content-length'], parsedLength)
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
       data += d
     })
     req.on('end', () => {
-      t.same(JSON.parse(data), { hello: 'world' })
+      t.assert.deepStrictEqual(JSON.parse(data), { hello: 'world' })
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
       res.end(JSON.stringify({ something: 'else' }))
@@ -55,5 +55,5 @@ t.test('padded body', async (t) => {
     body: bodyString
   })
 
-  t.same(await result.body.json(), { something: 'else' })
+  t.assert.deepStrictEqual(await result.body.json(), { something: 'else' })
 })

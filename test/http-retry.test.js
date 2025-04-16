@@ -3,7 +3,7 @@
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
 const From = require('..')
-const { test } = require('tap')
+const { test } = require('node:test')
 
 let retryNum = 1
 

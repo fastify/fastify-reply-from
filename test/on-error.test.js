@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
 const From = require('..')
@@ -32,7 +32,7 @@ t.test('on-error', async (t) => {
     reply.from(`http://localhost:${target.server.address().port}/`,
       {
         onError: (reply, { error }) => {
-          t.same(error, {
+          t.assert.deepStrictEqual(error, {
             statusCode: 504,
             name: 'FastifyError',
             code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
@@ -52,8 +52,8 @@ t.test('on-error', async (t) => {
   })
 
   t.assert.deepEqual(result.statusCode, 504)
-  t.match(result.headers['content-type'], /application\/json/)
-  t.same(await result.body.json(), {
+  t.assert.match(result.headers['content-type'], /application\/json/)
+  t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 504,
     code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
     error: 'Gateway Timeout',

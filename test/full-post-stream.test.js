@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -29,7 +29,7 @@ t.test('full post stream', async (t) => {
       data += d
     })
     req.on('end', () => {
-      t.same(JSON.parse(data), { hello: 'world' })
+      t.assert.deepStrictEqual(JSON.parse(data), { hello: 'world' })
       res.statusCode = 200
       res.setHeader('content-type', 'application/octet-stream')
       res.end(JSON.stringify({ something: 'else' }))
@@ -56,5 +56,5 @@ t.test('full post stream', async (t) => {
     })
   })
 
-  t.same(await result.body.json(), { something: 'else' })
+  t.assert.deepStrictEqual(await result.body.json(), { something: 'else' })
 })

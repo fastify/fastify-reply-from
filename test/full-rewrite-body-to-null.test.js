@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -53,5 +53,5 @@ t.test('full rewrite body to null', async (t) => {
     body: JSON.stringify({ hello: 'world' }),
   })
 
-  t.same(await result.body.json(), { hello: 'fastify' })
+  t.assert.deepStrictEqual(await result.body.json(), { hello: 'fastify' })
 })

@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const fastifyReplyFrom = require('..')
@@ -25,7 +25,7 @@ t.test('full rewrite body content-type', async (t) => {
       data.push(d)
     })
     req.on('end', () => {
-      t.same(Buffer.concat(data), msgPackPayload)
+      t.assert.deepStrictEqual(Buffer.concat(data), msgPackPayload)
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
       res.end(JSON.stringify({ something: 'else' }))
@@ -33,7 +33,7 @@ t.test('full rewrite body content-type', async (t) => {
   })
 
   instance.post('/', (request, reply) => {
-    t.same(request.body, payload)
+    t.assert.deepStrictEqual(request.body, payload)
     reply.from(`http://localhost:${target.address().port}`, {
       contentType: 'application/msgpack',
       body: msgPackPayload
@@ -54,5 +54,5 @@ t.test('full rewrite body content-type', async (t) => {
     body: JSON.stringify({ hello: 'world' }),
   })
 
-  t.same(await result.body.json(), { something: 'else' })
+  t.assert.deepStrictEqual(await result.body.json(), { something: 'else' })
 })

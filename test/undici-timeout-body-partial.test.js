@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const http = require('node:http')
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')

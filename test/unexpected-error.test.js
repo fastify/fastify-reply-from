@@ -1,6 +1,6 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const proxyquire = require('proxyquire')
@@ -32,8 +32,8 @@ test('unexpected error renders 500', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
   t.assert.deepEqual(result.statusCode, 500)
-  t.match(result.headers['content-type'], /application\/json/)
-  t.same(await result.body.json(), {
+  t.assert.match(result.headers['content-type'], /application\/json/)
+  t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 500,
     code: 'FST_REPLY_FROM_INTERNAL_SERVER_ERROR',
     error: 'Internal Server Error',

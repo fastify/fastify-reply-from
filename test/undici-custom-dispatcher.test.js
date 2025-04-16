@@ -1,6 +1,6 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const { request, Pool } = require('undici')
 const From = require('..')

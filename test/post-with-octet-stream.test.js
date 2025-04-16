@@ -33,7 +33,7 @@ test('with explicitly set content-type application/octet-stream', async t => {
     })
     req.on('end', () => {
       const str = data.toString()
-      t.same(JSON.parse(data), { some: 'info', another: 'detail' })
+      t.assert.deepStrictEqual(JSON.parse(data), { some: 'info', another: 'detail' })
       res.statusCode = 200
       res.setHeader('content-type', 'application/octet-stream')
       res.end(str)
@@ -57,5 +57,5 @@ test('with explicitly set content-type application/octet-stream', async t => {
   })
 
   t.assert.deepEqual(result.headers['content-type'], 'application/octet-stream')
-  t.same(await result.body.json(), { some: 'info', another: 'detail' })
+  t.assert.deepStrictEqual(await result.body.json(), { some: 'info', another: 'detail' })
 })

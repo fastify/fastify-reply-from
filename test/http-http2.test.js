@@ -1,6 +1,6 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
 const From = require('..')
@@ -40,8 +40,8 @@ test('http -> http2', async (t) => {
 
   t.assert.deepEqual(result.statusCode, 404)
   t.assert.deepEqual(result.headers['x-my-header'], 'hello!')
-  t.match(result.headers['content-type'], /application\/json/)
-  t.same(await result.body.json(), { hello: 'world' })
+  t.assert.match(result.headers['content-type'], /application\/json/)
+  t.assert.deepStrictEqual(await result.body.json(), { hello: 'world' })
   instance.close()
   target.close()
 })

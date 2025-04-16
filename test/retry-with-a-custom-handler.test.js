@@ -1,6 +1,6 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
 const From = require('..')
@@ -147,7 +147,7 @@ test('we can exceed our retryCount and introspect attempts independently', async
 
   const res = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.match(attemptCounter, [0, 1, 2, 3, 4])
+  t.assert.match(attemptCounter, [0, 1, 2, 3, 4])
   t.assert.deepEqual(res.headers['content-type'], 'text/plain')
   t.assert.deepEqual(res.statusCode, 205)
   t.assert.deepEqual(await res.body.text(), 'Hello World 5!')
@@ -172,7 +172,7 @@ test('we handle our retries based on the retryCount', async (t) => {
   await request(`http://localhost:${instance.server.address().port}`)
   const res = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.match(attemptCounter, [0, 1])
+  t.assert.match(attemptCounter, [0, 1])
   t.assert.deepEqual(res.headers['content-type'], 'text/plain')
   t.assert.deepEqual(res.statusCode, 205)
   t.assert.deepEqual(await res.body.text(), 'Hello World 5!')

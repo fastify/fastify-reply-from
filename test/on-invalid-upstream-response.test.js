@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -36,7 +36,7 @@ t.test('on-invalid-upstream-response', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
   t.assert.deepEqual(result.statusCode, 502)
-  t.same(await result.body.json(), {
+  t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 502,
     code: 'FST_REPLY_FROM_BAD_GATEWAY',
     error: 'Bad Gateway',

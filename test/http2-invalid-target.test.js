@@ -1,6 +1,6 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -23,8 +23,8 @@ test('http2 invalid target', async (t) => {
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
   t.assert.deepEqual(result.statusCode, 503)
-  t.match(result.headers['content-type'], /application\/json/)
-  t.same(await result.body.json(), {
+  t.assert.match(result.headers['content-type'], /application\/json/)
+  t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 503,
     code: 'FST_REPLY_FROM_SERVICE_UNAVAILABLE',
     error: 'Service Unavailable',

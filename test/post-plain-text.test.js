@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -24,7 +24,7 @@ t.test('post plain text', async (t) => {
     })
     req.on('end', () => {
       const str = data.toString()
-      t.same(str, 'this is plain text')
+      t.assert.deepStrictEqual(str, 'this is plain text')
       res.statusCode = 200
       res.setHeader('content-type', 'text/plain')
       res.end(str)
@@ -48,5 +48,5 @@ t.test('post plain text', async (t) => {
   })
 
   t.assert.deepEqual(result.headers['content-type'], 'text/plain')
-  t.same(await result.body.text(), 'this is plain text')
+  t.assert.deepStrictEqual(await result.body.text(), 'this is plain text')
 })

@@ -2,7 +2,7 @@
 
 const fs = require('node:fs')
 const path = require('node:path')
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -34,7 +34,7 @@ t.test('fastify-multipart-incompatibility', async (t) => {
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
     t.assert.deepEqual(req.method, 'POST')
-    t.match(req.headers['content-type'], /^multipart\/form-data/)
+    t.assert.match(req.headers['content-type'], /^multipart\/form-data/)
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
@@ -80,5 +80,5 @@ t.test('fastify-multipart-incompatibility', async (t) => {
     body: form
   })
 
-  t.same(await result.body.json(), { something: 'else' })
+  t.assert.deepStrictEqual(await result.body.json(), { something: 'else' })
 })

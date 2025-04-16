@@ -1,6 +1,6 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const { buildURL } = require('../lib/utils')
 
 test('should produce valid URL', (t) => {
