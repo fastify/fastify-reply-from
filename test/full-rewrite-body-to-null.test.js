@@ -18,7 +18,7 @@ t.test('full rewrite body to null', async (t) => {
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
     t.assert.deepEqual(req.method, 'POST')
-    t.notOk('content-type' in req.headers)
+    t.assert.ok(!('content-type' in req.headers))
     t.assert.deepEqual(req.headers['content-length'], '0')
     let data = ''
     req.setEncoding('utf8')

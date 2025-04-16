@@ -42,6 +42,6 @@ t.test('rewriteHeaders', async (t) => {
   const result = await request(`http://localhost:${instance.server.address().port}`)
   t.assert.deepEqual(result.headers['content-type'], 'text/plain')
   t.assert.deepEqual(result.headers['x-another-header'], 'so headers!')
-  t.notOk(result.headers['x-my-header'])
+  t.assert.ok(!result.headers['x-my-header'])
   t.assert.deepEqual(result.statusCode, 205)
 })
