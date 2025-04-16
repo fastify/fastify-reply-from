@@ -2,6 +2,7 @@
 
 const h2url = require('h2url')
 const t = require('node:test')
+const assert = require('node:assert')
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
 const From = require('..')
@@ -18,15 +19,12 @@ const instance = Fastify({
   https: certs
 })
 
-t.plan(4)
-t.after(() => instance.close())
-
 const target = Fastify({
   https: certs
 })
 
 target.get('/', (_request, reply) => {
-  t.assert.ok('request proxied')
+  assert.ok('request proxied')
   reply.code(404).header('x-my-header', 'hello!').send({
     hello: 'world'
   })
@@ -36,9 +34,7 @@ instance.get('/', (_request, reply) => {
   reply.from()
 })
 
-t.after(() => target.close())
-
-async function run () {
+async function run (t) {
   await target.listen({ port: 0 })
 
   instance.register(From, {
@@ -48,7 +44,8 @@ async function run () {
 
   await instance.listen({ port: 0 })
 
-  t.test('http2 -> https', async (t) => {
+  await t.test('http2 -> https', async (t) => {
+    t.plan(4)
     const { headers, body } = await h2url.concat({
       url: `https://localhost:${instance.server.address().port}`
     })
@@ -59,7 +56,8 @@ async function run () {
     t.assert.deepStrictEqual(JSON.parse(body), { hello: 'world' })
   })
 
-  t.test('https -> https', async (t) => {
+  await t.test('https -> https', async (t) => {
+    t.plan(4)
     const result = await request(`https://localhost:${instance.server.address().port}`, {
       dispatcher: new Agent({
         connect: {
@@ -75,4 +73,10 @@ async function run () {
   })
 }
 
-run()
+t.test('http2 -> https', async (t) => {
+  t.plan(2)
+  t.after(() => instance.close())
+  t.after(() => target.close())
+
+  await run(t)
+})
