@@ -17,7 +17,6 @@ t.test('on-error', async (t) => {
 
     clock.setTimeout(() => {
       reply.status(200).send('hello world')
-      t.end()
     }, 1000)
   })
 
@@ -31,14 +30,14 @@ t.test('on-error', async (t) => {
   instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.server.address().port}/`,
       {
-        onError: (reply, { error }) => {
-          t.assert.deepStrictEqual(error, {
+        onError: (reply, { error: { stack, ...errorContent } }) => {
+          t.assert.deepStrictEqual(errorContent, {
             statusCode: 504,
             name: 'FastifyError',
             code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
             message: 'Gateway Timeout'
           })
-          reply.code(error.statusCode).send(error)
+          reply.code(errorContent.statusCode).send(errorContent)
         }
       })
   })
@@ -56,7 +55,7 @@ t.test('on-error', async (t) => {
   t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 504,
     code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
-    error: 'Gateway Timeout',
+    name: 'FastifyError',
     message: 'Gateway Timeout'
   })
   clock.tick(1000)
