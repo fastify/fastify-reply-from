@@ -12,7 +12,7 @@ test('destroyAgent false', async (t) => {
   }
   const instance = Fastify()
 
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.get('/', (_request, reply) => {
     reply.from()

@@ -12,7 +12,7 @@ instance.register(From)
 
 t.test('no stream body option', async (t) => {
   t.plan(2)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((_req, res) => {
     t.fail('the target server should never be called')
@@ -36,7 +36,7 @@ t.test('no stream body option', async (t) => {
     reply.code(500).send({ an: 'error' })
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
@@ -52,5 +52,5 @@ t.test('no stream body option', async (t) => {
     })
   })
 
-  t.equal(result.statusCode, 500)
+  t.assert.deepEqual(result.statusCode, 500)
 })

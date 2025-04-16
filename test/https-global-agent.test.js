@@ -21,19 +21,19 @@ test('https global agent is used, but not destroyed', async (t) => {
   const instance = Fastify({
     https: certs
   })
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
   instance.get('/', (_request, reply) => {
     reply.from()
   })
 
   const target = https.createServer(certs, (req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'GET')
-    t.equal(req.url, '/')
+    t.assert.ok('request proxied')
+    t.assert.deepEqual(req.method, 'GET')
+    t.assert.deepEqual(req.url, '/')
     res.statusCode = 200
     res.end()
   })
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
@@ -54,7 +54,7 @@ test('https global agent is used, but not destroyed', async (t) => {
     })
   })
 
-  t.equal(result.statusCode, 200)
+  t.assert.deepEqual(result.statusCode, 200)
 
   target.close()
 })

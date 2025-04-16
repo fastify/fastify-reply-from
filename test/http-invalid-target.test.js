@@ -8,7 +8,7 @@ const From = require('..')
 test('http invalid target', async (t) => {
   const instance = Fastify()
 
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.get('/', (_request, reply) => {
     reply.from()
@@ -21,7 +21,7 @@ test('http invalid target', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(result.statusCode, 503)
+  t.assert.deepEqual(result.statusCode, 503)
   t.match(result.headers['content-type'], /application\/json/)
   t.same(await result.body.json(), {
     statusCode: 503,

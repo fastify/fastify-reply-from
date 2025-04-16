@@ -9,7 +9,7 @@ const querystring = require('node:querystring')
 const http = require('node:http')
 
 if (process.platform === 'win32') {
-  t.pass()
+  t.assert.ok()
   process.exit(0)
 }
 
@@ -18,7 +18,7 @@ instance.register(From)
 
 t.test('unix http undici from', async (t) => {
   t.plan(1)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const socketPath = `${__filename}.socket`
 
@@ -36,12 +36,12 @@ t.test('unix http undici from', async (t) => {
     reply.from(`unix+http://${querystring.escape(socketPath)}/hello`)
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await instance.listen({ port: 0 })
 
   await new Promise(resolve => target.listen(socketPath, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.equal(result.statusCode, 500)
+  t.assert.deepEqual(result.statusCode, 500)
 })

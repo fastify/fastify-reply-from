@@ -11,7 +11,7 @@ const clock = FakeTimers.createClock()
 
 t.test('undici body timeout', async (t) => {
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
+    t.assert.ok('request proxied')
     req.on('data', () => undefined)
     req.on('end', () => {
       res.writeHead(200)
@@ -27,8 +27,8 @@ t.test('undici body timeout', async (t) => {
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
-  t.teardown(target.close.bind(target))
+  t.after(() => instance.close())
+  t.after(() => target.close())
 
   instance.register(From, {
     base: `http://localhost:${target.address().port}`,
@@ -49,7 +49,7 @@ t.test('undici body timeout', async (t) => {
     })
   })
 
-  t.equal(result.statusCode, 200)
+  t.assert.deepEqual(result.statusCode, 200)
 
   clock.tick(1000)
 })

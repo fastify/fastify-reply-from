@@ -8,16 +8,16 @@ const FakeTimers = require('@sinonjs/fake-timers')
 
 test('http2 request timeout', async (t) => {
   const target = Fastify({ http2: true, sessionTimeout: 0 })
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   target.get('/', () => {
-    t.pass('request arrives')
+    t.assert.ok('request arrives')
   })
 
   await target.listen({ port: 0 })
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.register(From, {
     base: `http://localhost:${target.server.address().port}`,
@@ -35,7 +35,7 @@ test('http2 request timeout', async (t) => {
       pipelining: 0
     })
   })
-  t.equal(result.statusCode, 504)
+  t.assert.deepEqual(result.statusCode, 504)
   t.match(result.headers['content-type'], /application\/json/)
   t.same(await result.body.json(), {
     statusCode: 504,
@@ -48,10 +48,10 @@ test('http2 request timeout', async (t) => {
 test('http2 request with specific timeout', async (t) => {
   const clock = FakeTimers.createClock()
   const target = Fastify({ http2: true })
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   target.get('/', (_request, reply) => {
-    t.pass('request arrives')
+    t.assert.ok('request arrives')
 
     setTimeout(() => {
       reply.status(200).send('hello world')
@@ -63,7 +63,7 @@ test('http2 request with specific timeout', async (t) => {
   await target.listen({ port: 0 })
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.register(From, {
     base: `http://localhost:${target.server.address().port}`,
@@ -87,14 +87,14 @@ test('http2 request with specific timeout', async (t) => {
       pipelining: 0
     })
   })
-  t.equal(result.statusCode, 200)
+  t.assert.deepEqual(result.statusCode, 200)
 
   const result2 = await request(`http://localhost:${instance.server.address().port}/fail`, {
     dispatcher: new Agent({
       pipelining: 0
     })
   })
-  t.equal(result2.statusCode, 504)
+  t.assert.deepEqual(result2.statusCode, 504)
   t.match(result2.headers['content-type'], /application\/json/)
   t.same(await result2.body.json(), {
     statusCode: 504,
@@ -106,16 +106,16 @@ test('http2 request with specific timeout', async (t) => {
 
 test('http2 session timeout', async (t) => {
   const target = Fastify({ http2: true, sessionTimeout: 0 })
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   target.get('/', () => {
-    t.pass('request arrives')
+    t.assert.ok('request arrives')
   })
 
   await target.listen({ port: 0 })
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.register(From, {
     base: `http://localhost:${target.server.address().port}`,
@@ -134,7 +134,7 @@ test('http2 session timeout', async (t) => {
     })
   })
 
-  t.equal(result.statusCode, 504)
+  t.assert.deepEqual(result.statusCode, 504)
   t.match(result.headers['content-type'], /application\/json/)
   t.same(await result.body.json(), {
     statusCode: 504,
@@ -148,7 +148,7 @@ test('http2 sse removes request and session timeout test', async (t) => {
   const target = Fastify({ http2: true, sessionTimeout: 0 })
 
   target.get('/', (_request, reply) => {
-    t.pass('request arrives')
+    t.assert.ok('request arrives')
 
     reply.status(200).header('content-type', 'text/event-stream').send('hello world')
   })
@@ -168,11 +168,11 @@ test('http2 sse removes request and session timeout test', async (t) => {
 
   await instance.listen({ port: 0 })
 
-  t.teardown(instance.close.bind(instance))
-  t.teardown(target.close.bind(target))
+  t.after(() => instance.close())
+  t.after(() => target.close())
 
   const { statusCode } = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
-  t.equal(statusCode, 200)
+  t.assert.deepEqual(statusCode, 200)
   instance.close()
   target.close()
 })

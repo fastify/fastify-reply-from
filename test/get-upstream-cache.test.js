@@ -55,8 +55,8 @@ async function run () {
       'x-host-number': 1
     }
   })
-  t.equal(res1.statusCode, 200)
-  t.equal(res1.body, 'Hello from target 1')
+  t.assert.deepEqual(res1.statusCode, 200)
+  t.assert.deepEqual(res1.body, 'Hello from target 1')
 
   const res2 = await instance.inject({
     method: 'GET',
@@ -65,8 +65,8 @@ async function run () {
       'x-host-number': 2
     }
   })
-  t.equal(res2.statusCode, 200)
-  t.equal(res2.body, 'Hello from target 2')
+  t.assert.deepEqual(res2.statusCode, 200)
+  t.assert.deepEqual(res2.body, 'Hello from target 2')
 }
 
 run()

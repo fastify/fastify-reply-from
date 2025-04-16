@@ -10,10 +10,10 @@ const clock = FakeTimers.createClock()
 
 t.test('on-error', async (t) => {
   const target = Fastify()
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   target.get('/', (_request, reply) => {
-    t.pass('request arrives')
+    t.assert.ok('request arrives')
 
     clock.setTimeout(() => {
       reply.status(200).send('hello world')
@@ -24,7 +24,7 @@ t.test('on-error', async (t) => {
   await target.listen({ port: 0 })
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.register(From, { http: { requestOptions: { timeout: 100 } } })
 
@@ -51,7 +51,7 @@ t.test('on-error', async (t) => {
     })
   })
 
-  t.equal(result.statusCode, 504)
+  t.assert.deepEqual(result.statusCode, 504)
   t.match(result.headers['content-type'], /application\/json/)
   t.same(await result.body.json(), {
     statusCode: 504,

@@ -17,14 +17,14 @@ t.test('http2 -> http2', async (t) => {
     https: certs
   })
 
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = Fastify({
     http2: true
   })
 
   target.get('/', (_request, reply) => {
-    t.pass('request proxied')
+    t.assert.ok('request proxied')
     reply.code(404).header('x-my-header', 'hello!').send({
       hello: 'world'
     })
@@ -34,7 +34,7 @@ t.test('http2 -> http2', async (t) => {
     reply.from()
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await target.listen({ port: 0 })
 
@@ -50,8 +50,8 @@ t.test('http2 -> http2', async (t) => {
     url: `https://localhost:${instance.server.address().port}`
   })
 
-  t.equal(headers[':status'], 404)
-  t.equal(headers['x-my-header'], 'hello!')
+  t.assert.deepEqual(headers[':status'], 404)
+  t.assert.deepEqual(headers['x-my-header'], 'hello!')
   t.match(headers['content-type'], /application\/json/)
   t.same(JSON.parse(body), { hello: 'world' })
   instance.close()

@@ -10,13 +10,13 @@ const instance = Fastify()
 
 t.test('core with path in base', async (t) => {
   t.plan(8)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'GET')
-    t.equal(req.url, '/hello')
-    t.equal(req.headers.connection, 'close')
+    t.assert.ok('request proxied')
+    t.assert.deepEqual(req.method, 'GET')
+    t.assert.deepEqual(req.url, '/hello')
+    t.assert.deepEqual(req.headers.connection, 'close')
     res.statusCode = 205
     res.setHeader('Content-Type', 'text/plain')
     res.setHeader('x-my-header', 'hello!')
@@ -27,7 +27,7 @@ t.test('core with path in base', async (t) => {
     reply.from('/hello')
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
@@ -43,8 +43,8 @@ t.test('core with path in base', async (t) => {
       pipelining: 0
     })
   })
-  t.equal(result.headers['content-type'], 'text/plain')
-  t.equal(result.headers['x-my-header'], 'hello!')
-  t.equal(result.statusCode, 205)
-  t.equal(await result.body.text(), 'hello world')
+  t.assert.deepEqual(result.headers['content-type'], 'text/plain')
+  t.assert.deepEqual(result.headers['x-my-header'], 'hello!')
+  t.assert.deepEqual(result.statusCode, 205)
+  t.assert.deepEqual(await result.body.text(), 'hello world')
 })

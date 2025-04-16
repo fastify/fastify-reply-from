@@ -11,11 +11,11 @@ instance.register(From)
 
 t.test('rewriteHeaders', async (t) => {
   t.plan(7)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'GET')
+    t.assert.ok('request proxied')
+    t.assert.deepEqual(req.method, 'GET')
     res.statusCode = 205
     res.setHeader('Content-Type', 'text/plain')
     res.setHeader('x-my-header', 'hello!')
@@ -25,7 +25,7 @@ t.test('rewriteHeaders', async (t) => {
   instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.address().port}`, {
       rewriteHeaders: (headers) => {
-        t.pass('rewriteHeaders called')
+        t.assert.ok('rewriteHeaders called')
         return {
           'content-type': headers['content-type'],
           'x-another-header': 'so headers!'
@@ -34,14 +34,14 @@ t.test('rewriteHeaders', async (t) => {
     })
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.equal(result.headers['content-type'], 'text/plain')
-  t.equal(result.headers['x-another-header'], 'so headers!')
+  t.assert.deepEqual(result.headers['content-type'], 'text/plain')
+  t.assert.deepEqual(result.headers['x-another-header'], 'so headers!')
   t.notOk(result.headers['x-my-header'])
-  t.equal(result.statusCode, 205)
+  t.assert.deepEqual(result.statusCode, 205)
 })

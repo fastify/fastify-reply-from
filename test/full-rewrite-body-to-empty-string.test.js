@@ -13,13 +13,13 @@ instance.register(From, {
 
 t.test('full rewrite body to empty string', async (t) => {
   t.plan(6)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'POST')
-    t.equal(req.headers['content-type'], 'application/json')
-    t.equal(req.headers['content-length'], '2')
+    t.assert.ok('request proxied')
+    t.assert.deepEqual(req.method, 'POST')
+    t.assert.deepEqual(req.headers['content-type'], 'application/json')
+    t.assert.deepEqual(req.headers['content-length'], '2')
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
@@ -39,7 +39,7 @@ t.test('full rewrite body to empty string', async (t) => {
     })
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 

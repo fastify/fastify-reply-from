@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const From = require('..')
 const http = require('node:http')
@@ -10,12 +10,12 @@ const instance = Fastify()
 
 t.test('async route handler', async (t) => {
   t.plan(8)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'GET')
-    t.equal(req.url, '/')
+    t.assert.ok('request proxied')
+    t.assert.deepEqual(req.method, 'GET')
+    t.assert.deepEqual(req.url, '/')
     res.statusCode = 205
     res.setHeader('Content-Type', 'text/plain')
     res.setHeader('x-my-header', 'hello!')
@@ -24,11 +24,11 @@ t.test('async route handler', async (t) => {
 
   instance.get('/', async (_request, reply) => {
     const p = reply.from()
-    t.equal(p, reply)
+    t.assert.deepEqual(p, reply)
     return p
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
@@ -40,8 +40,8 @@ t.test('async route handler', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(result.headers['content-type'], 'text/plain')
-  t.equal(result.headers['x-my-header'], 'hello!')
-  t.equal(result.statusCode, 205)
-  t.equal(await result.body.text(), 'hello world')
+  t.assert.deepEqual(result.headers['content-type'], 'text/plain')
+  t.assert.deepEqual(result.headers['x-my-header'], 'hello!')
+  t.assert.deepEqual(result.statusCode, 205)
+  t.assert.deepEqual(await result.body.text(), 'hello world')
 })

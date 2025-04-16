@@ -10,16 +10,16 @@ const instance = Fastify()
 
 t.test('method', async (t) => {
   t.plan(6)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const bodyString = JSON.stringify({ hello: 'world' })
 
   const parsedLength = Buffer.byteLength(bodyString)
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'POST')
-    t.equal(req.headers['content-type'], 'application/json')
+    t.assert.ok('request proxied')
+    t.assert.deepEqual(req.method, 'POST')
+    t.assert.deepEqual(req.headers['content-type'], 'application/json')
     t.same(req.headers['content-length'], parsedLength)
     let data = ''
     req.setEncoding('utf8')
@@ -38,7 +38,7 @@ t.test('method', async (t) => {
     reply.from(`http://localhost:${target.address().port}`, { method: 'POST' })
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 

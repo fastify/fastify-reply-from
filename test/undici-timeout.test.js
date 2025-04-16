@@ -9,10 +9,10 @@ const FakeTimers = require('@sinonjs/fake-timers')
 test('undici request timeout', async (t) => {
   const clock = FakeTimers.createClock()
   const target = Fastify()
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   target.get('/', (_request, reply) => {
-    t.pass('request arrives')
+    t.assert.ok('request arrives')
 
     setTimeout(() => {
       reply.status(200).send('hello world')
@@ -24,7 +24,7 @@ test('undici request timeout', async (t) => {
   await target.listen({ port: 0 })
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.register(From, {
     base: `http://localhost:${target.server.address().port}`,
@@ -45,7 +45,7 @@ test('undici request timeout', async (t) => {
     })
   })
 
-  t.equal(result.statusCode, 504)
+  t.assert.deepEqual(result.statusCode, 504)
   t.match(result.headers['content-type'], /application\/json/)
   t.same(await result.body.json(), {
     statusCode: 504,
@@ -59,10 +59,10 @@ test('undici request timeout', async (t) => {
 test('undici request with specific timeout', async (t) => {
   const clock = FakeTimers.createClock()
   const target = Fastify()
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   target.get('/', (_request, reply) => {
-    t.pass('request arrives')
+    t.assert.ok('request arrives')
 
     setTimeout(() => {
       reply.status(200).send('hello world')
@@ -74,7 +74,7 @@ test('undici request with specific timeout', async (t) => {
   await target.listen({ port: 0 })
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.register(From, {
     base: `http://localhost:${target.server.address().port}`,
@@ -101,7 +101,7 @@ test('undici request with specific timeout', async (t) => {
       pipelining: 0
     })
   })
-  t.equal(result.statusCode, 200)
+  t.assert.deepEqual(result.statusCode, 200)
 
   const result2 = await request(`http://localhost:${instance.server.address().port}/fail`, {
     dispatcher: new Agent({
@@ -109,7 +109,7 @@ test('undici request with specific timeout', async (t) => {
     })
   })
 
-  t.equal(result2.statusCode, 504)
+  t.assert.deepEqual(result2.statusCode, 504)
   t.match(result2.headers['content-type'], /application\/json/)
   t.same(await result2.body.json(), {
     statusCode: 504,

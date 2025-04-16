@@ -12,7 +12,7 @@ const instance = Fastify()
 
 t.test('undici options', async (t) => {
   t.plan(2)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((_req, res) => {
     res.statusCode = 200
@@ -23,7 +23,7 @@ t.test('undici options', async (t) => {
     reply.from()
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
@@ -41,8 +41,8 @@ t.test('undici options', async (t) => {
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.equal(result.statusCode, 200)
-  t.equal(await result.body.text(), 'hello world')
+  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.deepEqual(await result.body.text(), 'hello world')
 })
 
 function undiciProxy () {}

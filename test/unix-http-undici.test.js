@@ -9,7 +9,7 @@ const querystring = require('node:querystring')
 const http = require('node:http')
 
 if (process.platform === 'win32') {
-  t.pass()
+  t.assert.ok()
   process.exit(0)
 }
 
@@ -23,7 +23,7 @@ instance.register(From, {
 
 t.test('unix http undici', async t => {
   t.plan(7)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   try {
     fs.unlinkSync(socketPath)
@@ -31,9 +31,9 @@ t.test('unix http undici', async t => {
   }
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'GET')
-    t.equal(req.url, '/hello')
+    t.assert.ok('request proxied')
+    t.assert.deepEqual(req.method, 'GET')
+    t.assert.deepEqual(req.url, '/hello')
     res.statusCode = 205
     res.setHeader('Content-Type', 'text/plain')
     res.setHeader('x-my-header', 'hello!')
@@ -44,7 +44,7 @@ t.test('unix http undici', async t => {
     reply.from('hello')
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await instance.listen({ port: 0 })
 
@@ -52,8 +52,8 @@ t.test('unix http undici', async t => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(result.headers['content-type'], 'text/plain')
-  t.equal(result.headers['x-my-header'], 'hello!')
-  t.equal(result.statusCode, 205)
-  t.equal(await result.body.text(), 'hello world')
+  t.assert.deepEqual(result.headers['content-type'], 'text/plain')
+  t.assert.deepEqual(result.headers['x-my-header'], 'hello!')
+  t.assert.deepEqual(result.statusCode, 205)
+  t.assert.deepEqual(await result.body.text(), 'hello world')
 })

@@ -8,7 +8,7 @@ const From = require('..')
 test('http -> http2 crash multiple times', async (t) => {
   const instance = Fastify()
 
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.get('/', (_request, reply) => {
     reply.from()
@@ -33,7 +33,7 @@ test('http -> http2 crash multiple times', async (t) => {
   await target.close()
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(result.statusCode, 503)
+  t.assert.deepEqual(result.statusCode, 503)
   t.match(result.headers['content-type'], /application\/json/)
   t.same(await result.body.json(), {
     statusCode: 503,
@@ -48,7 +48,7 @@ test('http -> http2 crash multiple times', async (t) => {
     })
 
     target.get('/', (request, reply) => {
-      t.pass('request proxied')
+      t.assert.ok('request proxied')
       reply.code(200).send({
         hello: 'world'
       })

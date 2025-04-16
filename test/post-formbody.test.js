@@ -14,12 +14,12 @@ instance.register(require('@fastify/formbody'))
 
 t.test('post-formbody', async (t) => {
   t.plan(6)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'POST')
-    t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded')
+    t.assert.ok('request proxied')
+    t.assert.deepEqual(req.method, 'POST')
+    t.assert.deepEqual(req.headers['content-type'], 'application/x-www-form-urlencoded')
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
@@ -38,7 +38,7 @@ t.test('post-formbody', async (t) => {
     reply.from(`http://localhost:${target.address().port}`)
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
@@ -49,6 +49,6 @@ t.test('post-formbody', async (t) => {
     body: 'some=info&another=detail'
   })
 
-  t.equal(result.headers['content-type'], 'application/x-www-form-urlencoded')
+  t.assert.deepEqual(result.headers['content-type'], 'application/x-www-form-urlencoded')
   t.same(await result.body.json(), { some: 'info', another: 'detail' })
 })

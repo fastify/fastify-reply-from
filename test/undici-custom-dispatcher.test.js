@@ -29,7 +29,7 @@ test('use a custom instance of \'undici\'', async t => {
   })
 
   target.get('/', (_req, reply) => {
-    t.pass('request proxied')
+    t.assert.ok('request proxied')
 
     reply.headers({
       'Content-Type': 'text/plain',
@@ -64,10 +64,10 @@ test('use a custom instance of \'undici\'', async t => {
 
   const res = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.headers['x-my-header'], 'hello!')
-  t.equal(res.statusCode, 205)
+  t.assert.deepEqual(res.headers['content-type'], 'text/plain')
+  t.assert.deepEqual(res.headers['x-my-header'], 'hello!')
+  t.assert.deepEqual(res.statusCode, 205)
 
   const data = await res.body.text()
-  t.equal(data, 'hello world')
+  t.assert.deepEqual(data, 'hello world')
 })

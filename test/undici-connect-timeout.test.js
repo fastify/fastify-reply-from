@@ -21,8 +21,8 @@ t.test('undici connect timeout', async (t) => {
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
-  t.teardown(target.close.bind(target))
+  t.after(() => instance.close())
+  t.after(() => target.close())
 
   instance.register(From, {
     base: `http://localhost:${target.address().port}`,
@@ -45,8 +45,8 @@ t.test('undici connect timeout', async (t) => {
       })
     })
   } catch (err) {
-    t.equal(err.code, 'UND_ERR_CONNECT_TIMEOUT')
-    t.equal(err.name, 'ConnectTimeoutError')
+    t.assert.deepEqual(err.code, 'UND_ERR_CONNECT_TIMEOUT')
+    t.assert.deepEqual(err.name, 'ConnectTimeoutError')
     return
   }
 

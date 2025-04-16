@@ -13,24 +13,24 @@ instance.register(From, {
 
 t.test('getUpstream undici', async (t) => {
   t.plan(4)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'GET')
+    t.assert.ok('request proxied')
+    t.assert.deepEqual(req.method, 'GET')
     res.end(req.headers.host)
   })
 
   instance.get('/test', (_request, reply) => {
     reply.from('/test', {
       getUpstream: () => {
-        t.pass('getUpstream called')
+        t.assert.ok('getUpstream called')
         return `http://localhost:${target.address().port}`
       }
     })
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
@@ -38,5 +38,5 @@ t.test('getUpstream undici', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}/test`)
 
-  t.equal(result.statusCode, 200)
+  t.assert.deepEqual(result.statusCode, 200)
 })

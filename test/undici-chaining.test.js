@@ -11,7 +11,7 @@ t.test('undici chaining', async (t) => {
   t.plan(2)
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
   const proxy1 = Fastify()
   t.teardown(proxy1.close.bind(proxy1))
   const proxy2 = Fastify()
@@ -45,6 +45,6 @@ t.test('undici chaining', async (t) => {
 
   const result = await request(`http://localhost:${proxy2.server.address().port}`)
 
-  t.equal(result.statusCode, 200)
-  t.equal(await result.body.text(), 'OK')
+  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.deepEqual(await result.body.text(), 'OK')
 })

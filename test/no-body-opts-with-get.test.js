@@ -10,7 +10,7 @@ const instance = Fastify()
 
 t.test('no body opts with get', async (t) => {
   t.plan(3)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((_req, res) => {
     t.fail('this should never get called')
@@ -21,12 +21,12 @@ t.test('no body opts with get', async (t) => {
     try {
       reply.from(null, { body: 'this is the new body' })
     } catch (e) {
-      t.equal(e.message, 'Rewriting the body when doing a GET is not allowed')
+      t.assert.deepEqual(e.message, 'Rewriting the body when doing a GET is not allowed')
       reply.send('hello world')
     }
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
@@ -38,6 +38,6 @@ t.test('no body opts with get', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(result.statusCode, 200)
-  t.equal(await result.body.text(), 'hello world')
+  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.deepEqual(await result.body.text(), 'hello world')
 })

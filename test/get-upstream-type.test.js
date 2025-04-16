@@ -13,25 +13,25 @@ instance.register(From, {
 
 t.test('getUpstream type', async (t) => {
   t.plan(5)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'GET')
+    t.assert.ok('request proxied')
+    t.assert.deepEqual(req.method, 'GET')
     res.end(req.headers.host)
   })
 
   instance.get('/', (request, reply) => {
     reply.from(`http://localhost:${target.address().port}`, {
       getUpstream: (req) => {
-        t.pass('getUpstream called with correct request parameter')
-        t.equal(req, request)
+        t.assert.ok('getUpstream called with correct request parameter')
+        t.assert.deepEqual(req, request)
         return `http://localhost:${target.address().port}`
       }
     })
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
@@ -39,5 +39,5 @@ t.test('getUpstream type', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(result.statusCode, 200)
+  t.assert.deepEqual(result.statusCode, 200)
 })

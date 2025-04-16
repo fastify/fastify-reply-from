@@ -12,12 +12,12 @@ t.test('base path', async (t) => {
   nock('http://httpbin.org')
     .get('/ip')
     .reply(200, function () {
-      t.equal(this.req.headers.host, 'httpbin.org')
+      t.assert.deepEqual(this.req.headers.host, 'httpbin.org')
       return { origin: '127.0.0.1' }
     })
 
   t.plan(4)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.get('/', (_request, reply) => {
     reply.from('http://httpbin.org/ip')
@@ -35,7 +35,7 @@ t.test('base path', async (t) => {
     })
   })
 
-  t.equal(result.statusCode, 200)
-  t.equal(result.headers['content-type'], 'application/json')
-  t.equal(typeof (await result.body.json()).origin, 'string')
+  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.deepEqual(result.headers['content-type'], 'application/json')
+  t.assert.deepEqual(typeof (await result.body.json()).origin, 'string')
 })

@@ -11,11 +11,11 @@ instance.register(From)
 
 t.test('rewriteHeaders type', async (t) => {
   t.plan(5)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'GET')
+    t.assert.ok('request proxied')
+    t.assert.deepEqual(req.method, 'GET')
     res.statusCode = 205
     res.end('hello world')
   })
@@ -23,18 +23,18 @@ t.test('rewriteHeaders type', async (t) => {
   instance.get('/', (request, reply) => {
     reply.from(`http://localhost:${target.address().port}`, {
       rewriteHeaders: (_headers, req) => {
-        t.pass('rewriteHeaders called with correct request parameter')
-        t.equal(req, request)
+        t.assert.ok('rewriteHeaders called with correct request parameter')
+        t.assert.deepEqual(req, request)
         return {}
       }
     })
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.equal(result.statusCode, 205)
+  t.assert.deepEqual(result.statusCode, 205)
 })

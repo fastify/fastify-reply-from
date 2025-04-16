@@ -8,14 +8,14 @@ const From = require('..')
 test('http -> http2', async function (t) {
   const instance = Fastify()
 
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = Fastify({
     http2: true
   })
 
   target.delete('/', (_request, reply) => {
-    t.pass('request proxied')
+    t.assert.ok('request proxied')
     reply.code(200).header('x-my-header', 'hello!').send({
       hello: 'world'
     })
@@ -25,7 +25,7 @@ test('http -> http2', async function (t) {
     reply.from()
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await target.listen({ port: 0 })
 
@@ -44,8 +44,8 @@ test('http -> http2', async function (t) {
       dispatcher: new Agent({ pipelining: 0 })
     }
   )
-  t.equal(statusCode, 200)
-  t.equal(headers['x-my-header'], 'hello!')
+  t.assert.deepEqual(statusCode, 200)
+  t.assert.deepEqual(headers['x-my-header'], 'hello!')
   t.match(headers['content-type'], /application\/json/)
   t.same(await body.json(), { hello: 'world' })
   instance.close()

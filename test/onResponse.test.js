@@ -11,11 +11,11 @@ instance.register(From)
 
 t.test('onResponse', async (t) => {
   t.plan(6)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'GET')
+    t.assert.ok('request proxied')
+    t.assert.deepEqual(req.method, 'GET')
     res.statusCode = 200
     res.end('hello world')
   })
@@ -23,20 +23,20 @@ t.test('onResponse', async (t) => {
   instance.get('/', (request1, reply) => {
     reply.from(`http://localhost:${target.address().port}`, {
       onResponse: (request2, reply, res) => {
-        t.equal(res.statusCode, 200)
-        t.equal(request1.raw, request2.raw)
+        t.assert.deepEqual(res.statusCode, 200)
+        t.assert.deepEqual(request1.raw, request2.raw)
         reply.send(res.stream)
       }
     })
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.equal(result.statusCode, 200)
-  t.equal(await result.body.text(), 'hello world')
+  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.deepEqual(await result.body.text(), 'hello world')
 })

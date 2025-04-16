@@ -26,7 +26,7 @@ async function setupServer (t, fromOptions = {}, statusCodeToFailOn = 500, stopA
   const target = serverWithCustomError(stopAfter, statusCodeToFailOn, closeSocket)
 
   await target.listen({ port: 0 })
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   const instance = Fastify()
   instance.register(From, {
@@ -37,7 +37,7 @@ async function setupServer (t, fromOptions = {}, statusCodeToFailOn = 500, stopA
     reply.from(`http://localhost:${target.address().port}`, fromOptions)
   })
 
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
   await instance.listen({ port: 0 })
 
   return {
@@ -50,8 +50,8 @@ test('a 500 status code with no custom handler should fail', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`, { dispatcher: new Agent({ pipelining: 3 }) })
 
-  t.equal(result.statusCode, 500)
-  t.equal(await result.body.text(), 'This Service is Unavailable')
+  t.assert.deepEqual(result.statusCode, 500)
+  t.assert.deepEqual(await result.body.text(), 'This Service is Unavailable')
 })
 
 test("a server 500's with a custom handler and should revive", async (t) => {
@@ -69,9 +69,9 @@ test("a server 500's with a custom handler and should revive", async (t) => {
 
   const res = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.statusCode, 205)
-  t.equal(await res.body.text(), 'Hello World 5!')
+  t.assert.deepEqual(res.headers['content-type'], 'text/plain')
+  t.assert.deepEqual(res.statusCode, 205)
+  t.assert.deepEqual(await res.body.text(), 'Hello World 5!')
 })
 
 test('custom retry does not invoke the default delay causing a 501', async (t) => {
@@ -87,8 +87,8 @@ test('custom retry does not invoke the default delay causing a 501', async (t) =
 
   const res = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(res.statusCode, 501)
-  t.equal(await res.body.text(), 'This Service is Unavailable')
+  t.assert.deepEqual(res.statusCode, 501)
+  t.assert.deepEqual(await res.body.text(), 'This Service is Unavailable')
 })
 
 test('custom retry delay functions can invoke the default delay', async (t) => {
@@ -108,9 +108,9 @@ test('custom retry delay functions can invoke the default delay', async (t) => {
 
   const res = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.statusCode, 205)
-  t.equal(await res.body.text(), 'Hello World 5!')
+  t.assert.deepEqual(res.headers['content-type'], 'text/plain')
+  t.assert.deepEqual(res.statusCode, 205)
+  t.assert.deepEqual(await res.body.text(), 'Hello World 5!')
 })
 
 test('custom retry delay function inspects the err paramater', async (t) => {
@@ -125,9 +125,9 @@ test('custom retry delay function inspects the err paramater', async (t) => {
 
   const res = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.statusCode, 205)
-  t.equal(await res.body.text(), 'Hello World 5!')
+  t.assert.deepEqual(res.headers['content-type'], 'text/plain')
+  t.assert.deepEqual(res.statusCode, 205)
+  t.assert.deepEqual(await res.body.text(), 'Hello World 5!')
 })
 
 test('we can exceed our retryCount and introspect attempts independently', async (t) => {
@@ -148,9 +148,9 @@ test('we can exceed our retryCount and introspect attempts independently', async
   const res = await request(`http://localhost:${instance.server.address().port}`)
 
   t.match(attemptCounter, [0, 1, 2, 3, 4])
-  t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.statusCode, 205)
-  t.equal(await res.body.text(), 'Hello World 5!')
+  t.assert.deepEqual(res.headers['content-type'], 'text/plain')
+  t.assert.deepEqual(res.statusCode, 205)
+  t.assert.deepEqual(await res.body.text(), 'Hello World 5!')
 })
 
 test('we handle our retries based on the retryCount', async (t) => {
@@ -173,7 +173,7 @@ test('we handle our retries based on the retryCount', async (t) => {
   const res = await request(`http://localhost:${instance.server.address().port}`)
 
   t.match(attemptCounter, [0, 1])
-  t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.statusCode, 205)
-  t.equal(await res.body.text(), 'Hello World 5!')
+  t.assert.deepEqual(res.headers['content-type'], 'text/plain')
+  t.assert.deepEqual(res.statusCode, 205)
+  t.assert.deepEqual(await res.body.text(), 'Hello World 5!')
 })
