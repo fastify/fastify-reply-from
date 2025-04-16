@@ -1,16 +1,17 @@
 'use strict'
 
 const t = require('node:test')
+const assert = require('node:assert')
 const Fastify = require('fastify')
 const { Pool, request, Client } = require('undici')
 const http = require('node:http')
 const From = require('..')
 
 const target = http.createServer((req, res) => {
-  t.assert.ok('request proxied')
-  t.assert.deepEqual(req.method, 'GET')
-  t.assert.deepEqual(req.url, '/')
-  t.assert.deepEqual(req.headers.connection, 'keep-alive')
+  assert.ok('request proxied')
+  assert.deepEqual(req.method, 'GET')
+  assert.deepEqual(req.url, '/')
+  assert.deepEqual(req.headers.connection, 'keep-alive')
   res.statusCode = 205
   res.setHeader('Content-Type', 'text/plain')
   res.setHeader('x-my-header', 'hello!')
@@ -22,7 +23,7 @@ t.test('use a custom instance of \'undici\'', async t => {
 
   await new Promise((resolve, reject) => target.listen({ port: 0 }, err => err ? reject(err) : resolve()))
 
-  t.test('custom Pool', async t => {
+  await t.test('custom Pool', async t => {
     const instance = Fastify()
     t.after(() => instance.close())
     instance.register(From, {
@@ -44,7 +45,7 @@ t.test('use a custom instance of \'undici\'', async t => {
     t.assert.deepEqual(await result.body.text(), 'hello world')
   })
 
-  t.test('custom Client', async t => {
+  await t.test('custom Client', async t => {
     const instance = Fastify()
     t.after(() => instance.close())
     instance.register(From, {
