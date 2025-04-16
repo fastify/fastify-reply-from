@@ -41,10 +41,10 @@ t.test('fastify-multipart-incompatibility', async (t) => {
       data += d
     })
     req.on('end', () => {
-      t.notMatch(data, 'Content-Disposition: form-data; name="key"')
-      t.notMatch(data, 'value')
-      t.notMatch(data, 'Content-Disposition: form-data; name="file"')
-      t.notMatch(data, fileContent)
+      t.assert.notDeepEqual(data, 'Content-Disposition: form-data; name="key"')
+      t.assert.notDeepEqual(data, 'value')
+      t.assert.notDeepEqual(data, 'Content-Disposition: form-data; name="file"')
+      t.assert.notDeepEqual(data, fileContent)
       res.setHeader('content-type', 'application/json')
       res.statusCode = 200
       res.end(JSON.stringify({ something: 'else' }))
