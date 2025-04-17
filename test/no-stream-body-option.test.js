@@ -52,5 +52,5 @@ t.test('no stream body option', async (t) => {
     })
   })
 
-  t.assert.deepEqual(result.statusCode, 500)
+  t.assert.strictEqual(result.statusCode, 500)
 })

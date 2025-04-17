@@ -43,9 +43,9 @@ test('Should retry on 503 HTTP error', async function (t) {
   await instance.listen({ port: 0 })
 
   const res = await request(`http://localhost:${instance.server.address().port}`)
-  t.assert.deepEqual(res.headers['content-type'], 'text/plain')
-  t.assert.deepEqual(res.statusCode, 205)
-  t.assert.deepEqual(await res.body.text(), 'Hello World 2!')
+  t.assert.strictEqual(res.headers['content-type'], 'text/plain')
+  t.assert.strictEqual(res.statusCode, 205)
+  t.assert.strictEqual(await res.body.text(), 'Hello World 2!')
 })
 
 test('Should retry on 503 HTTP error with Retry-After response header', async function (t) {
@@ -68,9 +68,9 @@ test('Should retry on 503 HTTP error with Retry-After response header', async fu
   await instance.listen({ port: 0 })
 
   const res = await request(`http://localhost:${instance.server.address().port}`)
-  t.assert.deepEqual(res.headers['content-type'], 'text/plain')
-  t.assert.deepEqual(res.statusCode, 205)
-  t.assert.deepEqual(await res.body.text(), 'Hello World 2!')
+  t.assert.strictEqual(res.headers['content-type'], 'text/plain')
+  t.assert.strictEqual(res.statusCode, 205)
+  t.assert.strictEqual(await res.body.text(), 'Hello World 2!')
 })
 
 test('Should abort if server is always returning 503', async function (t) {
@@ -97,6 +97,6 @@ test('Should abort if server is always returning 503', async function (t) {
   await request(`http://localhost:${instance.server.address().port}`)
   await request(`http://localhost:${instance.server.address().port}`)
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.assert.deepEqual(result.statusCode, 503)
-  t.assert.deepEqual(await result.body.text(), 'This Service is Unavailable')
+  t.assert.strictEqual(result.statusCode, 503)
+  t.assert.strictEqual(await result.body.text(), 'This Service is Unavailable')
 })

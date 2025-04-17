@@ -42,8 +42,8 @@ t.test('undici options', async (t) => {
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.assert.deepEqual(result.statusCode, 200)
-  t.assert.deepEqual(await result.body.text(), 'hello world')
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(await result.body.text(), 'hello world')
 })
 
 function undiciProxy () {}

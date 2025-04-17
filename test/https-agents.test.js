@@ -25,8 +25,8 @@ t.test('https agents', async (t) => {
 
   const target = https.createServer(certs, (req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'GET')
-    t.assert.deepEqual(req.url, '/')
+    t.assert.strictEqual(req.method, 'GET')
+    t.assert.strictEqual(req.url, '/')
     res.statusCode = 205
     res.setHeader('Content-Type', 'text/plain')
     res.setHeader('x-my-header', 'hello!')
@@ -61,8 +61,8 @@ t.test('https agents', async (t) => {
     })
   })
 
-  t.assert.deepEqual(result.headers['content-type'], 'text/plain')
-  t.assert.deepEqual(result.headers['x-my-header'], 'hello!')
-  t.assert.deepEqual(result.statusCode, 205)
-  t.assert.deepEqual(await result.body.text(), 'hello world')
+  t.assert.strictEqual(result.headers['content-type'], 'text/plain')
+  t.assert.strictEqual(result.headers['x-my-header'], 'hello!')
+  t.assert.strictEqual(result.statusCode, 205)
+  t.assert.strictEqual(await result.body.text(), 'hello world')
 })

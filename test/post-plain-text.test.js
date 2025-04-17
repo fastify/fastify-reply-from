@@ -15,8 +15,8 @@ t.test('post plain text', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'POST')
-    t.assert.deepEqual(req.headers['content-type'], 'text/plain')
+    t.assert.strictEqual(req.method, 'POST')
+    t.assert.strictEqual(req.headers['content-type'], 'text/plain')
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
@@ -47,6 +47,6 @@ t.test('post plain text', async (t) => {
     body: 'this is plain text'
   })
 
-  t.assert.deepEqual(result.headers['content-type'], 'text/plain')
+  t.assert.strictEqual(result.headers['content-type'], 'text/plain')
   t.assert.deepStrictEqual(await result.body.text(), 'this is plain text')
 })

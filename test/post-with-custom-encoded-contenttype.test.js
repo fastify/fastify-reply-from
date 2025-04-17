@@ -24,8 +24,8 @@ t.test('post with custom encoded content-type', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'POST')
-    t.assert.deepEqual(req.headers['content-type'], 'application/x-www-form-urlencoded')
+    t.assert.strictEqual(req.method, 'POST')
+    t.assert.strictEqual(req.headers['content-type'], 'application/x-www-form-urlencoded')
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
@@ -58,6 +58,6 @@ t.test('post with custom encoded content-type', async (t) => {
     body: 'some=info&another=detail'
   })
 
-  t.assert.deepEqual(result.headers['content-type'], 'application/x-www-form-urlencoded')
+  t.assert.strictEqual(result.headers['content-type'], 'application/x-www-form-urlencoded')
   t.assert.deepStrictEqual(await result.body.json(), { some: 'info', another: 'detail' })
 })

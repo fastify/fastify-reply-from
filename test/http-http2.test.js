@@ -38,8 +38,8 @@ test('http -> http2', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`, { dispatcher: new Agent({ pipelining: 0 }) })
 
-  t.assert.deepEqual(result.statusCode, 404)
-  t.assert.deepEqual(result.headers['x-my-header'], 'hello!')
+  t.assert.strictEqual(result.statusCode, 404)
+  t.assert.strictEqual(result.headers['x-my-header'], 'hello!')
   t.assert.match(result.headers['content-type'], /application\/json/)
   t.assert.deepStrictEqual(await result.body.json(), { hello: 'world' })
   instance.close()

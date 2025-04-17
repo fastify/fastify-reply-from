@@ -45,6 +45,6 @@ t.test('undici chaining', async (t) => {
 
   const result = await request(`http://localhost:${proxy2.server.address().port}`)
 
-  t.assert.deepEqual(result.statusCode, 200)
-  t.assert.deepEqual(await result.body.text(), 'OK')
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(await result.body.text(), 'OK')
 })

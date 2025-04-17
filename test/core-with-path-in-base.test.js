@@ -14,9 +14,9 @@ t.test('core with path in base', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'GET')
-    t.assert.deepEqual(req.url, '/hello')
-    t.assert.deepEqual(req.headers.connection, 'close')
+    t.assert.strictEqual(req.method, 'GET')
+    t.assert.strictEqual(req.url, '/hello')
+    t.assert.strictEqual(req.headers.connection, 'close')
     res.statusCode = 205
     res.setHeader('Content-Type', 'text/plain')
     res.setHeader('x-my-header', 'hello!')
@@ -43,8 +43,8 @@ t.test('core with path in base', async (t) => {
       pipelining: 0
     })
   })
-  t.assert.deepEqual(result.headers['content-type'], 'text/plain')
-  t.assert.deepEqual(result.headers['x-my-header'], 'hello!')
-  t.assert.deepEqual(result.statusCode, 205)
-  t.assert.deepEqual(await result.body.text(), 'hello world')
+  t.assert.strictEqual(result.headers['content-type'], 'text/plain')
+  t.assert.strictEqual(result.headers['x-my-header'], 'hello!')
+  t.assert.strictEqual(result.statusCode, 205)
+  t.assert.strictEqual(await result.body.text(), 'hello world')
 })

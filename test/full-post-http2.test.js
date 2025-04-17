@@ -47,8 +47,8 @@ test('http -> http2', async function (t) {
       pipelining: 0
     })
   })
-  t.assert.deepEqual(statusCode, 200)
-  t.assert.deepEqual(headers['x-my-header'], 'hello!')
+  t.assert.strictEqual(statusCode, 200)
+  t.assert.strictEqual(headers['x-my-header'], 'hello!')
   t.assert.match(headers['content-type'], /application\/json/)
   t.assert.deepStrictEqual(await body.json(), { hello: 'world' })
   instance.close()

@@ -40,7 +40,7 @@ test('http2 request timeout disabled', async (t) => {
 
   // if we wait 11000 ms without a timeout error, we assume disabling the timeout worked
   // 10000 ms is the default timeout
-  t.assert.deepEqual(result, 'passed')
+  t.assert.strictEqual(result, 'passed')
 })
 
 test('http2 session timeout disabled', async (t) => {
@@ -86,5 +86,5 @@ test('http2 session timeout disabled', async (t) => {
 
   // if we wait 4000 ms without a timeout error, we assume disabling the session timeout for reply-from worked
   // because we pass 3000 ms as session timeout to the Fastify options itself
-  t.assert.deepEqual(result, 'passed')
+  t.assert.strictEqual(result, 'passed')
 })

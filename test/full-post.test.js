@@ -15,8 +15,8 @@ t.test('full post', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'POST')
-    t.assert.deepEqual(req.headers['content-type'], 'application/json')
+    t.assert.strictEqual(req.method, 'POST')
+    t.assert.strictEqual(req.headers['content-type'], 'application/json')
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {

@@ -17,16 +17,16 @@ t.test('full rewrite body to null', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'POST')
+    t.assert.strictEqual(req.method, 'POST')
     t.assert.ok(!('content-type' in req.headers))
-    t.assert.deepEqual(req.headers['content-length'], '0')
+    t.assert.strictEqual(req.headers['content-length'], '0')
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
       data += d
     })
     req.on('end', () => {
-      t.assert.deepEqual(data.length, 0)
+      t.assert.strictEqual(data.length, 0)
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
       res.end(JSON.stringify({ hello: 'fastify' }))

@@ -48,7 +48,7 @@ t.test('undici body timeout', async (t) => {
     })
   })
 
-  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.statusCode, 200)
 
   clock.tick(1000)
 })

@@ -28,8 +28,8 @@ test('https global agent is used, but not destroyed', async (t) => {
 
   const target = https.createServer(certs, (req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'GET')
-    t.assert.deepEqual(req.url, '/')
+    t.assert.strictEqual(req.method, 'GET')
+    t.assert.strictEqual(req.url, '/')
     res.statusCode = 200
     res.end()
   })
@@ -54,7 +54,7 @@ test('https global agent is used, but not destroyed', async (t) => {
     })
   })
 
-  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.statusCode, 200)
 
   target.close()
 })

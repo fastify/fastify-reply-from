@@ -50,7 +50,7 @@ t.test('on-error', async (t) => {
     })
   })
 
-  t.assert.deepEqual(result.statusCode, 504)
+  t.assert.strictEqual(result.statusCode, 504)
   t.assert.match(result.headers['content-type'], /application\/json/)
   t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 504,

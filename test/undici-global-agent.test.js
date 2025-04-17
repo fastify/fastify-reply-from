@@ -38,10 +38,10 @@ test('undici global agent is used, but not destroyed', async (t) => {
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.statusCode, 200)
 
   const result1 = await request(`http://localhost:${instance.server.address().port}`)
-  t.assert.deepEqual(result1.statusCode, 200)
+  t.assert.strictEqual(result1.statusCode, 200)
 
   target.close()
 })

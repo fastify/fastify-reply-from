@@ -15,7 +15,7 @@ t.test('on-invalid-upstream-response', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'GET')
+    t.assert.strictEqual(req.method, 'GET')
     res.statusCode = 888
     res.end('non-standard status code')
   })
@@ -23,7 +23,7 @@ t.test('on-invalid-upstream-response', async (t) => {
   instance.get('/', (_, reply) => {
     reply.from(`http://localhost:${target.address().port}`, {
       onResponse: (_, _reply, res) => {
-        t.assert.deepEqual(res.statusCode, 888)
+        t.assert.strictEqual(res.statusCode, 888)
       }
     })
   })
@@ -35,7 +35,7 @@ t.test('on-invalid-upstream-response', async (t) => {
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.assert.deepEqual(result.statusCode, 502)
+  t.assert.strictEqual(result.statusCode, 502)
   t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 502,
     code: 'FST_REPLY_FROM_BAD_GATEWAY',

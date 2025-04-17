@@ -15,8 +15,8 @@ t.test('full post extended content type', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'POST')
-    t.assert.deepEqual(req.headers['content-type'].startsWith('application/json'), true)
+    t.assert.strictEqual(req.method, 'POST')
+    t.assert.strictEqual(req.headers['content-type'].startsWith('application/json'), true)
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
@@ -50,6 +50,6 @@ t.test('full post extended content type', async (t) => {
     }
   })
 
-  t.assert.deepEqual(result.headers['content-type'], 'application/json')
+  t.assert.strictEqual(result.headers['content-type'], 'application/json')
   t.assert.deepStrictEqual(await result.body.json(), { something: 'else' })
 })

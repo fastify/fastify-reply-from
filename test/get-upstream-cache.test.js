@@ -53,8 +53,8 @@ async function run (t) {
       'x-host-number': 1
     }
   })
-  t.assert.deepEqual(res1.statusCode, 200)
-  t.assert.deepEqual(res1.body, 'Hello from target 1')
+  t.assert.strictEqual(res1.statusCode, 200)
+  t.assert.strictEqual(res1.body, 'Hello from target 1')
 
   const res2 = await instance.inject({
     method: 'GET',
@@ -63,8 +63,8 @@ async function run (t) {
       'x-host-number': 2
     }
   })
-  t.assert.deepEqual(res2.statusCode, 200)
-  t.assert.deepEqual(res2.body, 'Hello from target 2')
+  t.assert.strictEqual(res2.statusCode, 200)
+  t.assert.strictEqual(res2.body, 'Hello from target 2')
 }
 
 t.test('get-upstream-cache', async (t) => {

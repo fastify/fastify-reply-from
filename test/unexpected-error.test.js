@@ -31,7 +31,7 @@ test('unexpected error renders 500', async (t) => {
   await instance.listen({ port: 0 })
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.assert.deepEqual(result.statusCode, 500)
+  t.assert.strictEqual(result.statusCode, 500)
   t.assert.match(result.headers['content-type'], /application\/json/)
   t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 500,

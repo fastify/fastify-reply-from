@@ -21,7 +21,7 @@ t.test('no body opts with head', async (t) => {
     try {
       reply.from(null, { body: 'this is the new body' })
     } catch (e) {
-      t.assert.deepEqual(e.message, 'Rewriting the body when doing a HEAD is not allowed')
+      t.assert.strictEqual(e.message, 'Rewriting the body when doing a HEAD is not allowed')
       reply.header('x-http-error', '1')
       reply.send('hello world')
     }
@@ -41,7 +41,7 @@ t.test('no body opts with head', async (t) => {
     method: 'HEAD'
   })
 
-  t.assert.deepEqual(result.statusCode, 200)
-  t.assert.deepEqual(result.headers['x-http-error'], '1')
-  t.assert.deepEqual(await result.body.text(), '')
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.headers['x-http-error'], '1')
+  t.assert.strictEqual(await result.body.text(), '')
 })

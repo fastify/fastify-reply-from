@@ -50,8 +50,8 @@ async function run (t) {
       url: `https://localhost:${instance.server.address().port}`
     })
 
-    t.assert.deepEqual(headers[':status'], 404)
-    t.assert.deepEqual(headers['x-my-header'], 'hello!')
+    t.assert.strictEqual(headers[':status'], 404)
+    t.assert.strictEqual(headers['x-my-header'], 'hello!')
     t.assert.match(headers['content-type'], /application\/json/)
     t.assert.deepStrictEqual(JSON.parse(body), { hello: 'world' })
   })
@@ -66,8 +66,8 @@ async function run (t) {
       })
     })
 
-    t.assert.deepEqual(result.statusCode, 404)
-    t.assert.deepEqual(result.headers['x-my-header'], 'hello!')
+    t.assert.strictEqual(result.statusCode, 404)
+    t.assert.strictEqual(result.headers['x-my-header'], 'hello!')
     t.assert.match(result.headers['content-type'], /application\/json/)
     t.assert.deepStrictEqual(await result.body.json(), { hello: 'world' })
   })

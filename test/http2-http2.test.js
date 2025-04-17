@@ -50,8 +50,8 @@ t.test('http2 -> http2', async (t) => {
     url: `https://localhost:${instance.server.address().port}`
   })
 
-  t.assert.deepEqual(headers[':status'], 404)
-  t.assert.deepEqual(headers['x-my-header'], 'hello!')
+  t.assert.strictEqual(headers[':status'], 404)
+  t.assert.strictEqual(headers['x-my-header'], 'hello!')
   t.assert.match(headers['content-type'], /application\/json/)
   t.assert.deepStrictEqual(JSON.parse(body), { hello: 'world' })
   instance.close()

@@ -26,7 +26,7 @@ t.test('getUpstream http', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'GET')
+    t.assert.strictEqual(req.method, 'GET')
     res.end(req.headers.host)
   })
 
@@ -57,8 +57,8 @@ t.test('getUpstream http', async (t) => {
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}/test`)
-  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.statusCode, 200)
 
   const result1 = await request(`http://localhost:${instanceWithoutBase.server.address().port}/test2`)
-  t.assert.deepEqual(result1.statusCode, 200)
+  t.assert.strictEqual(result1.statusCode, 200)
 })

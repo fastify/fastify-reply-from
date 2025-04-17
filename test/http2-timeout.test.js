@@ -35,7 +35,7 @@ test('http2 request timeout', async (t) => {
       pipelining: 0
     })
   })
-  t.assert.deepEqual(result.statusCode, 504)
+  t.assert.strictEqual(result.statusCode, 504)
   t.assert.match(result.headers['content-type'], /application\/json/)
   t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 504,
@@ -87,14 +87,14 @@ test('http2 request with specific timeout', async (t) => {
       pipelining: 0
     })
   })
-  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.statusCode, 200)
 
   const result2 = await request(`http://localhost:${instance.server.address().port}/fail`, {
     dispatcher: new Agent({
       pipelining: 0
     })
   })
-  t.assert.deepEqual(result2.statusCode, 504)
+  t.assert.strictEqual(result2.statusCode, 504)
   t.assert.match(result2.headers['content-type'], /application\/json/)
   t.assert.deepStrictEqual(await result2.body.json(), {
     statusCode: 504,
@@ -134,7 +134,7 @@ test('http2 session timeout', async (t) => {
     })
   })
 
-  t.assert.deepEqual(result.statusCode, 504)
+  t.assert.strictEqual(result.statusCode, 504)
   t.assert.match(result.headers['content-type'], /application\/json/)
   t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 504,
@@ -172,7 +172,7 @@ test('http2 sse removes request and session timeout test', async (t) => {
   t.after(() => target.close())
 
   const { statusCode } = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
-  t.assert.deepEqual(statusCode, 200)
+  t.assert.strictEqual(statusCode, 200)
   instance.close()
   target.close()
 })

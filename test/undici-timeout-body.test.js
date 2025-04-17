@@ -46,7 +46,7 @@ t.test('undici body timeout', async (t) => {
     })
   })
 
-  t.assert.deepEqual(result.statusCode, 500)
+  t.assert.strictEqual(result.statusCode, 500)
   t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 500,
     code: 'UND_ERR_BODY_TIMEOUT',

@@ -15,7 +15,7 @@ t.test('rewriteRequestHeaders type', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'GET')
+    t.assert.strictEqual(req.method, 'GET')
     res.statusCode = 205
     res.end(req.headers.host)
   })
@@ -24,7 +24,7 @@ t.test('rewriteRequestHeaders type', async (t) => {
     reply.from(`http://localhost:${target.address().port}`, {
       rewriteRequestHeaders: (originalReq) => {
         t.assert.ok('rewriteRequestHeaders called with correct request parameter')
-        t.assert.deepEqual(originalReq, request)
+        t.assert.strictEqual(originalReq, request)
         return {}
       }
     })
@@ -38,5 +38,5 @@ t.test('rewriteRequestHeaders type', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.assert.deepEqual(result.statusCode, 205)
+  t.assert.strictEqual(result.statusCode, 205)
 })

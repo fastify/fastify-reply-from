@@ -64,10 +64,10 @@ test('use a custom instance of \'undici\'', async t => {
 
   const res = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.assert.deepEqual(res.headers['content-type'], 'text/plain')
-  t.assert.deepEqual(res.headers['x-my-header'], 'hello!')
-  t.assert.deepEqual(res.statusCode, 205)
+  t.assert.strictEqual(res.headers['content-type'], 'text/plain')
+  t.assert.strictEqual(res.headers['x-my-header'], 'hello!')
+  t.assert.strictEqual(res.statusCode, 205)
 
   const data = await res.body.text()
-  t.assert.deepEqual(data, 'hello world')
+  t.assert.strictEqual(data, 'hello world')
 })

@@ -52,15 +52,15 @@ t.test('undici agent', async (t) => {
 
   const result = await undici.request(`http://localhost:${instance.server.address().port}`)
 
-  t.assert.deepEqual(result.statusCode, 200)
-  t.assert.deepEqual(await result.body.text(), 'hello world')
-  t.assert.deepEqual(poolCreation, 1)
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(await result.body.text(), 'hello world')
+  t.assert.strictEqual(poolCreation, 1)
 
   const result2 = await undici.request(`http://localhost:${instance.server.address().port}`)
 
-  t.assert.deepEqual(result2.statusCode, 200)
-  t.assert.deepEqual(await result2.body.text(), 'hello world')
-  t.assert.deepEqual(poolCreation, 1)
+  t.assert.strictEqual(result2.statusCode, 200)
+  t.assert.strictEqual(await result2.body.text(), 'hello world')
+  t.assert.strictEqual(poolCreation, 1)
 })
 
 function buildUndiciOptions () {

@@ -21,7 +21,7 @@ t.test('no body opts with get', async (t) => {
     try {
       reply.from(null, { body: 'this is the new body' })
     } catch (e) {
-      t.assert.deepEqual(e.message, 'Rewriting the body when doing a GET is not allowed')
+      t.assert.strictEqual(e.message, 'Rewriting the body when doing a GET is not allowed')
       reply.send('hello world')
     }
   })
@@ -38,6 +38,6 @@ t.test('no body opts with get', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.assert.deepEqual(result.statusCode, 200)
-  t.assert.deepEqual(await result.body.text(), 'hello world')
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(await result.body.text(), 'hello world')
 })

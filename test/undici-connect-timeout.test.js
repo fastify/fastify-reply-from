@@ -45,8 +45,8 @@ t.test('undici connect timeout', async (t) => {
       })
     })
   } catch (err) {
-    t.assert.deepEqual(err.code, 'UND_ERR_CONNECT_TIMEOUT')
-    t.assert.deepEqual(err.name, 'ConnectTimeoutError')
+    t.assert.strictEqual(err.code, 'UND_ERR_CONNECT_TIMEOUT')
+    t.assert.strictEqual(err.name, 'ConnectTimeoutError')
     return
   }
 

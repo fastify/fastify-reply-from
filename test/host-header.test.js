@@ -13,15 +13,15 @@ test('hostname', async (t) => {
   nock('http://httpbin.org')
     .get('/ip')
     .reply(200, function () {
-      t.assert.deepEqual(this.req.headers.host, 'httpbin.org')
+      t.assert.strictEqual(this.req.headers.host, 'httpbin.org')
       return { origin: '127.0.0.1' }
     })
 
   instance.get('*', (_request, reply) => {
     reply.from(null, {
       rewriteRequestHeaders: (originalReq, headers) => {
-        t.assert.deepEqual(headers.host, 'httpbin.org')
-        t.assert.deepEqual(originalReq.headers.host, `localhost:${instance.server.address().port}`)
+        t.assert.strictEqual(headers.host, 'httpbin.org')
+        t.assert.strictEqual(originalReq.headers.host, `localhost:${instance.server.address().port}`)
         return headers
       }
     })
@@ -39,9 +39,9 @@ test('hostname', async (t) => {
       pipelining: 0
     })
   })
-  t.assert.deepEqual(res.statusCode, 200)
-  t.assert.deepEqual(res.headers['content-type'], 'application/json')
-  t.assert.deepEqual(typeof (await res.body.json()).origin, 'string')
+  t.assert.strictEqual(res.statusCode, 200)
+  t.assert.strictEqual(res.headers['content-type'], 'application/json')
+  t.assert.strictEqual(typeof (await res.body.json()).origin, 'string')
 })
 
 test('hostname and port', async (t) => {
@@ -51,7 +51,7 @@ test('hostname and port', async (t) => {
   nock('http://httpbin.org:8080')
     .get('/ip')
     .reply(200, function () {
-      t.assert.deepEqual(this.req.headers.host, 'httpbin.org:8080')
+      t.assert.strictEqual(this.req.headers.host, 'httpbin.org:8080')
       return { origin: '127.0.0.1' }
     })
 
@@ -71,7 +71,7 @@ test('hostname and port', async (t) => {
       pipelining: 0
     })
   })
-  t.assert.deepEqual(res.statusCode, 200)
-  t.assert.deepEqual(res.headers['content-type'], 'application/json')
-  t.assert.deepEqual(typeof (await res.body.json()).origin, 'string')
+  t.assert.strictEqual(res.statusCode, 200)
+  t.assert.strictEqual(res.headers['content-type'], 'application/json')
+  t.assert.strictEqual(typeof (await res.body.json()).origin, 'string')
 })

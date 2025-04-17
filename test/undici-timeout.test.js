@@ -45,7 +45,7 @@ test('undici request timeout', async (t) => {
     })
   })
 
-  t.assert.deepEqual(result.statusCode, 504)
+  t.assert.strictEqual(result.statusCode, 504)
   t.assert.match(result.headers['content-type'], /application\/json/)
   t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 504,
@@ -101,7 +101,7 @@ test('undici request with specific timeout', async (t) => {
       pipelining: 0
     })
   })
-  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.statusCode, 200)
 
   const result2 = await request(`http://localhost:${instance.server.address().port}/fail`, {
     dispatcher: new Agent({
@@ -109,7 +109,7 @@ test('undici request with specific timeout', async (t) => {
     })
   })
 
-  t.assert.deepEqual(result2.statusCode, 504)
+  t.assert.strictEqual(result2.statusCode, 504)
   t.assert.match(result2.headers['content-type'], /application\/json/)
   t.assert.deepStrictEqual(await result2.body.json(), {
     statusCode: 504,

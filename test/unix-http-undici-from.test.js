@@ -38,5 +38,5 @@ t.test('unix http undici from', { skip: process.platform === 'win32' }, async (t
   await new Promise(resolve => target.listen(socketPath, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.assert.deepEqual(result.statusCode, 500)
+  t.assert.strictEqual(result.statusCode, 500)
 })

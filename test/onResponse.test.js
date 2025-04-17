@@ -15,7 +15,7 @@ t.test('onResponse', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'GET')
+    t.assert.strictEqual(req.method, 'GET')
     res.statusCode = 200
     res.end('hello world')
   })
@@ -23,8 +23,8 @@ t.test('onResponse', async (t) => {
   instance.get('/', (request1, reply) => {
     reply.from(`http://localhost:${target.address().port}`, {
       onResponse: (request2, reply, res) => {
-        t.assert.deepEqual(res.statusCode, 200)
-        t.assert.deepEqual(request1.raw, request2.raw)
+        t.assert.strictEqual(res.statusCode, 200)
+        t.assert.strictEqual(request1.raw, request2.raw)
         reply.send(res.stream)
       }
     })
@@ -37,6 +37,6 @@ t.test('onResponse', async (t) => {
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.assert.deepEqual(result.statusCode, 200)
-  t.assert.deepEqual(await result.body.text(), 'hello world')
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(await result.body.text(), 'hello world')
 })

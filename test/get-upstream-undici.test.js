@@ -17,7 +17,7 @@ t.test('getUpstream undici', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'GET')
+    t.assert.strictEqual(req.method, 'GET')
     res.end(req.headers.host)
   })
 
@@ -38,5 +38,5 @@ t.test('getUpstream undici', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}/test`)
 
-  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.statusCode, 200)
 })

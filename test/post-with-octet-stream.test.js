@@ -24,8 +24,8 @@ test('with explicitly set content-type application/octet-stream', async t => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'POST')
-    t.assert.deepEqual(req.headers['content-type'], 'application/octet-stream')
+    t.assert.strictEqual(req.method, 'POST')
+    t.assert.strictEqual(req.headers['content-type'], 'application/octet-stream')
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
@@ -56,6 +56,6 @@ test('with explicitly set content-type application/octet-stream', async t => {
     body: 'some=info&another=detail'
   })
 
-  t.assert.deepEqual(result.headers['content-type'], 'application/octet-stream')
+  t.assert.strictEqual(result.headers['content-type'], 'application/octet-stream')
   t.assert.deepStrictEqual(await result.body.json(), { some: 'info', another: 'detail' })
 })

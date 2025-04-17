@@ -17,7 +17,7 @@ t.test('getUpstream type', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'GET')
+    t.assert.strictEqual(req.method, 'GET')
     res.end(req.headers.host)
   })
 
@@ -25,7 +25,7 @@ t.test('getUpstream type', async (t) => {
     reply.from(`http://localhost:${target.address().port}`, {
       getUpstream: (req) => {
         t.assert.ok('getUpstream called with correct request parameter')
-        t.assert.deepEqual(req, request)
+        t.assert.strictEqual(req, request)
         return `http://localhost:${target.address().port}`
       }
     })
@@ -39,5 +39,5 @@ t.test('getUpstream type', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.statusCode, 200)
 })

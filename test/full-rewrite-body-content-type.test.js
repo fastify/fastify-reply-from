@@ -18,8 +18,8 @@ t.test('full rewrite body content-type', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'POST')
-    t.assert.deepEqual(req.headers['content-type'], 'application/msgpack')
+    t.assert.strictEqual(req.method, 'POST')
+    t.assert.strictEqual(req.headers['content-type'], 'application/msgpack')
     const data = []
     req.on('data', (d) => {
       data.push(d)

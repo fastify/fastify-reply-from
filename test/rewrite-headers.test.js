@@ -15,7 +15,7 @@ t.test('rewriteHeaders', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'GET')
+    t.assert.strictEqual(req.method, 'GET')
     res.statusCode = 205
     res.setHeader('Content-Type', 'text/plain')
     res.setHeader('x-my-header', 'hello!')
@@ -40,8 +40,8 @@ t.test('rewriteHeaders', async (t) => {
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.assert.deepEqual(result.headers['content-type'], 'text/plain')
-  t.assert.deepEqual(result.headers['x-another-header'], 'so headers!')
+  t.assert.strictEqual(result.headers['content-type'], 'text/plain')
+  t.assert.strictEqual(result.headers['x-another-header'], 'so headers!')
   t.assert.ok(!result.headers['x-my-header'])
-  t.assert.deepEqual(result.statusCode, 205)
+  t.assert.strictEqual(result.statusCode, 205)
 })

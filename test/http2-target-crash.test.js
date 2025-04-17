@@ -39,7 +39,7 @@ test('http -> http2 crash', async (t) => {
   await target.close()
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.assert.deepEqual(result.statusCode, 503)
+  t.assert.strictEqual(result.statusCode, 503)
   t.assert.match(result.headers['content-type'], /application\/json/)
   t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 503,

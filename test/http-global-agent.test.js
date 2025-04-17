@@ -18,8 +18,8 @@ test('http global agent is used, but not destroyed', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'GET')
-    t.assert.deepEqual(req.url, '/')
+    t.assert.strictEqual(req.method, 'GET')
+    t.assert.strictEqual(req.url, '/')
     res.statusCode = 200
     res.end()
   })
@@ -38,7 +38,7 @@ test('http global agent is used, but not destroyed', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.assert.deepEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.statusCode, 200)
 
   target.close()
 })

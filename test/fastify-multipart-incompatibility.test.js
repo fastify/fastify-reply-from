@@ -33,7 +33,7 @@ t.test('fastify-multipart-incompatibility', async (t) => {
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
-    t.assert.deepEqual(req.method, 'POST')
+    t.assert.strictEqual(req.method, 'POST')
     t.assert.match(req.headers['content-type'], /^multipart\/form-data/)
     let data = ''
     req.setEncoding('utf8')

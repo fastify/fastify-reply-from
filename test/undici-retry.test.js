@@ -33,7 +33,7 @@ test('Will retry', async function (t) {
     reply.from(`http://localhost:${target.address().port}/`, {
       retriesCount: 1,
       onError: (reply, { error }) => {
-        t.assert.deepEqual(error.code, 'UND_ERR_SOCKET')
+        t.assert.strictEqual(error.code, 'UND_ERR_SOCKET')
         reply.send(error)
       }
     })
@@ -43,7 +43,7 @@ test('Will retry', async function (t) {
   t.after(() => instance.close())
 
   const { statusCode } = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
-  t.assert.deepEqual(statusCode, 200)
+  t.assert.strictEqual(statusCode, 200)
 })
 
 test('will not retry', async function (t) {
@@ -60,7 +60,7 @@ test('will not retry', async function (t) {
     reply.from(`http://localhost:${target.address().port}/`, {
       retriesCount: 0,
       onError: (reply, { error }) => {
-        t.assert.deepEqual(error.code, 'UND_ERR_SOCKET')
+        t.assert.strictEqual(error.code, 'UND_ERR_SOCKET')
         reply.send(error)
       }
     })
@@ -71,7 +71,7 @@ test('will not retry', async function (t) {
 
   const result = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
 
-  t.assert.deepEqual(result.statusCode, 500)
+  t.assert.strictEqual(result.statusCode, 500)
 })
 
 test('will not retry unsupported method', async function (t) {
@@ -88,7 +88,7 @@ test('will not retry unsupported method', async function (t) {
     reply.from(`http://localhost:${target.address().port}/`, {
       retriesCount: 1,
       onError: (reply, { error }) => {
-        t.assert.deepEqual(error.code, 'UND_ERR_SOCKET')
+        t.assert.strictEqual(error.code, 'UND_ERR_SOCKET')
         reply.send(error)
       }
     })
@@ -98,5 +98,5 @@ test('will not retry unsupported method', async function (t) {
   t.after(() => instance.close())
 
   const result = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
-  t.assert.deepEqual(result.statusCode, 500)
+  t.assert.strictEqual(result.statusCode, 500)
 })
