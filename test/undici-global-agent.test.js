@@ -1,6 +1,6 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const http = require('node:http')
@@ -15,7 +15,7 @@ test('undici global agent is used, but not destroyed', async (t) => {
   undici.setGlobalDispatcher(mockAgent)
   const instance = Fastify()
 
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((_req, res) => {
     res.statusCode = 200
@@ -26,7 +26,7 @@ test('undici global agent is used, but not destroyed', async (t) => {
     reply.from()
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
@@ -38,10 +38,10 @@ test('undici global agent is used, but not destroyed', async (t) => {
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
-  t.equal(result.statusCode, 200)
+  t.assert.strictEqual(result.statusCode, 200)
 
   const result1 = await request(`http://localhost:${instance.server.address().port}`)
-  t.equal(result1.statusCode, 200)
+  t.assert.strictEqual(result1.statusCode, 200)
 
   target.close()
 })

@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -20,12 +20,12 @@ instance.addContentTypeParser(
 
 t.test('post with custom encoded content-type', async (t) => {
   t.plan(6)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'POST')
-    t.equal(req.headers['content-type'], 'application/x-www-form-urlencoded')
+    t.assert.ok('request proxied')
+    t.assert.strictEqual(req.method, 'POST')
+    t.assert.strictEqual(req.headers['content-type'], 'application/x-www-form-urlencoded')
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
@@ -33,7 +33,7 @@ t.test('post with custom encoded content-type', async (t) => {
     })
     req.on('end', () => {
       const str = data.toString()
-      t.same(JSON.parse(data), { some: 'info', another: 'detail' })
+      t.assert.deepStrictEqual(JSON.parse(data), { some: 'info', another: 'detail' })
       res.statusCode = 200
       res.setHeader('content-type', 'application/x-www-form-urlencoded')
       res.end(str)
@@ -44,7 +44,7 @@ t.test('post with custom encoded content-type', async (t) => {
     reply.from(`http://localhost:${target.address().port}`)
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
@@ -58,6 +58,6 @@ t.test('post with custom encoded content-type', async (t) => {
     body: 'some=info&another=detail'
   })
 
-  t.equal(result.headers['content-type'], 'application/x-www-form-urlencoded')
-  t.same(await result.body.json(), { some: 'info', another: 'detail' })
+  t.assert.strictEqual(result.headers['content-type'], 'application/x-www-form-urlencoded')
+  t.assert.deepStrictEqual(await result.body.json(), { some: 'info', another: 'detail' })
 })

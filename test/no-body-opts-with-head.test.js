@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -10,7 +10,7 @@ const instance = Fastify()
 
 t.test('no body opts with head', async (t) => {
   t.plan(4)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((_req, res) => {
     t.fail('this should never get called')
@@ -21,13 +21,13 @@ t.test('no body opts with head', async (t) => {
     try {
       reply.from(null, { body: 'this is the new body' })
     } catch (e) {
-      t.equal(e.message, 'Rewriting the body when doing a HEAD is not allowed')
+      t.assert.strictEqual(e.message, 'Rewriting the body when doing a HEAD is not allowed')
       reply.header('x-http-error', '1')
       reply.send('hello world')
     }
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
@@ -41,7 +41,7 @@ t.test('no body opts with head', async (t) => {
     method: 'HEAD'
   })
 
-  t.equal(result.statusCode, 200)
-  t.equal(result.headers['x-http-error'], '1')
-  t.equal(await result.body.text(), '')
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.headers['x-http-error'], '1')
+  t.assert.strictEqual(await result.body.text(), '')
 })

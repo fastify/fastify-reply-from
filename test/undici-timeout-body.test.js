@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const http = require('node:http')
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
@@ -11,13 +11,12 @@ const clock = FakeTimers.createClock()
 
 t.test('undici body timeout', async (t) => {
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
+    t.assert.ok('request proxied')
     req.on('data', () => undefined)
     req.on('end', () => {
       res.flushHeaders()
       clock.setTimeout(() => {
         res.end()
-        t.end()
       }, 1000)
     })
   })
@@ -25,8 +24,8 @@ t.test('undici body timeout', async (t) => {
   await target.listen({ port: 0 })
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
-  t.teardown(target.close.bind(target))
+  t.after(() => instance.close())
+  t.after(() => target.close())
 
   instance.register(From, {
     base: `http://localhost:${target.address().port}`,
@@ -47,8 +46,8 @@ t.test('undici body timeout', async (t) => {
     })
   })
 
-  t.equal(result.statusCode, 500)
-  t.same(await result.body.json(), {
+  t.assert.strictEqual(result.statusCode, 500)
+  t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 500,
     code: 'UND_ERR_BODY_TIMEOUT',
     error: 'Internal Server Error',

@@ -1,6 +1,6 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
 const From = require('..')
@@ -8,20 +8,20 @@ const nock = require('nock')
 
 test('hostname', async (t) => {
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   nock('http://httpbin.org')
     .get('/ip')
     .reply(200, function () {
-      t.equal(this.req.headers.host, 'httpbin.org')
+      t.assert.strictEqual(this.req.headers.host, 'httpbin.org')
       return { origin: '127.0.0.1' }
     })
 
   instance.get('*', (_request, reply) => {
     reply.from(null, {
       rewriteRequestHeaders: (originalReq, headers) => {
-        t.equal(headers.host, 'httpbin.org')
-        t.equal(originalReq.headers.host, `localhost:${instance.server.address().port}`)
+        t.assert.strictEqual(headers.host, 'httpbin.org')
+        t.assert.strictEqual(originalReq.headers.host, `localhost:${instance.server.address().port}`)
         return headers
       }
     })
@@ -39,19 +39,19 @@ test('hostname', async (t) => {
       pipelining: 0
     })
   })
-  t.equal(res.statusCode, 200)
-  t.equal(res.headers['content-type'], 'application/json')
-  t.equal(typeof (await res.body.json()).origin, 'string')
+  t.assert.strictEqual(res.statusCode, 200)
+  t.assert.strictEqual(res.headers['content-type'], 'application/json')
+  t.assert.strictEqual(typeof (await res.body.json()).origin, 'string')
 })
 
 test('hostname and port', async (t) => {
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   nock('http://httpbin.org:8080')
     .get('/ip')
     .reply(200, function () {
-      t.equal(this.req.headers.host, 'httpbin.org:8080')
+      t.assert.strictEqual(this.req.headers.host, 'httpbin.org:8080')
       return { origin: '127.0.0.1' }
     })
 
@@ -71,7 +71,7 @@ test('hostname and port', async (t) => {
       pipelining: 0
     })
   })
-  t.equal(res.statusCode, 200)
-  t.equal(res.headers['content-type'], 'application/json')
-  t.equal(typeof (await res.body.json()).origin, 'string')
+  t.assert.strictEqual(res.statusCode, 200)
+  t.assert.strictEqual(res.headers['content-type'], 'application/json')
+  t.assert.strictEqual(typeof (await res.body.json()).origin, 'string')
 })

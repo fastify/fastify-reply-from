@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -11,11 +11,11 @@ t.test('undici chaining', async (t) => {
   t.plan(2)
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
   const proxy1 = Fastify()
-  t.teardown(proxy1.close.bind(proxy1))
+  t.after(() => proxy1.close())
   const proxy2 = Fastify()
-  t.teardown(proxy2.close.bind(proxy2))
+  t.after(() => proxy2.close())
 
   instance.get('/', (_request, reply) => {
     reply.header('content-disposition', header).send('OK')
@@ -45,6 +45,6 @@ t.test('undici chaining', async (t) => {
 
   const result = await request(`http://localhost:${proxy2.server.address().port}`)
 
-  t.equal(result.statusCode, 200)
-  t.equal(await result.body.text(), 'OK')
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(await result.body.text(), 'OK')
 })
