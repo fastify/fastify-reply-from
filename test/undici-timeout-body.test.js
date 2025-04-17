@@ -17,7 +17,6 @@ t.test('undici body timeout', async (t) => {
       res.flushHeaders()
       clock.setTimeout(() => {
         res.end()
-        t.end()
       }, 1000)
     })
   })

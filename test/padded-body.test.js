@@ -23,7 +23,7 @@ t.test('padded body', async (t) => {
     t.assert.ok('request proxied')
     t.assert.deepEqual(req.method, 'POST')
     t.assert.deepEqual(req.headers['content-type'], 'application/json')
-    t.assert.deepStrictEqual(req.headers['content-length'], parsedLength)
+    t.assert.deepStrictEqual(req.headers['content-length'], `${parsedLength}`)
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {

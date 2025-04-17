@@ -1,6 +1,7 @@
 'use strict'
 
 const t = require('node:test')
+const assert = require('node:assert')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const proxyquire = require('proxyquire')
@@ -49,13 +50,13 @@ function undiciProxy () {}
 undiciProxy.Agent = class Agent extends undici.Agent {
   constructor (opts) {
     super(opts)
-    t.strictSame(opts, buildUndiciOptions())
+    assert.deepStrictEqual(opts, buildUndiciOptions())
   }
 }
 undiciProxy.Pool = class Pool extends undici.Pool {
   constructor (url, options) {
     super(url, options)
-    t.hasStrict(options, buildUndiciOptions())
+    assert.deepStrictEqual(options, buildUndiciOptions())
   }
 }
 

@@ -19,7 +19,6 @@ t.test('undici body timeout', async (t) => {
       res.write('test')
       clock.setTimeout(() => {
         res.end()
-        t.end()
       }, 1000)
     })
   })

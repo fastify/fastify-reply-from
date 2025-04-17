@@ -147,7 +147,7 @@ test('we can exceed our retryCount and introspect attempts independently', async
 
   const res = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.assert.match(attemptCounter, [0, 1, 2, 3, 4])
+  t.assert.deepStrictEqual(attemptCounter, [0, 1, 2, 3, 4])
   t.assert.deepEqual(res.headers['content-type'], 'text/plain')
   t.assert.deepEqual(res.statusCode, 205)
   t.assert.deepEqual(await res.body.text(), 'Hello World 5!')
@@ -172,7 +172,7 @@ test('we handle our retries based on the retryCount', async (t) => {
   await request(`http://localhost:${instance.server.address().port}`)
   const res = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.assert.match(attemptCounter, [0, 1])
+  t.assert.deepStrictEqual(attemptCounter.slice(0, 2), [0, 1])
   t.assert.deepEqual(res.headers['content-type'], 'text/plain')
   t.assert.deepEqual(res.statusCode, 205)
   t.assert.deepEqual(await res.body.text(), 'Hello World 5!')
