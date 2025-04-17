@@ -8,15 +8,10 @@ const fs = require('node:fs')
 const querystring = require('node:querystring')
 const http = require('node:http')
 
-if (process.platform === 'win32') {
-  t.assert.ok()
-  process.exit(0)
-}
-
 const instance = Fastify()
 instance.register(From)
 
-t.test('unix http undici from', async (t) => {
+t.test('unix http undici from', { skip: process.platform === 'win32' }, async (t) => {
   t.plan(1)
   t.after(() => instance.close())
 

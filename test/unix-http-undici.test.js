@@ -8,11 +8,6 @@ const fs = require('node:fs')
 const querystring = require('node:querystring')
 const http = require('node:http')
 
-if (process.platform === 'win32') {
-  t.assert.ok()
-  process.exit(0)
-}
-
 const socketPath = `${__filename}.socket`
 const upstream = `unix+http://${querystring.escape(socketPath)}/`
 
@@ -21,7 +16,7 @@ instance.register(From, {
   base: upstream
 })
 
-t.test('unix http undici', async t => {
+t.test('unix http undici', { skip: process.platform === 'win32' }, async t => {
   t.plan(7)
   t.after(() => instance.close())
 

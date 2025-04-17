@@ -13,11 +13,6 @@ const certs = {
   cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))
 }
 
-if (process.platform === 'win32') {
-  t.assert.ok()
-  process.exit(0)
-}
-
 const instance = Fastify({
   https: certs
 })
@@ -25,7 +20,7 @@ instance.register(From, {
   http: true
 })
 
-t.test('unix https', async (t) => {
+t.test('unix https', { skip: process.platform === 'win32' }, async (t) => {
   t.plan(7)
   t.after(() => instance.close())
 
