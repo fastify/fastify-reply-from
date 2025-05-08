@@ -2,7 +2,7 @@
 
 const fs = require('node:fs')
 const path = require('node:path')
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -26,25 +26,25 @@ instance.register(From)
 t.test('fastify-multipart-incompatibility', async (t) => {
   t.plan(9)
 
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const filetPath = path.join(__dirname, 'fixtures', 'file.txt')
   const fileContent = fs.readFileSync(filetPath, { encoding: 'utf-8' })
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'POST')
-    t.match(req.headers['content-type'], /^multipart\/form-data/)
+    t.assert.ok('request proxied')
+    t.assert.strictEqual(req.method, 'POST')
+    t.assert.match(req.headers['content-type'], /^multipart\/form-data/)
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
       data += d
     })
     req.on('end', () => {
-      t.notMatch(data, 'Content-Disposition: form-data; name="key"')
-      t.notMatch(data, 'value')
-      t.notMatch(data, 'Content-Disposition: form-data; name="file"')
-      t.notMatch(data, fileContent)
+      t.assert.notDeepEqual(data, 'Content-Disposition: form-data; name="key"')
+      t.assert.notDeepEqual(data, 'value')
+      t.assert.notDeepEqual(data, 'Content-Disposition: form-data; name="file"')
+      t.assert.notDeepEqual(data, fileContent)
       res.setHeader('content-type', 'application/json')
       res.statusCode = 200
       res.end(JSON.stringify({ something: 'else' }))
@@ -55,7 +55,7 @@ t.test('fastify-multipart-incompatibility', async (t) => {
     reply.from(`http://localhost:${target.address().port}`)
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
@@ -64,7 +64,7 @@ t.test('fastify-multipart-incompatibility', async (t) => {
       log.level === 40 &&
       log.msg.match(/@fastify\/reply-from might not behave as expected when used with @fastify\/multipart/)
     ) {
-      t.pass('incompatibility warn message logged')
+      t.assert.ok('incompatibility warn message logged')
     }
   })
 
@@ -80,5 +80,5 @@ t.test('fastify-multipart-incompatibility', async (t) => {
     body: form
   })
 
-  t.same(await result.body.json(), { something: 'else' })
+  t.assert.deepStrictEqual(await result.body.json(), { something: 'else' })
 })

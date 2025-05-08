@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -11,25 +11,25 @@ instance.register(From)
 
 t.test('full post stream', async (t) => {
   t.plan(5)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.addContentTypeParser('application/octet-stream', function (_req, payload, done) {
     done(null, payload)
   })
 
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'POST')
-    t.equal(req.headers['content-type'], 'application/octet-stream')
+    t.assert.ok('request proxied')
+    t.assert.strictEqual(req.method, 'POST')
+    t.assert.strictEqual(req.headers['content-type'], 'application/octet-stream')
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
       data += d
     })
     req.on('end', () => {
-      t.same(JSON.parse(data), { hello: 'world' })
+      t.assert.deepStrictEqual(JSON.parse(data), { hello: 'world' })
       res.statusCode = 200
       res.setHeader('content-type', 'application/octet-stream')
       res.end(JSON.stringify({ something: 'else' }))
@@ -40,7 +40,7 @@ t.test('full post stream', async (t) => {
     reply.from(`http://localhost:${target.address().port}`)
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
@@ -56,5 +56,5 @@ t.test('full post stream', async (t) => {
     })
   })
 
-  t.same(await result.body.json(), { something: 'else' })
+  t.assert.deepStrictEqual(await result.body.json(), { something: 'else' })
 })

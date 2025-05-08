@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -13,20 +13,20 @@ instance.register(From, {
 
 t.test('full rewrite body to null', async (t) => {
   t.plan(6)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'POST')
-    t.notOk('content-type' in req.headers)
-    t.equal(req.headers['content-length'], '0')
+    t.assert.ok('request proxied')
+    t.assert.strictEqual(req.method, 'POST')
+    t.assert.ok(!('content-type' in req.headers))
+    t.assert.strictEqual(req.headers['content-length'], '0')
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
       data += d
     })
     req.on('end', () => {
-      t.equal(data.length, 0)
+      t.assert.strictEqual(data.length, 0)
       res.statusCode = 200
       res.setHeader('content-type', 'application/json')
       res.end(JSON.stringify({ hello: 'fastify' }))
@@ -39,7 +39,7 @@ t.test('full rewrite body to null', async (t) => {
     })
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
@@ -53,5 +53,5 @@ t.test('full rewrite body to null', async (t) => {
     body: JSON.stringify({ hello: 'world' }),
   })
 
-  t.same(await result.body.json(), { hello: 'fastify' })
+  t.assert.deepStrictEqual(await result.body.json(), { hello: 'fastify' })
 })

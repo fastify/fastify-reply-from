@@ -1,6 +1,6 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const { request, Pool } = require('undici')
 const From = require('..')
@@ -29,7 +29,7 @@ test('use a custom instance of \'undici\'', async t => {
   })
 
   target.get('/', (_req, reply) => {
-    t.pass('request proxied')
+    t.assert.ok('request proxied')
 
     reply.headers({
       'Content-Type': 'text/plain',
@@ -41,7 +41,7 @@ test('use a custom instance of \'undici\'', async t => {
   })
 
   await target.listen({ port: 3001 })
-  t.teardown(async () => {
+  t.after(async () => {
     await target.close()
   })
 
@@ -58,16 +58,16 @@ test('use a custom instance of \'undici\'', async t => {
   })
 
   await instance.listen({ port: 0 })
-  t.teardown(async () => {
+  t.after(async () => {
     await instance.close()
   })
 
   const res = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(res.headers['content-type'], 'text/plain')
-  t.equal(res.headers['x-my-header'], 'hello!')
-  t.equal(res.statusCode, 205)
+  t.assert.strictEqual(res.headers['content-type'], 'text/plain')
+  t.assert.strictEqual(res.headers['x-my-header'], 'hello!')
+  t.assert.strictEqual(res.statusCode, 205)
 
   const data = await res.body.text()
-  t.equal(data, 'hello world')
+  t.assert.strictEqual(data, 'hello world')
 })

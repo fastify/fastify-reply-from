@@ -3,7 +3,7 @@
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
 const From = require('..')
-const { test } = require('tap')
+const { test } = require('node:test')
 
 let retryNum = 1
 
@@ -20,10 +20,10 @@ const target = require('node:http').createServer(function (req, res) {
 })
 
 test('Will retry', async function (t) {
-  t.teardown(() => { retryNum = 1 })
+  t.after(() => { retryNum = 1 })
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   const instance = Fastify()
 
@@ -33,24 +33,24 @@ test('Will retry', async function (t) {
     reply.from(`http://localhost:${target.address().port}/`, {
       retriesCount: 1,
       onError: (reply, { error }) => {
-        t.equal(error.code, 'UND_ERR_SOCKET')
+        t.assert.strictEqual(error.code, 'UND_ERR_SOCKET')
         reply.send(error)
       }
     })
   })
 
   await instance.listen({ port: 0 })
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const { statusCode } = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
-  t.equal(statusCode, 200)
+  t.assert.strictEqual(statusCode, 200)
 })
 
 test('will not retry', async function (t) {
-  t.teardown(() => { retryNum = 1 })
+  t.after(() => { retryNum = 1 })
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   const instance = Fastify()
 
@@ -60,25 +60,25 @@ test('will not retry', async function (t) {
     reply.from(`http://localhost:${target.address().port}/`, {
       retriesCount: 0,
       onError: (reply, { error }) => {
-        t.equal(error.code, 'UND_ERR_SOCKET')
+        t.assert.strictEqual(error.code, 'UND_ERR_SOCKET')
         reply.send(error)
       }
     })
   })
 
   await instance.listen({ port: 0 })
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const result = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
 
-  t.equal(result.statusCode, 500)
+  t.assert.strictEqual(result.statusCode, 500)
 })
 
 test('will not retry unsupported method', async function (t) {
-  t.teardown(() => { retryNum = 1 })
+  t.after(() => { retryNum = 1 })
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   const instance = Fastify()
 
@@ -88,15 +88,15 @@ test('will not retry unsupported method', async function (t) {
     reply.from(`http://localhost:${target.address().port}/`, {
       retriesCount: 1,
       onError: (reply, { error }) => {
-        t.equal(error.code, 'UND_ERR_SOCKET')
+        t.assert.strictEqual(error.code, 'UND_ERR_SOCKET')
         reply.send(error)
       }
     })
   })
 
   await instance.listen({ port: 0 })
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const result = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
-  t.equal(result.statusCode, 500)
+  t.assert.strictEqual(result.statusCode, 500)
 })

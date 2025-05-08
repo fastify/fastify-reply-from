@@ -1,6 +1,7 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
+const assert = require('node:assert')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -8,10 +9,10 @@ const http = require('node:http')
 const split = require('split2')
 
 const target = http.createServer((req, res) => {
-  t.pass('request proxied')
-  t.equal(req.method, 'GET')
-  t.equal(req.url, '/')
-  t.equal(req.headers.connection, 'keep-alive')
+  assert.ok('request proxied')
+  assert.strictEqual(req.method, 'GET')
+  assert.strictEqual(req.url, '/')
+  assert.strictEqual(req.headers.connection, 'keep-alive')
   res.statusCode = 205
   res.setHeader('Content-Type', 'text/plain')
   res.setHeader('x-my-header', 'hello!')
@@ -20,11 +21,11 @@ const target = http.createServer((req, res) => {
 
 t.test('use a custom instance of \'undici\'', async t => {
   t.plan(3)
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise((resolve, reject) => target.listen({ port: 0 }, err => err ? reject(err) : resolve()))
 
-  t.test('disableRequestLogging is set to true', async t => {
+  await t.test('disableRequestLogging is set to true', async t => {
     const logStream = split(JSON.parse)
     const instance = Fastify({
       logger: {
@@ -32,7 +33,7 @@ t.test('use a custom instance of \'undici\'', async t => {
         stream: logStream
       }
     })
-    t.teardown(instance.close.bind(instance))
+    t.after(() => instance.close())
     instance.register(From, {
       base: `http://localhost:${target.address().port}`,
       disableRequestLogging: true
@@ -50,20 +51,20 @@ t.test('use a custom instance of \'undici\'', async t => {
           !log.msg.match('fetching from remote server')
         )
       ) {
-        t.pass('request log message does not logged')
+        t.assert.ok('request log message does not logged')
       }
     })
 
     await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
     const result = await request(`http://localhost:${instance.server.address().port}`)
-    t.equal(result.headers['content-type'], 'text/plain')
-    t.equal(result.headers['x-my-header'], 'hello!')
-    t.equal(result.statusCode, 205)
-    t.equal(await result.body.text(), 'hello world')
+    t.assert.strictEqual(result.headers['content-type'], 'text/plain')
+    t.assert.strictEqual(result.headers['x-my-header'], 'hello!')
+    t.assert.strictEqual(result.statusCode, 205)
+    t.assert.strictEqual(await result.body.text(), 'hello world')
   })
 
-  t.test('disableRequestLogging is set to false', async t => {
+  await t.test('disableRequestLogging is set to false', async t => {
     const logStream = split(JSON.parse)
     const instance = Fastify({
       logger: {
@@ -71,7 +72,7 @@ t.test('use a custom instance of \'undici\'', async t => {
         stream: logStream
       }
     })
-    t.teardown(instance.close.bind(instance))
+    t.after(() => instance.close())
     instance.register(From, {
       base: `http://localhost:${target.address().port}`,
       disableRequestLogging: false
@@ -89,20 +90,20 @@ t.test('use a custom instance of \'undici\'', async t => {
           log.msg.match('fetching from remote server')
         )
       ) {
-        t.pass('request log message does not logged')
+        t.assert.ok('request log message does not logged')
       }
     })
 
     await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
     const result = await request(`http://localhost:${instance.server.address().port}`)
-    t.equal(result.headers['content-type'], 'text/plain')
-    t.equal(result.headers['x-my-header'], 'hello!')
-    t.equal(result.statusCode, 205)
-    t.equal(await result.body.text(), 'hello world')
+    t.assert.strictEqual(result.headers['content-type'], 'text/plain')
+    t.assert.strictEqual(result.headers['x-my-header'], 'hello!')
+    t.assert.strictEqual(result.statusCode, 205)
+    t.assert.strictEqual(await result.body.text(), 'hello world')
   })
 
-  t.test('disableRequestLogging is not defined', async t => {
+  await t.test('disableRequestLogging is not defined', async t => {
     const logStream = split(JSON.parse)
     const instance = Fastify({
       logger: {
@@ -110,7 +111,7 @@ t.test('use a custom instance of \'undici\'', async t => {
         stream: logStream
       }
     })
-    t.teardown(instance.close.bind(instance))
+    t.after(() => instance.close())
     instance.register(From, {
       base: `http://localhost:${target.address().port}`
     })
@@ -127,16 +128,16 @@ t.test('use a custom instance of \'undici\'', async t => {
           log.msg.match('fetching from remote server')
         )
       ) {
-        t.pass('request log message does not logged')
+        t.assert.ok('request log message does not logged')
       }
     })
 
     await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
     const result = await request(`http://localhost:${instance.server.address().port}`)
-    t.equal(result.headers['content-type'], 'text/plain')
-    t.equal(result.headers['x-my-header'], 'hello!')
-    t.equal(result.statusCode, 205)
-    t.equal(await result.body.text(), 'hello world')
+    t.assert.strictEqual(result.headers['content-type'], 'text/plain')
+    t.assert.strictEqual(result.headers['x-my-header'], 'hello!')
+    t.assert.strictEqual(result.statusCode, 205)
+    t.assert.strictEqual(await result.body.text(), 'hello world')
   })
 })

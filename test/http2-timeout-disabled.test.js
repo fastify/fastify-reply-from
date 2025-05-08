@@ -1,22 +1,22 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
 const From = require('..')
 
 test('http2 request timeout disabled', async (t) => {
   const target = Fastify({ http2: true })
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   target.get('/', () => {
-    t.pass('request arrives')
+    t.assert.ok('request arrives')
   })
 
   await target.listen({ port: 0 })
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.register(From, {
     base: `http://localhost:${target.server.address().port}`,
@@ -40,14 +40,14 @@ test('http2 request timeout disabled', async (t) => {
 
   // if we wait 11000 ms without a timeout error, we assume disabling the timeout worked
   // 10000 ms is the default timeout
-  t.equal(result, 'passed')
+  t.assert.strictEqual(result, 'passed')
 })
 
 test('http2 session timeout disabled', async (t) => {
   const target = Fastify({ http2: true })
 
   target.get('/', () => {
-    t.pass('request arrives')
+    t.assert.ok('request arrives')
   })
 
   await target.listen({ port: 0 })
@@ -86,5 +86,5 @@ test('http2 session timeout disabled', async (t) => {
 
   // if we wait 4000 ms without a timeout error, we assume disabling the session timeout for reply-from worked
   // because we pass 3000 ms as session timeout to the Fastify options itself
-  t.equal(result, 'passed')
+  t.assert.strictEqual(result, 'passed')
 })

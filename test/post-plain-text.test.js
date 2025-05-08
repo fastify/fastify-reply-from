@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -11,12 +11,12 @@ instance.register(From)
 
 t.test('post plain text', async (t) => {
   t.plan(6)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'POST')
-    t.equal(req.headers['content-type'], 'text/plain')
+    t.assert.ok('request proxied')
+    t.assert.strictEqual(req.method, 'POST')
+    t.assert.strictEqual(req.headers['content-type'], 'text/plain')
     let data = ''
     req.setEncoding('utf8')
     req.on('data', (d) => {
@@ -24,7 +24,7 @@ t.test('post plain text', async (t) => {
     })
     req.on('end', () => {
       const str = data.toString()
-      t.same(str, 'this is plain text')
+      t.assert.deepStrictEqual(str, 'this is plain text')
       res.statusCode = 200
       res.setHeader('content-type', 'text/plain')
       res.end(str)
@@ -35,7 +35,7 @@ t.test('post plain text', async (t) => {
     reply.from(`http://localhost:${target.address().port}`)
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
@@ -47,6 +47,6 @@ t.test('post plain text', async (t) => {
     body: 'this is plain text'
   })
 
-  t.equal(result.headers['content-type'], 'text/plain')
-  t.same(await result.body.text(), 'this is plain text')
+  t.assert.strictEqual(result.headers['content-type'], 'text/plain')
+  t.assert.deepStrictEqual(await result.body.text(), 'this is plain text')
 })

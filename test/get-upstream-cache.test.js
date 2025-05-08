@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const From = require('..')
 
@@ -13,13 +13,11 @@ async function createTarget (i) {
     return `Hello from target ${i}`
   })
 
-  t.teardown(() => target.close())
+  t.after(() => target.close())
   await target.listen({ port: 3000 + i })
 }
 
-t.plan(4)
-
-async function run () {
+async function run (t) {
   await Promise.all([
     createTarget(1),
     createTarget(2)
@@ -45,7 +43,7 @@ async function run () {
     })
   })
 
-  t.teardown(() => instance.close())
+  t.after(() => instance.close())
   await instance.listen({ port: 3000 })
 
   const res1 = await instance.inject({
@@ -55,8 +53,8 @@ async function run () {
       'x-host-number': 1
     }
   })
-  t.equal(res1.statusCode, 200)
-  t.equal(res1.body, 'Hello from target 1')
+  t.assert.strictEqual(res1.statusCode, 200)
+  t.assert.strictEqual(res1.body, 'Hello from target 1')
 
   const res2 = await instance.inject({
     method: 'GET',
@@ -65,8 +63,11 @@ async function run () {
       'x-host-number': 2
     }
   })
-  t.equal(res2.statusCode, 200)
-  t.equal(res2.body, 'Hello from target 2')
+  t.assert.strictEqual(res2.statusCode, 200)
+  t.assert.strictEqual(res2.body, 'Hello from target 2')
 }
 
-run()
+t.test('get-upstream-cache', async (t) => {
+  t.plan(4)
+  await run(t)
+})

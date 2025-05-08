@@ -1,7 +1,8 @@
 'use strict'
 
 const h2url = require('h2url')
-const t = require('tap')
+const t = require('node:test')
+const assert = require('node:assert')
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
 const From = require('..')
@@ -18,15 +19,12 @@ const instance = Fastify({
   https: certs
 })
 
-t.plan(4)
-t.teardown(instance.close.bind(instance))
-
 const target = Fastify({
   https: certs
 })
 
 target.get('/', (_request, reply) => {
-  t.pass('request proxied')
+  assert.ok('request proxied')
   reply.code(404).header('x-my-header', 'hello!').send({
     hello: 'world'
   })
@@ -36,9 +34,7 @@ instance.get('/', (_request, reply) => {
   reply.from()
 })
 
-t.teardown(target.close.bind(target))
-
-async function run () {
+async function run (t) {
   await target.listen({ port: 0 })
 
   instance.register(From, {
@@ -48,18 +44,20 @@ async function run () {
 
   await instance.listen({ port: 0 })
 
-  t.test('http2 -> https', async (t) => {
+  await t.test('http2 -> https', async (t) => {
+    t.plan(4)
     const { headers, body } = await h2url.concat({
       url: `https://localhost:${instance.server.address().port}`
     })
 
-    t.equal(headers[':status'], 404)
-    t.equal(headers['x-my-header'], 'hello!')
-    t.match(headers['content-type'], /application\/json/)
-    t.same(JSON.parse(body), { hello: 'world' })
+    t.assert.strictEqual(headers[':status'], 404)
+    t.assert.strictEqual(headers['x-my-header'], 'hello!')
+    t.assert.match(headers['content-type'], /application\/json/)
+    t.assert.deepStrictEqual(JSON.parse(body), { hello: 'world' })
   })
 
-  t.test('https -> https', async (t) => {
+  await t.test('https -> https', async (t) => {
+    t.plan(4)
     const result = await request(`https://localhost:${instance.server.address().port}`, {
       dispatcher: new Agent({
         connect: {
@@ -68,11 +66,17 @@ async function run () {
       })
     })
 
-    t.equal(result.statusCode, 404)
-    t.equal(result.headers['x-my-header'], 'hello!')
-    t.match(result.headers['content-type'], /application\/json/)
-    t.same(await result.body.json(), { hello: 'world' })
+    t.assert.strictEqual(result.statusCode, 404)
+    t.assert.strictEqual(result.headers['x-my-header'], 'hello!')
+    t.assert.match(result.headers['content-type'], /application\/json/)
+    t.assert.deepStrictEqual(await result.body.json(), { hello: 'world' })
   })
 }
 
-run()
+t.test('http2 -> https', async (t) => {
+  t.plan(2)
+  t.after(() => instance.close())
+  t.after(() => target.close())
+
+  await run(t)
+})

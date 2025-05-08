@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -11,11 +11,11 @@ instance.register(From)
 
 t.test('rewriteRequestHeaders type', async (t) => {
   t.plan(5)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'GET')
+    t.assert.ok('request proxied')
+    t.assert.strictEqual(req.method, 'GET')
     res.statusCode = 205
     res.end(req.headers.host)
   })
@@ -23,14 +23,14 @@ t.test('rewriteRequestHeaders type', async (t) => {
   instance.get('/', (request, reply) => {
     reply.from(`http://localhost:${target.address().port}`, {
       rewriteRequestHeaders: (originalReq) => {
-        t.pass('rewriteRequestHeaders called with correct request parameter')
-        t.equal(originalReq, request)
+        t.assert.ok('rewriteRequestHeaders called with correct request parameter')
+        t.assert.strictEqual(originalReq, request)
         return {}
       }
     })
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise((resolve) => instance.listen({ port: 0 }, resolve))
 
@@ -38,5 +38,5 @@ t.test('rewriteRequestHeaders type', async (t) => {
 
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(result.statusCode, 205)
+  t.assert.strictEqual(result.statusCode, 205)
 })

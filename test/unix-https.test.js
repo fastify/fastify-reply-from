@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const From = require('..')
 const https = require('node:https')
@@ -13,11 +13,6 @@ const certs = {
   cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))
 }
 
-if (process.platform === 'win32') {
-  t.pass()
-  process.exit(0)
-}
-
 const instance = Fastify({
   https: certs
 })
@@ -25,9 +20,9 @@ instance.register(From, {
   http: true
 })
 
-t.test('unix https', async (t) => {
+t.test('unix https', { skip: process.platform === 'win32' }, async (t) => {
   t.plan(7)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const socketPath = `${__filename}.socket`
 
@@ -37,9 +32,9 @@ t.test('unix https', async (t) => {
   }
 
   const target = https.createServer(certs, (req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'GET')
-    t.equal(req.url, '/hello')
+    t.assert.ok('request proxied')
+    t.assert.strictEqual(req.method, 'GET')
+    t.assert.strictEqual(req.url, '/hello')
     res.statusCode = 205
     res.setHeader('Content-Type', 'text/plain')
     res.setHeader('x-my-header', 'hello!')
@@ -50,7 +45,7 @@ t.test('unix https', async (t) => {
     reply.from(`unix+https://${querystring.escape(socketPath)}/hello`)
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await instance.listen({ port: 0 })
 
@@ -64,8 +59,8 @@ t.test('unix https', async (t) => {
     })
   })
 
-  t.equal(result.headers['content-type'], 'text/plain')
-  t.equal(result.headers['x-my-header'], 'hello!')
-  t.equal(result.statusCode, 205)
-  t.equal(await result.body.text(), 'hello world')
+  t.assert.strictEqual(result.headers['content-type'], 'text/plain')
+  t.assert.strictEqual(result.headers['x-my-header'], 'hello!')
+  t.assert.strictEqual(result.statusCode, 205)
+  t.assert.strictEqual(await result.body.text(), 'hello world')
 })

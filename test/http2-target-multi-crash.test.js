@@ -1,6 +1,6 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -8,7 +8,7 @@ const From = require('..')
 test('http -> http2 crash multiple times', async (t) => {
   const instance = Fastify()
 
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.get('/', (_request, reply) => {
     reply.from()
@@ -33,9 +33,9 @@ test('http -> http2 crash multiple times', async (t) => {
   await target.close()
   const result = await request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(result.statusCode, 503)
-  t.match(result.headers['content-type'], /application\/json/)
-  t.same(await result.body.json(), {
+  t.assert.strictEqual(result.statusCode, 503)
+  t.assert.match(result.headers['content-type'], /application\/json/)
+  t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 503,
     code: 'FST_REPLY_FROM_SERVICE_UNAVAILABLE',
     error: 'Service Unavailable',
@@ -48,7 +48,7 @@ test('http -> http2 crash multiple times', async (t) => {
     })
 
     target.get('/', (request, reply) => {
-      t.pass('request proxied')
+      t.assert.ok('request proxied')
       reply.code(200).send({
         hello: 'world'
       })

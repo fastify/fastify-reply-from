@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const undici = require('undici')
 const proxyquire = require('proxyquire')
@@ -11,7 +11,7 @@ t.test('undici agent', async (t) => {
   t.plan(6)
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = http.createServer((_req, res) => {
     res.statusCode = 200
@@ -22,7 +22,7 @@ t.test('undici agent', async (t) => {
     reply.from()
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
@@ -52,15 +52,15 @@ t.test('undici agent', async (t) => {
 
   const result = await undici.request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(result.statusCode, 200)
-  t.equal(await result.body.text(), 'hello world')
-  t.equal(poolCreation, 1)
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(await result.body.text(), 'hello world')
+  t.assert.strictEqual(poolCreation, 1)
 
   const result2 = await undici.request(`http://localhost:${instance.server.address().port}`)
 
-  t.equal(result2.statusCode, 200)
-  t.equal(await result2.body.text(), 'hello world')
-  t.equal(poolCreation, 1)
+  t.assert.strictEqual(result2.statusCode, 200)
+  t.assert.strictEqual(await result2.body.text(), 'hello world')
+  t.assert.strictEqual(poolCreation, 1)
 })
 
 function buildUndiciOptions () {

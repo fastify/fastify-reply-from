@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -21,12 +21,12 @@ const instance = Fastify({
 
 t.test('https agents', async (t) => {
   t.plan(7)
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   const target = https.createServer(certs, (req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'GET')
-    t.equal(req.url, '/')
+    t.assert.ok('request proxied')
+    t.assert.strictEqual(req.method, 'GET')
+    t.assert.strictEqual(req.url, '/')
     res.statusCode = 205
     res.setHeader('Content-Type', 'text/plain')
     res.setHeader('x-my-header', 'hello!')
@@ -37,7 +37,7 @@ t.test('https agents', async (t) => {
     reply.from()
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
@@ -61,8 +61,8 @@ t.test('https agents', async (t) => {
     })
   })
 
-  t.equal(result.headers['content-type'], 'text/plain')
-  t.equal(result.headers['x-my-header'], 'hello!')
-  t.equal(result.statusCode, 205)
-  t.equal(await result.body.text(), 'hello world')
+  t.assert.strictEqual(result.headers['content-type'], 'text/plain')
+  t.assert.strictEqual(result.headers['x-my-header'], 'hello!')
+  t.assert.strictEqual(result.statusCode, 205)
+  t.assert.strictEqual(await result.body.text(), 'hello world')
 })

@@ -1,6 +1,6 @@
 'use strict'
 
-const { test } = require('tap')
+const { test } = require('node:test')
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
 const From = require('..')
@@ -9,10 +9,10 @@ const FakeTimers = require('@sinonjs/fake-timers')
 test('http request timeout', async (t) => {
   const clock = FakeTimers.createClock()
   const target = Fastify()
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   target.get('/', (_request, reply) => {
-    t.pass('request arrives')
+    t.assert.ok('request arrives')
 
     setTimeout(() => {
       reply.status(200).send('hello world')
@@ -24,7 +24,7 @@ test('http request timeout', async (t) => {
   await target.listen({ port: 0 })
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.register(From, { http: { requestOptions: { timeout: 100 } } })
 
@@ -40,9 +40,9 @@ test('http request timeout', async (t) => {
     })
   })
 
-  t.equal(result.statusCode, 504)
-  t.match(result.headers['content-type'], /application\/json/)
-  t.same(await result.body.json(), {
+  t.assert.strictEqual(result.statusCode, 504)
+  t.assert.match(result.headers['content-type'], /application\/json/)
+  t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 504,
     code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
     error: 'Gateway Timeout',
@@ -54,10 +54,10 @@ test('http request timeout', async (t) => {
 test('http request with specific timeout', async (t) => {
   const clock = FakeTimers.createClock()
   const target = Fastify()
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   target.get('/', (_request, reply) => {
-    t.pass('request arrives')
+    t.assert.ok('request arrives')
 
     setTimeout(() => {
       reply.status(200).send('hello world')
@@ -69,7 +69,7 @@ test('http request with specific timeout', async (t) => {
   await target.listen({ port: 0 })
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.register(From, { http: { requestOptions: { timeout: 100 } } })
 
@@ -90,7 +90,7 @@ test('http request with specific timeout', async (t) => {
       pipelining: 0
     })
   })
-  t.equal(result.statusCode, 200)
+  t.assert.strictEqual(result.statusCode, 200)
 
   const result2 = await request(`http://localhost:${instance.server.address().port}/fail`, {
     dispatcher: new Agent({
@@ -98,9 +98,9 @@ test('http request with specific timeout', async (t) => {
     })
   })
 
-  t.equal(result2.statusCode, 504)
-  t.match(result2.headers['content-type'], /application\/json/)
-  t.same(await result2.body.json(), {
+  t.assert.strictEqual(result2.statusCode, 504)
+  t.assert.match(result2.headers['content-type'], /application\/json/)
+  t.assert.deepStrictEqual(await result2.body.json(), {
     statusCode: 504,
     code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
     error: 'Gateway Timeout',
@@ -110,10 +110,10 @@ test('http request with specific timeout', async (t) => {
 
 test('http sse removes timeout test', async (t) => {
   const target = Fastify()
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   target.get('/', (_request, reply) => {
-    t.pass('request arrives')
+    t.assert.ok('request arrives')
 
     reply.header('content-type', 'text/event-stream').status(200).send('hello world')
   })
@@ -121,7 +121,7 @@ test('http sse removes timeout test', async (t) => {
   await target.listen({ port: 0 })
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.register(From, { http: { requestOptions: { timeout: 100 } } })
 
@@ -136,5 +136,5 @@ test('http sse removes timeout test', async (t) => {
       pipelining: 0
     })
   })
-  t.equal(statusCode, 200)
+  t.assert.strictEqual(statusCode, 200)
 })

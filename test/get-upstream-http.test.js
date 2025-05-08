@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
@@ -21,19 +21,19 @@ instanceWithoutBase.register(From, {
 
 t.test('getUpstream http', async (t) => {
   t.plan(8)
-  t.teardown(instance.close.bind(instance))
-  t.teardown(instanceWithoutBase.close.bind(instanceWithoutBase))
+  t.after(() => instance.close())
+  t.after(() => instanceWithoutBase.close())
 
   const target = http.createServer((req, res) => {
-    t.pass('request proxied')
-    t.equal(req.method, 'GET')
+    t.assert.ok('request proxied')
+    t.assert.strictEqual(req.method, 'GET')
     res.end(req.headers.host)
   })
 
   instance.get('/test', (_request, reply) => {
     reply.from('/test', {
       getUpstream: (_req, base) => {
-        t.pass('getUpstream called')
+        t.assert.ok('getUpstream called')
         return `${base}:${target.address().port}`
       }
     })
@@ -42,13 +42,13 @@ t.test('getUpstream http', async (t) => {
   instanceWithoutBase.get('/test2', (_request, reply) => {
     reply.from('/test2', {
       getUpstream: () => {
-        t.pass('getUpstream called')
+        t.assert.ok('getUpstream called')
         return `http://localhost:${target.address().port}`
       }
     })
   })
 
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   await new Promise(resolve => instance.listen({ port: 0 }, resolve))
 
@@ -57,8 +57,8 @@ t.test('getUpstream http', async (t) => {
   await new Promise(resolve => target.listen({ port: 0 }, resolve))
 
   const result = await request(`http://localhost:${instance.server.address().port}/test`)
-  t.equal(result.statusCode, 200)
+  t.assert.strictEqual(result.statusCode, 200)
 
   const result1 = await request(`http://localhost:${instanceWithoutBase.server.address().port}/test2`)
-  t.equal(result1.statusCode, 200)
+  t.assert.strictEqual(result1.statusCode, 200)
 })

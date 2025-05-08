@@ -1,6 +1,6 @@
 'use strict'
 
-const t = require('tap')
+const t = require('node:test')
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
 const From = require('..')
@@ -10,35 +10,34 @@ const clock = FakeTimers.createClock()
 
 t.test('on-error', async (t) => {
   const target = Fastify()
-  t.teardown(target.close.bind(target))
+  t.after(() => target.close())
 
   target.get('/', (_request, reply) => {
-    t.pass('request arrives')
+    t.assert.ok('request arrives')
 
     clock.setTimeout(() => {
       reply.status(200).send('hello world')
-      t.end()
     }, 1000)
   })
 
   await target.listen({ port: 0 })
 
   const instance = Fastify()
-  t.teardown(instance.close.bind(instance))
+  t.after(() => instance.close())
 
   instance.register(From, { http: { requestOptions: { timeout: 100 } } })
 
   instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.server.address().port}/`,
       {
-        onError: (reply, { error }) => {
-          t.same(error, {
+        onError: (reply, { error: { stack, ...errorContent } }) => {
+          t.assert.deepStrictEqual(errorContent, {
             statusCode: 504,
             name: 'FastifyError',
             code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
             message: 'Gateway Timeout'
           })
-          reply.code(error.statusCode).send(error)
+          reply.code(errorContent.statusCode).send(errorContent)
         }
       })
   })
@@ -51,12 +50,12 @@ t.test('on-error', async (t) => {
     })
   })
 
-  t.equal(result.statusCode, 504)
-  t.match(result.headers['content-type'], /application\/json/)
-  t.same(await result.body.json(), {
+  t.assert.strictEqual(result.statusCode, 504)
+  t.assert.match(result.headers['content-type'], /application\/json/)
+  t.assert.deepStrictEqual(await result.body.json(), {
     statusCode: 504,
     code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
-    error: 'Gateway Timeout',
+    name: 'FastifyError',
     message: 'Gateway Timeout'
   })
   clock.tick(1000)
