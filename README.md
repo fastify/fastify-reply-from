@@ -69,6 +69,15 @@ target.listen({ port: 3001 }, (err) => {
 Set the base URL for all the forwarded requests. Will be required if `http2` is set to `true`
 Note that _every path will be discarded_.
 
+Set the base URL for all the forwarded requests.  
+*String or String[]*:  
+
+* **Single string** → a normal `undici.Pool` / `http.request` client is used.  
+* **Array with ≥ 2 elements** → **[`undici.BalancedPool`](https://undici.nodejs.org/#/docs/api/BalancedPool)** is utomatically selected and requests are load-balanced round-robin across the given origins.
+
+When you provide an array, only the *origin* (`protocol://host:port`) part of each URL is considered; any path component s ignored.
+
+
 Custom URL protocols `unix+http:` and `unix+https:` can be used to forward requests to a unix
 socket server by using `querystring.escape(socketPath)` as the hostname.  This is not supported
 for http2 nor undici.  To illustrate:
@@ -122,6 +131,17 @@ You can also pass the plugin a custom instance:
 proxy.register(require('@fastify/reply-from'), {
   base: 'http://localhost:3001/',
   undici: new undici.Pool('http://localhost:3001')
+})
+```
+
+You can also use with BalancedPool
+ ```js
+proxy.register(require('@fastify/reply-from'), {
+  base: [
+    'http://api-1.internal:8080',
+    'http://api-2.internal:8080',
+    'http://api-3.internal:8080'
+  ]
 })
 ```
 
