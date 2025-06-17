@@ -73,9 +73,9 @@ Set the base URL for all the forwarded requests.
 *String or String[]*:  
 
 * **Single string** → a normal `undici.Pool` / `http.request` client is used.  
-* **Array with ≥ 2 elements** → **[`undici.BalancedPool`](https://undici.nodejs.org/#/docs/api/BalancedPool)** is utomatically selected and requests are load-balanced round-robin across the given origins.
+* **Array with ≥ 2 elements** → **[`undici.BalancedPool`](https://undici.nodejs.org/#/docs/api/BalancedPool)** is automatically selected and requests are load-balanced round-robin across the given origins.
 
-When you provide an array, only the *origin* (`protocol://host:port`) part of each URL is considered; any path component s ignored.
+When you provide an array, only the *origin* (`protocol://host:port`) part of each URL is considered; any path component is ignored.
 
 
 Custom URL protocols `unix+http:` and `unix+https:` can be used to forward requests to a unix
@@ -134,7 +134,7 @@ proxy.register(require('@fastify/reply-from'), {
 })
 ```
 
-You can also use with BalancedPool
+You can also use with BalancedPool:
  ```js
 proxy.register(require('@fastify/reply-from'), {
   base: [
