@@ -1,11 +1,11 @@
-import fastify, { FastifyReply, FastifyRequest, RawReplyDefaultExpression, RawServerBase, RequestGenericInterface, RouteGenericInterface } from 'fastify'
+import fastify, { FastifyReply, FastifyRequest, RawServerBase, RequestGenericInterface, RouteGenericInterface } from 'fastify'
 import * as http from 'node:http'
 import { IncomingHttpHeaders } from 'node:http2'
 import * as https from 'node:https'
 import { AddressInfo } from 'node:net'
 import { expectType } from 'tsd'
 import { Agent, Client, Dispatcher, Pool } from 'undici'
-import replyFrom, { FastifyReplyFromOptions } from '..'
+import replyFrom, { FastifyReplyFromOptions, RawServerResponse } from '..'
 // @ts-ignore
 import tap from 'tap'
 
@@ -83,7 +83,7 @@ async function main () {
       onResponse (request, reply, res) {
         expectType<FastifyRequest<RequestGenericInterface, RawServerBase>>(request)
         expectType<FastifyReply<RouteGenericInterface, RawServerBase>>(reply)
-        expectType<RawReplyDefaultExpression<RawServerBase>>(res)
+        expectType<RawServerResponse<RawServerBase>>(res)
         expectType<number>(res.statusCode)
       }
     })
