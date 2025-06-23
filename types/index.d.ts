@@ -15,6 +15,7 @@ import {
   Agent,
   AgentOptions,
   IncomingHttpHeaders,
+  IncomingMessage,
   RequestOptions,
 } from 'node:http'
 import {
@@ -55,6 +56,11 @@ declare namespace fastifyReplyFrom {
     retriesCount: number;
     getDefaultDelay: () => number | null;
   }
+
+  export type RawServerResponse<T extends RawServerBase> = RawReplyDefaultExpression<T> & {
+    stream: IncomingMessage
+  }
+
   export interface FastifyReplyFromHooks {
     queryString?: { [key: string]: unknown } | QueryStringFunction;
     contentType?: string;
@@ -63,7 +69,7 @@ declare namespace fastifyReplyFrom {
     onResponse?: (
       request: FastifyRequest<RequestGenericInterface, RawServerBase>,
       reply: FastifyReply<RouteGenericInterface, RawServerBase>,
-      res: RawReplyDefaultExpression<RawServerBase>
+      res: RawServerResponse<RawServerBase>
     ) => void;
     onError?: (
       reply: FastifyReply<RouteGenericInterface, RawServerBase>,
