@@ -100,12 +100,13 @@ declare namespace fastifyReplyFrom {
   }
 
   export interface FastifyReplyFromOptions {
-    base?: string;
+    base?: string | string[];
     cacheURLs?: number;
     disableCache?: boolean;
     http?: HttpOptions;
     http2?: Http2Options | boolean;
     undici?: Pool.Options & { proxy?: string | URL | ProxyAgent.Options } | { request: Dispatcher['request'] };
+    balancedPoolOptions?: Pool.Options & Record<string, unknown>;
     contentTypesToEncode?: string[];
     retryMethods?: (HTTPMethods | 'TRACE')[];
     maxRetriesOn503?: number;
