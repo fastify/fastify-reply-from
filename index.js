@@ -1,5 +1,6 @@
 'use strict'
 
+const http2 = require('node:http2')
 const fp = require('fastify-plugin')
 const { LruMap } = require('toad-cache')
 const querystring = require('fast-querystring')
@@ -23,6 +24,8 @@ const {
   InternalServerError,
   BadGatewayError
 } = require('./lib/errors')
+
+const { NGHTTP2_CANCEL } = http2.constants
 
 const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   const contentTypesToEncode = new Set([
@@ -205,6 +208,13 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
         // Since we know `FST_ERR_BAD_STATUS_CODE` will be recieved
         onError(this, { error: new BadGatewayError() })
         this.request.log.warn(err, 'response has invalid status code')
+      }
+      if (this.request.raw.aborted && res.stream) {
+        // the request could have been canceled before we got a response from the target
+        // forward this to the upstream server and close the stream to prevent leaks
+        res.stream.close(NGHTTP2_CANCEL)
+        // no need to send a reply for aborted requests or call the onResponse callback
+        return
       }
       if (onResponse) {
         onResponse(this.request, this, res)
