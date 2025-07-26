@@ -212,7 +212,13 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       if (this.request.raw.aborted && res.stream) {
         // the request could have been canceled before we got a response from the target
         // forward this to the upstream server and close the stream to prevent leaks
-        res.stream.close(NGHTTP2_CANCEL)
+        if (sourceHttp2 && typeof res.stream.close === 'function') {
+          // HTTP/2 stream - use close with cancel code
+          res.stream.close(NGHTTP2_CANCEL)
+        } else if (typeof res.stream.destroy === 'function') {
+          // HTTP/1.1 stream or other stream types - use destroy
+          res.stream.destroy()
+        }
         // no need to send a reply for aborted requests or call the onResponse callback
         return
       }
