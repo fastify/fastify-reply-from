@@ -14,13 +14,9 @@ t.test('http1 aborted request handling (issue #428)', async (t) => {
   const target = http.createServer()
 
   target.on('request', (req, response) => {
-    // Simulate a slow response to ensure we can abort during processing
-    setTimeout(() => {
-      if (!response.destroyed) {
-        response.writeHead(200, { 'Content-Type': 'text/plain' })
-        response.end('ok')
-      }
-    }, 100)
+    // Respond immediately - the abort timing will be controlled by the test
+    response.writeHead(200, { 'Content-Type': 'text/plain' })
+    response.end('ok')
   })
 
   instance.get('/', (request, reply) => {
@@ -57,13 +53,11 @@ t.test('http1 aborted request handling (issue #428)', async (t) => {
         resolve()
       })
 
-      req.end()
-
-      // Abort every other request to test the aborted condition
+      // Abort every other request immediately after starting
       if (i % 2 === 0) {
-        setTimeout(() => {
-          req.destroy()
-        }, 50)
+        req.destroy()
+      } else {
+        req.end()
       }
     })
     promises.push(promise)
