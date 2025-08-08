@@ -19,10 +19,6 @@ t.test('http2 goaway handling - reproduces issue #409', async (t) => {
   // Create a custom HTTP/2 server that sends GOAWAY after first request
   const targetServer = http2.createServer()
 
-  t.after(() => {
-    targetServer.close()
-  })
-
   let sessionToClose = null
 
   targetServer.on('session', (session) => {
@@ -72,10 +68,6 @@ t.test('http2 goaway handling - reproduces issue #409', async (t) => {
     https: certs
   })
 
-  t.after(() => {
-    instance.close()
-  })
-
   instance.register(From, {
     base: `http://localhost:${targetPort}`,
     http2: true,
@@ -122,4 +114,13 @@ t.test('http2 goaway handling - reproduces issue #409', async (t) => {
     console.log(`Second request failed (expected without fix): ${err.code || err.message}`)
     // This demonstrates the issue exists - session is stuck after GOAWAY
   }
+
+  // Cleanup in correct order: clients first, then proxy, then server
+  await instance.close()
+  targetServer.close()
+  
+  // Force exit after a short delay to ensure test completes
+  setTimeout(() => {
+    process.exit(0)
+  }, 100)
 })
