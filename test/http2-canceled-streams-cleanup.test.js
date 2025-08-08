@@ -8,16 +8,17 @@ const path = require('node:path')
 const http2 = require('node:http2')
 
 t.test('http2 canceled streams cleanup', { timeout: 5000 }, async (t) => {
+  /* eslint prefer-const: off */
   let client
   const certs = {
     key: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.key')),
     cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))
   }
 
-  const target = Fastify({ 
+  const target = Fastify({
     http2: true,
     https: certs,
-    logger: false 
+    logger: false
   })
 
   target.get('/', async (_request, reply) => {
@@ -49,14 +50,11 @@ t.test('http2 canceled streams cleanup', { timeout: 5000 }, async (t) => {
     rejectUnauthorized: false
   })
 
-  let requestCount = 0
   proxy.get('/', (_request, reply) => {
-    requestCount++
-    
     // Add request close handler to see when requests get aborted
     _request.raw.on('close', () => {
     })
-    
+
     reply.from()
     return reply
   })
@@ -75,11 +73,11 @@ t.test('http2 canceled streams cleanup', { timeout: 5000 }, async (t) => {
   })
 
   const promises = []
-  
+
   for (let i = 0; i < 6; i++) {
     const promise = new Promise((resolve) => {
       const req = client.request({ ':path': '/' })
-      
+
       let resolved = false
       const cleanup = (reason) => {
         if (!resolved) {
@@ -87,7 +85,7 @@ t.test('http2 canceled streams cleanup', { timeout: 5000 }, async (t) => {
           resolve(reason)
         }
       }
-      
+
       // Abort every other request after a short delay to trigger cleanup
       if (i % 2 === 0) {
         setTimeout(() => {
@@ -97,19 +95,20 @@ t.test('http2 canceled streams cleanup', { timeout: 5000 }, async (t) => {
 
       req.on('data', (chunk) => {
       })
-      
+
       req.on('response', (res) => {
       })
-      
+
       req.on('end', () => cleanup('completed'))
       req.on('error', (err) => {
+        t.assert.ok(err instanceof Error)
         cleanup('error')
       })
       req.on('close', () => cleanup('closed'))
-      
+
       req.end()
     })
-    
+
     promises.push(promise)
   }
 
@@ -117,6 +116,6 @@ t.test('http2 canceled streams cleanup', { timeout: 5000 }, async (t) => {
   // Test passes if we reach here without "close is not a function" errors
   // The key is that we don't crash - the stream cleanup works properly
   const completedCount = results.filter(r => r === 'completed').length
-  
+
   t.assert.ok(completedCount >= 0, 'Stream cleanup handled without crashes')
 })
