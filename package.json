@@ -9,7 +9,7 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "test": "npm run test:unit && npm run test:typescript",
-    "test:unit": "c8 node --test",
+    "test:unit": "c8 node --test --test-timeout=30000",
     "test:typescript": "tsd"
   },
   "repository": {
