@@ -118,7 +118,7 @@ t.test('http2 goaway handling - reproduces issue #409', async (t) => {
   // Cleanup in correct order: clients first, then proxy, then server
   await instance.close()
   targetServer.close()
-  
+
   // Force exit after a short delay to ensure test completes
   setTimeout(() => {
     process.exit(0)
