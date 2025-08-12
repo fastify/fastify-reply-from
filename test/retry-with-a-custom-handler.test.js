@@ -55,8 +55,8 @@ test('a 500 status code with no custom handler should fail', async (t) => {
 })
 
 test("a server 500's with a custom handler and should revive", async (t) => {
-  const customRetryLogic = ({ req, res, getDefaultDelay }) => {
-    const defaultDelay = getDefaultDelay()
+  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
+    const defaultDelay = getDefaultDelay(req, res, err, attempt)
     if (defaultDelay) return defaultDelay
 
     if (res && res.statusCode === 500 && req.method === 'GET') {
@@ -92,9 +92,9 @@ test('custom retry does not invoke the default delay causing a 501', async (t) =
 })
 
 test('custom retry delay functions can invoke the default delay', async (t) => {
-  const customRetryLogic = ({ req, res, getDefaultDelay }) => {
+  const customRetryLogic = ({ req, res, err, attempt, getDefaultDelay }) => {
     // registering the default retry logic for non 500 errors if it occurs
-    const defaultDelay = getDefaultDelay()
+    const defaultDelay = getDefaultDelay(req, res, err, attempt)
     if (defaultDelay) return defaultDelay
 
     if (res && res.statusCode === 500 && req.method === 'GET') {
