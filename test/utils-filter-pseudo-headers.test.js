@@ -1,6 +1,6 @@
 'use strict'
 
-const test = require('tap').test
+const test = require('node:test')
 const filterPseudoHeaders = require('../lib/utils').filterPseudoHeaders
 
 test('filterPseudoHeaders', t => {
@@ -11,7 +11,7 @@ test('filterPseudoHeaders', t => {
     ':method': 'GET'
   }
 
-  t.strictSame(filterPseudoHeaders(headers), {
+  t.assert.deepStrictEqual(filterPseudoHeaders(headers), {
     accept: '*/*',
     'content-type': 'text/html; charset=UTF-8'
   })
