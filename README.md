@@ -320,7 +320,7 @@ Given example
 ```js
    const customRetryLogic = ({err, req, res, attempt, getDefaultRetry}) => {
     //If this block is not included all non 500 errors will not be retried
-    const defaultDelay = getDefaultDelay();
+    const defaultDelay = getDefaultDelay(req, res, err, attempt);
     if (defaultDelay) return defaultDelay();
 
     //Custom retry logic

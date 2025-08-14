@@ -54,7 +54,12 @@ declare namespace fastifyReplyFrom {
     res: FastifyReply<RouteGenericInterface, RawServerBase>;
     attempt: number;
     retriesCount: number;
-    getDefaultDelay: () => number | null;
+    getDefaultDelay: (
+      req: FastifyRequest<RequestGenericInterface, RawServerBase>,
+      res: FastifyReply<RouteGenericInterface, RawServerBase>,
+      err: Error,
+      retries: number,
+    ) => number | null;
   }
 
   export type RawServerResponse<T extends RawServerBase> = RawReplyDefaultExpression<T> & {
@@ -64,7 +69,7 @@ declare namespace fastifyReplyFrom {
   export interface FastifyReplyFromHooks {
     queryString?: { [key: string]: unknown } | QueryStringFunction;
     contentType?: string;
-    retryDelay?: (details: RetryDetails) => {} | null;
+    retryDelay?: (details: RetryDetails) => number | null;
     retriesCount?: number;
     onResponse?: (
       request: FastifyRequest<RequestGenericInterface, RawServerBase>,
