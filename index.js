@@ -11,7 +11,9 @@ const {
   filterPseudoHeaders,
   copyHeaders,
   stripHttp1ConnectionHeaders,
-  buildURL
+  buildURL,
+  copyTrailers,
+  clientSupportsTrailers
 } = require('./lib/utils')
 
 const {
@@ -38,6 +40,15 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
 
   const cache = opts.disableCache ? undefined : new LruMap(opts.cacheURLs || 100)
   const base = opts.base
+
+  // Trailer configuration options
+  const trailerOptions = {
+    forwardTrailers: opts.forwardTrailers !== false, // Default: true
+    stripForbiddenTrailers: opts.stripForbiddenTrailers !== false, // Default: true
+    requireTrailerSupport: opts.requireTrailerSupport || false, // Default: false
+    trailersTimeout: opts.trailersTimeout || 5000, // Default: 5s
+    maxTrailerSize: opts.maxTrailerSize || 8192 // Default: 8KB
+  }
   const requestBuilt = buildRequest({
     http: opts.http,
     http2: opts.http2,
@@ -221,6 +232,9 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       } else {
         this.send(res.stream)
       }
+
+      // Handle trailer forwarding after response is sent
+      handleTrailerForwarding(this, res, opts, trailerOptions)
     })
     return this
   })
@@ -243,6 +257,78 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   fastify: '5.x',
   name: '@fastify/reply-from'
 })
+
+function handleTrailerForwarding (reply, res, opts, trailerOptions) {
+  // Skip if trailer forwarding is disabled
+  if (!trailerOptions.forwardTrailers || !res.getTrailers) {
+    return
+  }
+
+  // Check if client supports trailers (when required)
+  if (trailerOptions.requireTrailerSupport && !clientSupportsTrailers(reply.request)) {
+    return
+  }
+
+  // Set up trailer collection with timeout
+  const trailerTimeout = setTimeout(() => {
+    reply.request.log.warn('Trailer collection timeout')
+  }, trailerOptions.trailersTimeout)
+
+  // Wait for response stream to end, then collect trailers
+  res.stream.on('end', () => {
+    clearTimeout(trailerTimeout)
+
+    try {
+      const trailers = res.getTrailers()
+      if (Object.keys(trailers).length > 0) {
+        // Check trailer size limit
+        const trailerSize = JSON.stringify(trailers).length
+        if (trailerSize > trailerOptions.maxTrailerSize) {
+          reply.request.log.warn(`Trailers exceed size limit: ${trailerSize} > ${trailerOptions.maxTrailerSize}`)
+          return
+        }
+
+        // Apply trailer hooks if provided
+        let processedTrailers = trailers
+        if (opts.rewriteTrailers) {
+          processedTrailers = opts.rewriteTrailers(trailers, reply.request)
+        }
+
+        // Call onTrailers hook if provided
+        if (opts.onTrailers) {
+          opts.onTrailers(reply.request, reply, processedTrailers)
+        } else {
+          // Default behavior: copy trailers to reply
+          copyTrailers(processedTrailers, reply)
+        }
+      }
+
+      // Add custom trailers if specified
+      if (opts.addTrailers) {
+        addCustomTrailers(reply, opts.addTrailers)
+      }
+    } catch (error) {
+      reply.request.log.error(error, 'Error processing trailers')
+    }
+  })
+}
+
+function addCustomTrailers (reply, customTrailers) {
+  const trailerKeys = Object.keys(customTrailers)
+
+  for (let i = 0; i < trailerKeys.length; i++) {
+    const key = trailerKeys[i]
+    const value = customTrailers[key]
+
+    if (typeof value === 'function') {
+      // Support async trailer functions
+      reply.trailer(key, value)
+    } else {
+      // Support static trailer values
+      reply.trailer(key, async () => value)
+    }
+  }
+}
 
 function getQueryString (search, reqUrl, opts, request) {
   if (typeof opts.queryString === 'function') {
