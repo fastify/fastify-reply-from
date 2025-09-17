@@ -13,13 +13,6 @@ HTTP2 to HTTP is supported too.
 npm i @fastify/reply-from
 ```
 
-## Compatibility with @fastify/multipart
-`@fastify/reply-from` and [`@fastify/multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor should they be registered in plugins that have a parent-child relationship. 
-
-The two plugins are incompatible, in the sense that the behavior of `@fastify/reply-from` might not be the expected one when the above-mentioned conditions are not respected.   
-This is due to the fact that `@fastify/multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `@fastify/reply-from`.  
-
-However, the two plugins may be used within the same fastify instance, at the condition that they belong to disjoint branches of the fastify plugins hierarchy tree.
 
 ## Usage
 
@@ -522,14 +515,35 @@ This library has:
 When a timeout happens, [`504 Gateway Timeout`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/504)
 will be returned to the client.
 
-## TODO
+## Compatibility with @fastify/multipart
 
-* [ ] support overriding the body with a stream
-* [ ] forward the request id to the other peer might require some
-  refactoring because we have to make the `req.id` unique
-  (see [hyperid](https://npm.im/hyperid)).
-* [ ] Support origin HTTP2 push
-* [X] benchmarks
+`@fastify/reply-from` and [`@fastify/multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor should they be registered in plugins that have a parent-child relationship.
+
+The two plugins are incompatible, in the sense that the behavior of `@fastify/reply-from` might not be the expected one when the above-mentioned conditions are not respected.
+This is due to the fact that `@fastify/multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `@fastify/reply-from`.
+
+However, the two plugins may be used within the same fastify instance, at the condition that they belong to disjoint branches of the fastify plugins hierarchy tree.
+
+### Proxying multipart/form-data without @fastify/multipart
+
+If you need to proxy `multipart/form-data` requests without parsing them, you can use a custom content type parser instead of `@fastify/multipart`:
+
+```js
+// Register a custom content type parser for multipart/form-data
+// This passes the raw body through without parsing
+fastify.addContentTypeParser('multipart/form-data', function (req, body, done) {
+  done(null, body)
+})
+
+fastify.register(require('@fastify/reply-from'))
+
+fastify.post('/upload', (request, reply) => {
+  // The multipart data will be proxied as-is to the upstream server
+  reply.from('http://upstream-server.com/upload')
+})
+```
+
+This approach allows `multipart/form-data` to be proxied correctly while avoiding the incompatibility with `@fastify/multipart`.
 
 ## License
 
