@@ -13,7 +13,6 @@ t.test('multipart/form-data proxying with custom content type parser', async (t)
   t.plan(7)
 
   const filetPath = path.join(__dirname, 'fixtures', 'file.txt')
-  const fileContent = fs.readFileSync(filetPath, { encoding: 'utf-8' })
 
   // Target server that expects multipart/form-data
   const target = http.createServer((req, res) => {
