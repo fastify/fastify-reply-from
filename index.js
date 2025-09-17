@@ -285,7 +285,7 @@ function onErrorDefault (reply, { error }) {
 }
 
 function isFastifyMultipartRegistered (fastify) {
-  return fastify.hasContentTypeParser('multipart/form-data')
+  return fastify.hasPlugin('@fastify/multipart')
 }
 
 function createRequestRetry (requestImpl, reply, retryHandler) {
