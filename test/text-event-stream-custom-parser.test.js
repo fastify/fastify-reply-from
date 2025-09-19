@@ -49,8 +49,8 @@ t.test('text/event-stream proxying with custom content type parser', async (t) =
   t.after(() => fastify.close())
   t.after(() => target.close())
 
-  await new Promise(resolve => fastify.listen({ port: 0 }, resolve))
-  await new Promise(resolve => target.listen({ port: 0 }, resolve))
+  await fastify.listen({ port: 0 })
+  await target.listen({ port: 0 })
 
   // Create SSE-like data
   const sseData = 'data: test message\nevent: custom\ndata: another line\n\n'
