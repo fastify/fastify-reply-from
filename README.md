@@ -524,14 +524,17 @@ This is due to the fact that `@fastify/multipart` consumes the multipart content
 
 However, the two plugins may be used within the same fastify instance, at the condition that they belong to disjoint branches of the fastify plugins hierarchy tree.
 
-### Proxying multipart/form-data without @fastify/multipart
+### Proxying specific content types without parsing
 
-If you need to proxy `multipart/form-data` requests without parsing them, you can use a custom content type parser instead of `@fastify/multipart`:
+If you need to proxy certain content types (like `multipart/form-data` or `text/event-stream`) without parsing them, you can use custom content type parsers:
 
 ```js
-// Register a custom content type parser for multipart/form-data
-// This passes the raw body through without parsing
+// Register custom content type parsers that pass raw body through
 fastify.addContentTypeParser('multipart/form-data', function (req, body, done) {
+  done(null, body)
+})
+
+fastify.addContentTypeParser('text/event-stream', function (req, body, done) {
   done(null, body)
 })
 
@@ -541,9 +544,14 @@ fastify.post('/upload', (request, reply) => {
   // The multipart data will be proxied as-is to the upstream server
   reply.from('http://upstream-server.com/upload')
 })
+
+fastify.post('/events', (request, reply) => {
+  // The SSE data will be proxied as-is to the upstream server
+  reply.from('http://upstream-server.com/events')
+})
 ```
 
-This approach allows `multipart/form-data` to be proxied correctly while avoiding the incompatibility with `@fastify/multipart`.
+This approach allows these content types to be proxied correctly while avoiding parsing that would consume the request body.
 
 ## License
 
