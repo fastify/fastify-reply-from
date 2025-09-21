@@ -60,7 +60,6 @@
   "devDependencies": {
     "@fastify/formbody": "^8.0.0",
     "@fastify/multipart": "^9.0.0",
-    "@fastify/pre-commit": "^2.1.0",
     "@sinonjs/fake-timers": "^14.0.0",
     "@types/node": "^24.0.8",
     "@types/tap": "^18.0.0",
@@ -85,10 +84,6 @@
     "toad-cache": "^3.7.0",
     "undici": "^7.0.0"
   },
-  "pre-commit": [
-    "lint",
-    "test"
-  ],
   "publishConfig": {
     "access": "public"
   }
