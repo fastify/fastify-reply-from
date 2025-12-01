@@ -76,3 +76,35 @@ test('should throw when trying to override base', async (t) => {
 
   await Promise.all(promises)
 })
+
+test('should throw on path traversal attempts', (t) => {
+  t.assert.throws(
+    () => buildURL('/foo/bar/../', 'http://localhost'),
+    new Error('source/request contain invalid characters')
+  )
+
+  t.assert.throws(
+    () => buildURL('/foo/bar/..', 'http://localhost'),
+    new Error('source/request contain invalid characters')
+  )
+
+  t.assert.throws(
+    () => buildURL('/foo/bar/%2e%2e/', 'http://localhost'),
+    new Error('source/request contain invalid characters')
+  )
+
+  t.assert.throws(
+    () => buildURL('/foo/bar/%2E%2E/', 'http://localhost'),
+    new Error('source/request contain invalid characters')
+  )
+
+  t.assert.throws(
+    () => buildURL('/foo/bar/..%2f', 'http://localhost'),
+    new Error('source/request contain invalid characters')
+  )
+
+  t.assert.throws(
+    () => buildURL('/foo/bar/%2e%2e%2f', 'http://localhost'),
+    new Error('source/request contain invalid characters')
+  )
+})

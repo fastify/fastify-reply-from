@@ -71,7 +71,9 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const retryDelay = opts.retryDelay || undefined
 
     if (!source) {
-      source = req.url
+      const requestUrl = req.url
+      const queryIndex = requestUrl.indexOf('?')
+      source = queryIndex >= 0 ? requestUrl.substring(0, queryIndex) : requestUrl
     }
 
     // we leverage caching to avoid parsing the destination URL
