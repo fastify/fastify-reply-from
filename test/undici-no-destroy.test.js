@@ -27,3 +27,25 @@ test('destroyAgent false', async (t) => {
   await instance.ready()
   await instance.close()
 })
+
+test('destroyAgent default false', async (t) => {
+  const mockAgent = new undici.Agent()
+  mockAgent.destroy = () => {
+    t.fail()
+  }
+  const instance = Fastify()
+
+  t.after(() => instance.close())
+
+  instance.get('/', (_request, reply) => {
+    reply.from()
+  })
+
+  instance.register(From, {
+    base: 'http://localhost:4242',
+    undici: mockAgent
+  })
+
+  await instance.ready()
+  await instance.close()
+})
