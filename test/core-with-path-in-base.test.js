@@ -9,14 +9,14 @@ const http = require('node:http')
 const instance = Fastify()
 
 t.test('core with path in base', async (t) => {
-  t.plan(8)
+  t.plan(7)
   t.after(() => instance.close())
 
   const target = http.createServer((req, res) => {
     t.assert.ok('request proxied')
     t.assert.strictEqual(req.method, 'GET')
     t.assert.strictEqual(req.url, '/hello')
-    t.assert.strictEqual(req.headers.connection, 'close')
+    // Connection header is not forwarded per RFC 7230 Section 6.1
     res.statusCode = 205
     res.setHeader('Content-Type', 'text/plain')
     res.setHeader('x-my-header', 'hello!')
