@@ -66,10 +66,10 @@ target.listen({ port: 3001 }, (err) => {
 Set the base URL for all the forwarded requests. Will be required if `http2` is set to `true`
 Note that _every path will be discarded_.
 
-Set the base URL for all the forwarded requests.  
-*String or String[]*:  
+Set the base URL for all the forwarded requests.
+*String or String[]*:
 
-* **Single string** → a normal `undici.Pool` / `http.request` client is used.  
+* **Single string** → a normal `undici.Pool` / `http.request` client is used.
 * **Array with ≥ 2 elements** → **[`undici.BalancedPool`](https://undici.nodejs.org/#/docs/api/BalancedPool)** is automatically selected and requests are load-balanced round-robin across the given origins.
 
 When you provide an array, only the *origin* (`protocol://host:port`) part of each URL is considered; any path component is ignored.
