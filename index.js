@@ -250,11 +250,13 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
 
 function getQueryString (search, reqUrl, opts, request) {
   if (typeof opts.queryString === 'function') {
-    return '?' + opts.queryString(search, reqUrl, request)
+    const qs = opts.queryString(search, reqUrl, request)
+    return qs ? '?' + qs : ''
   }
 
   if (opts.queryString) {
-    return '?' + querystring.stringify(opts.queryString)
+    const qs = querystring.stringify(opts.queryString)
+    return qs ? '?' + qs : ''
   }
 
   if (search.length > 0) {
