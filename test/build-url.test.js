@@ -77,6 +77,15 @@ test('should throw when trying to override base', async (t) => {
   await Promise.all(promises)
 })
 
+test('should not throw on URLs containing "..." (e.g. Next.js catch-all routes)', (t) => {
+  t.plan(2)
+  // Next.js catch-all routes like [...slug] appear percent-encoded in static chunk URLs.
+  // These contain '...' as a substring but are not path traversal.
+  // See: https://github.com/fastify/fastify-reply-from/issues/460
+  t.assert.doesNotThrow(() => buildURL('/_next/static/chunks/pages/%5B...slug%5D.js', 'http://localhost'))
+  t.assert.doesNotThrow(() => buildURL('/_next/static/chunks/pages/%5B%5B...slug%5D%5D.js', 'http://localhost'))
+})
+
 test('should throw on path traversal attempts', (t) => {
   t.assert.throws(
     () => buildURL('/foo/bar/../', 'http://localhost'),
