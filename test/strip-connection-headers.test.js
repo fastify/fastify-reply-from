@@ -230,3 +230,79 @@ t.test('handles Connection header with keep-alive and custom headers (undici)', 
   t.assert.strictEqual(result.statusCode, 200)
   t.assert.strictEqual(result.body, 'ok')
 })
+
+t.test('does not strip headers added by rewriteRequestHeaders (undici)', async (t) => {
+  t.plan(4)
+  const instance = Fastify()
+  instance.register(From)
+
+  t.after(() => instance.close())
+
+  let seenForwardedBy
+  const target = http.createServer((req, res) => {
+    seenForwardedBy = req.headers['x-forwarded-by']
+    t.assert.ok('request proxied')
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'text/plain')
+    res.end('ok')
+  })
+
+  instance.get('/', (_request, reply) => {
+    reply.from(`http://localhost:${target.address().port}`, {
+      rewriteRequestHeaders: (_request, headers) => {
+        return { ...headers, 'x-forwarded-by': 'fastify-proxy' }
+      }
+    })
+  })
+
+  t.after(() => target.close())
+
+  await new Promise((resolve) => instance.listen({ port: 0 }, resolve))
+  await new Promise((resolve) => target.listen({ port: 0 }, resolve))
+
+  const result = await makeRequest(instance.server.address().port, {
+    Connection: 'X-Forwarded-By'
+  })
+
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.body, 'ok')
+  t.assert.strictEqual(seenForwardedBy, 'fastify-proxy', 'X-Forwarded-By should not be stripped')
+})
+
+t.test('does not strip headers added by rewriteRequestHeaders (http)', async (t) => {
+  t.plan(4)
+  const instance = Fastify()
+  instance.register(From, { undici: false })
+
+  t.after(() => instance.close())
+
+  let seenForwardedBy
+  const target = http.createServer((req, res) => {
+    seenForwardedBy = req.headers['x-forwarded-by']
+    t.assert.ok('request proxied')
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'text/plain')
+    res.end('ok')
+  })
+
+  instance.get('/', (_request, reply) => {
+    reply.from(`http://localhost:${target.address().port}`, {
+      rewriteRequestHeaders: (_request, headers) => {
+        return { ...headers, 'x-forwarded-by': 'fastify-proxy' }
+      }
+    })
+  })
+
+  t.after(() => target.close())
+
+  await new Promise((resolve) => instance.listen({ port: 0 }, resolve))
+  await new Promise((resolve) => target.listen({ port: 0 }, resolve))
+
+  const result = await makeRequest(instance.server.address().port, {
+    Connection: 'X-Forwarded-By'
+  })
+
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.body, 'ok')
+  t.assert.strictEqual(seenForwardedBy, 'fastify-proxy', 'X-Forwarded-By should not be stripped')
+})

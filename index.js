@@ -11,6 +11,7 @@ const {
   filterPseudoHeaders,
   copyHeaders,
   stripHttp1ConnectionHeaders,
+  getConnectionHeaders,
   buildURL
 } = require('./lib/utils')
 
@@ -89,6 +90,18 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
 
     const sourceHttp2 = req.httpVersionMajor === 2
     const headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : { ...req.headers }
+
+    // Strip client-supplied Connection header and all header names listed in it
+    // before rewriteRequestHeaders runs. This prevents clients from stripping
+    // headers added by the proxy itself.
+    const connectionHeaderNames = getConnectionHeaders(headers)
+    if (headers.connection || connectionHeaderNames.length > 0) {
+      delete headers.connection
+      for (let i = 0; i < connectionHeaderNames.length; i++) {
+        delete headers[connectionHeaderNames[i]]
+      }
+    }
+
     headers.host = url.host
     const qs = getQueryString(url.search, req.url, opts, this.request)
     let body = ''
