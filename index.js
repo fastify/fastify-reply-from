@@ -222,7 +222,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       try {
         this.code(res.statusCode)
       } catch (err) {
-        // Since we know `FST_ERR_BAD_STATUS_CODE` will be recieved
+        // Since we know `FST_ERR_BAD_STATUS_CODE` will be received
         onError(this, { error: new BadGatewayError() })
         this.request.log.warn(err, 'response has invalid status code')
       }
