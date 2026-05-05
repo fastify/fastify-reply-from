@@ -119,5 +119,5 @@ app.get('/http2', (_request, reply) => {
   })
 })
 
-expect(fullOptions).type.toBeAssignableTo<FastifyReplyFromOptions>()
-expect({ http2: true }).type.toBeAssignableTo<FastifyReplyFromOptions>()
+expect<FastifyReplyFromOptions>().type.toBeAssignableFrom(fullOptions)
+expect<FastifyReplyFromOptions>().type.toBeAssignableFrom({ http2: true })
