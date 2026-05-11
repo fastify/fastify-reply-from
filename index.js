@@ -4,7 +4,7 @@ const http2 = require('node:http2')
 const fp = require('fastify-plugin')
 const { LruMap } = require('toad-cache')
 const querystring = require('fast-querystring')
-const fastContentTypeParse = require('fast-content-type-parse')
+const contentTypeParse = require('content-type').parse
 const Stream = require('node:stream')
 const buildRequest = require('./lib/request')
 const {
@@ -133,7 +133,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
         // Per RFC 7231 §3.1.1.5 if this header is not present we MAY assume application/octet-stream
         let contentType = 'application/octet-stream'
         if (req.headers['content-type']) {
-          const plainContentType = fastContentTypeParse.parse(req.headers['content-type'])
+          const plainContentType = contentTypeParse(req.headers['content-type'], { parameters: false })
           contentType = plainContentType.type
         }
 
