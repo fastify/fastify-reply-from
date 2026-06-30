@@ -70,7 +70,7 @@ Set the base URL for all the forwarded requests.
 *String or String[]*:
 
 * **Single string** → a normal `undici.Pool` / `http.request` client is used.
-* **Array with ≥ 2 elements** → **[`undici.BalancedPool`](https://undici.nodejs.org/#/docs/api/BalancedPool)** is automatically selected and requests are load-balanced round-robin across the given origins.
+* **Array with ≥ 2 elements** → **[`undici.BalancedPool`](https://undici.nodejs.org/api/BalancedPool)** is automatically selected and requests are load-balanced round-robin across the given origins.
 
 When you provide an array, only the *origin* (`protocol://host:port`) part of each URL is considered; any path component is ignored.
 
@@ -354,7 +354,7 @@ const customRetryLogic = ({req, res, err, getDefaultRetry}: RetryDetails) => {
 ### `reply.from(source, [opts])`
 
 The plugin decorates the
-[`Reply`](https://fastify.dev/docs/latest/Reference/Reply)
+[`Reply`](https://fastify.dev/docs/latest/Reference/Reply/)
 instance with a `from` method, which will reply to the original request
 __from the desired source__. The options allows overrides of any part of
 the request or response being sent or received to/from the source.
@@ -512,7 +512,7 @@ This library has:
   - The default value for `requestTimeout` is 10 seconds (`10000`), a value of 0 disables the timeout.
   - The default value for `sessionTimeout` is 60 seconds (`60000`), a value of 0 disables the timeout.
 
-When a timeout happens, [`504 Gateway Timeout`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/504)
+When a timeout happens, [`504 Gateway Timeout`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/504)
 will be returned to the client.
 
 ## Compatibility with @fastify/multipart
