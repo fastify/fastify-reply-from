@@ -89,6 +89,16 @@ app.get('/v3', (_request, reply) => {
   })
 })
 
+app.get('/async-on-response', (_request, reply) => {
+  reply.from('/async-on-response', {
+    async onResponse (request, reply, res) {
+      expect(request).type.toBe<FastifyRequest<RequestGenericInterface, RawServerBase>>()
+      expect(reply).type.toBe<FastifyReply<RouteGenericInterface, RawServerBase>>()
+      expect(res).type.toBe<RawServerResponse<RawServerBase>>()
+    }
+  })
+})
+
 app.get('/http2', (_request, reply) => {
   reply.from('/', {
     method: 'POST',
