@@ -30,13 +30,14 @@ t.test('on-error', async (t) => {
   instance.get('/', (_request, reply) => {
     reply.from(`http://localhost:${target.server.address().port}/`,
       {
-        onError: (reply, { error: { stack, ...errorContent } }) => {
+        onError: (reply, { error: { stack, cause, ...errorContent } }) => {
           t.assert.deepStrictEqual(errorContent, {
             statusCode: 504,
             name: 'FastifyError',
             code: 'FST_REPLY_FROM_GATEWAY_TIMEOUT',
             message: 'Gateway Timeout'
           })
+          t.assert.ok(cause, 'the original error is preserved as cause')
           reply.code(errorContent.statusCode).send(errorContent)
         }
       })
