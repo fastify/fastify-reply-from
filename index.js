@@ -218,6 +218,11 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
         )
       } else {
         copyHeaders(rewriteHeaders(res.headers, this.request), this)
+        // An HTTP/1 connection cannot be reused until its request body has
+        // been consumed. Close it if the upstream responds before that point.
+        if (!req.complete) {
+          this.header('connection', 'close')
+        }
       }
       try {
         this.code(res.statusCode)
