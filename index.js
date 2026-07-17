@@ -218,6 +218,11 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
         )
       } else {
         copyHeaders(rewriteHeaders(res.headers, this.request), this)
+        // An HTTP/1 connection cannot be reused until its request body has
+        // been consumed. Close it if the upstream responds before that point.
+        if (!req.complete) {
+          this.header('connection', 'close')
+        }
       }
       try {
         this.code(res.statusCode)
@@ -226,10 +231,14 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
         onError(this, { error: new BadGatewayError() })
         this.request.log.warn(err, 'response has invalid status code')
       }
-      if (this.request.raw.aborted && isHttp2) {
+      if (this.request.raw.aborted) {
         // the request could have been canceled before we got a response from the target
-        // forward this to the upstream server and close the stream to prevent leaks
-        res.stream.close(NGHTTP2_CANCEL)
+        // clean up the upstream stream to prevent leaks and skip sending a reply
+        if (isHttp2) {
+          res.stream.close(NGHTTP2_CANCEL)
+        } else {
+          res.stream.destroy()
+        }
         // no need to send a reply for aborted requests or call the onResponse callback
         return
       }
