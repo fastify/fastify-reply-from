@@ -81,7 +81,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const dest = getUpstream(this.request, base)
     let url
     if (cache) {
-      const cacheKey = dest + source
+      const cacheKey = JSON.stringify([dest, source])
       url = cache.get(cacheKey) || buildURL(source, dest)
       cache.set(cacheKey, url)
     } else {
