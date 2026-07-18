@@ -380,6 +380,20 @@ the `content-length` header.
 }
 ```
 
+`onResponse` may also be async when you need to read the upstream response
+before sending a replacement body:
+
+```js
+{
+  async onResponse (request, reply, res) {
+    const data = await new Response(res.stream).json()
+    reply.send({ ...data, proxied: true })
+  }
+}
+```
+
+Handle errors inside async `onResponse` callbacks before replying.
+
 **Note**: `onResponse` is called after headers have already been sent. If you want to modify response headers, use the `rewriteHeaders` hook.
 
 #### `onError(reply, error)`
