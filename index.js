@@ -195,17 +195,17 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
         this.request.log.warn(err, 'response errored')
         if (!this.sent) {
           if (err.code === 'ERR_HTTP2_STREAM_CANCEL' || err.code === 'ENOTFOUND') {
-            onError(this, { error: ServiceUnavailableError() })
+            onError(this, { error: ServiceUnavailableError({ cause: err }) })
           } else if (err instanceof TimeoutError || err.code === 'UND_ERR_HEADERS_TIMEOUT') {
-            onError(this, { error: new GatewayTimeoutError() })
+            onError(this, { error: new GatewayTimeoutError({ cause: err }) })
           } else if (err.code === 'ECONNRESET') {
-            onError(this, { error: new ConnectionResetError() })
+            onError(this, { error: new ConnectionResetError({ cause: err }) })
           } else if (err.code === 'UND_ERR_SOCKET') {
-            onError(this, { error: new UndiciSocketError() })
+            onError(this, { error: new UndiciSocketError({ cause: err }) })
           } else if (err.code === 'UND_ERR_CONNECT_TIMEOUT') {
-            onError(this, { error: new ConnectTimeoutError() })
+            onError(this, { error: new ConnectTimeoutError({ cause: err }) })
           } else {
-            onError(this, { error: new InternalServerError(err.message) })
+            onError(this, { error: new InternalServerError(err.message, { cause: err }) })
           }
         }
         return
