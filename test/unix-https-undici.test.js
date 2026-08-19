@@ -5,15 +5,17 @@ const Fastify = require('fastify')
 const From = require('..')
 const https = require('node:https')
 const fs = require('node:fs')
+const os = require('node:os')
 const { request, Agent } = require('undici')
 const querystring = require('node:querystring')
 const path = require('node:path')
+
 const certs = {
   key: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.key')),
   cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))
 }
 
-const socketPath = `${__filename}.socket`
+const socketPath = `${os.tmpdir()}/fastify-reply-from-${process.pid}.socket`
 
 try {
   fs.unlinkSync(socketPath)
@@ -23,12 +25,14 @@ try {
 const instance = Fastify({
   https: certs
 })
+
 instance.register(From, {
   base: `unix+https://${querystring.escape(socketPath)}`
 })
 
 t.test('unix https undici', { skip: process.platform === 'win32' }, async (t) => {
   t.plan(7)
+
   t.after(() => instance.close())
 
   const target = https.createServer(certs, (req, res) => {
@@ -47,11 +51,18 @@ t.test('unix https undici', { skip: process.platform === 'win32' }, async (t) =>
 
   t.after(() => target.close())
 
-  await instance.listen({ port: 0 })
+  t.after(() => {
+    try {
+      fs.unlinkSync(socketPath)
+    } catch (_) {
+    }
+  })
+
+  await instance.listen({ port: 0, host: '127.0.0.1' })
 
   await new Promise(resolve => target.listen(socketPath, resolve))
 
-  const result = await request(`https://localhost:${instance.server.address().port}`, {
+  const result = await request(`https://127.0.0.1:${instance.server.address().port}`, {
     dispatcher: new Agent({
       connect: {
         rejectUnauthorized: false

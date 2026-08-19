@@ -40,29 +40,31 @@ test('use a custom instance of \'undici\'', async t => {
     reply.send('hello world')
   })
 
-  await target.listen({ port: 3001 })
+  await target.listen({ port: 0, host: '127.0.0.1' })
   t.after(async () => {
     await target.close()
   })
+
+  const targetPort = target.server.address().port
 
   const instance = Fastify({
     keepAliveTimeout: 1
   })
 
   instance.register(From, {
-    undici: new CustomDispatcher('http://localhost:3001')
+    undici: new CustomDispatcher(`http://127.0.0.1:${targetPort}`)
   })
 
   instance.get('/', (_request, reply) => {
     reply.from('http://myserver.local')
   })
 
-  await instance.listen({ port: 0 })
+  await instance.listen({ port: 0, host: '127.0.0.1' })
   t.after(async () => {
     await instance.close()
   })
 
-  const res = await request(`http://localhost:${instance.server.address().port}`)
+  const res = await request(`http://127.0.0.1:${instance.server.address().port}`)
 
   t.assert.strictEqual(res.headers['content-type'], 'text/plain')
   t.assert.strictEqual(res.headers['x-my-header'], 'hello!')

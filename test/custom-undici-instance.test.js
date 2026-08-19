@@ -21,23 +21,23 @@ const target = http.createServer((req, res) => {
 t.test('use a custom instance of \'undici\'', async t => {
   t.after(() => target.close())
 
-  await new Promise((resolve, reject) => target.listen({ port: 0 }, err => err ? reject(err) : resolve()))
+  await new Promise((resolve, reject) => target.listen({ port: 0, host: '127.0.0.1' }, err => err ? reject(err) : resolve()))
 
   await t.test('custom Pool', async t => {
     const instance = Fastify()
     t.after(() => instance.close())
     instance.register(From, {
-      base: `http://localhost:${target.address().port}`,
-      undici: new Pool(`http://localhost:${target.address().port}`)
+      base: `http://127.0.0.1:${target.address().port}`,
+      undici: new Pool(`http://127.0.0.1:${target.address().port}`)
     })
 
     instance.get('/', (_request, reply) => {
       reply.from()
     })
 
-    await new Promise(resolve => instance.listen({ port: 0 }, resolve))
+    await new Promise(resolve => instance.listen({ port: 0, host: '127.0.0.1' }, resolve))
 
-    const result = await request(`http://localhost:${instance.server.address().port}`)
+    const result = await request(`http://127.0.0.1:${instance.server.address().port}`)
 
     t.assert.strictEqual(result.headers['content-type'], 'text/plain')
     t.assert.strictEqual(result.headers['x-my-header'], 'hello!')
@@ -49,17 +49,17 @@ t.test('use a custom instance of \'undici\'', async t => {
     const instance = Fastify()
     t.after(() => instance.close())
     instance.register(From, {
-      base: `http://localhost:${target.address().port}`,
-      undici: new Client(`http://localhost:${target.address().port}`)
+      base: `http://127.0.0.1:${target.address().port}`,
+      undici: new Client(`http://127.0.0.1:${target.address().port}`)
     })
 
     instance.get('/', (_request, reply) => {
       reply.from()
     })
 
-    await new Promise(resolve => instance.listen({ port: 0 }, resolve))
+    await new Promise(resolve => instance.listen({ port: 0, host: '127.0.0.1' }, resolve))
 
-    const result = await request(`http://localhost:${instance.server.address().port}`)
+    const result = await request(`http://127.0.0.1:${instance.server.address().port}`)
 
     t.assert.strictEqual(result.headers['content-type'], 'text/plain')
     t.assert.strictEqual(result.headers['x-my-header'], 'hello!')

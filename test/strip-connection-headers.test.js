@@ -306,3 +306,133 @@ t.test('does not strip headers added by rewriteRequestHeaders (http)', async (t)
   t.assert.strictEqual(result.body, 'ok')
   t.assert.strictEqual(seenForwardedBy, 'fastify-proxy', 'X-Forwarded-By should not be stripped')
 })
+
+t.test('destroys http agents when destroyAgent is enabled', async (t) => {
+  let httpDestroyed = false
+  let httpsDestroyed = false
+
+  const httpAgent = {
+    destroy () {
+      httpDestroyed = true
+    }
+  }
+
+  const httpsAgent = {
+    destroy () {
+      httpsDestroyed = true
+    }
+  }
+
+  const instance = Fastify()
+
+  instance.register(From, {
+    undici: false,
+    destroyAgent: true,
+    http: {
+      agents: {
+        'http:': httpAgent,
+        'https:': httpsAgent
+      }
+    }
+  })
+
+  await instance.ready()
+  await instance.close()
+
+  t.assert.strictEqual(httpDestroyed, true)
+  t.assert.strictEqual(httpsDestroyed, true)
+})
+
+t.test('strips Connection headers added by rewriteRequestHeaders (http)', async (t) => {
+  t.plan(5)
+
+  const instance = Fastify()
+
+  instance.register(From, {
+    undici: false
+  })
+
+  t.after(() => instance.close())
+
+  const target = http.createServer((req, res) => {
+    t.assert.ok('request proxied')
+    t.assert.strictEqual(
+      req.headers['x-remove-header'],
+      undefined,
+      'X-Remove-Header should be stripped'
+    )
+    t.assert.strictEqual(
+      req.headers['x-keep-header'],
+      'keep-me',
+      'X-Keep-Header should be preserved'
+    )
+
+    res.statusCode = 200
+    res.end('ok')
+  })
+
+  instance.get('/', (_request, reply) => {
+    reply.from(`http://localhost:${target.address().port}`, {
+      rewriteRequestHeaders: (_request, headers) => {
+        return {
+          ...headers,
+          connection: 'x-remove-header',
+          'x-remove-header': 'remove-me',
+          'x-keep-header': 'keep-me'
+        }
+      }
+    })
+  })
+
+  t.after(() => target.close())
+
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
+  await new Promise(resolve => instance.listen({ port: 0 }, resolve))
+
+  const result = await makeRequest(
+    instance.server.address().port,
+    {}
+  )
+
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.body, 'ok')
+})
+
+t.test('strips headers listed in Connection header before undici request', async (t) => {
+  t.plan(3)
+
+  const instance = Fastify()
+  instance.register(From)
+
+  t.after(() => instance.close())
+
+  const target = http.createServer((req, res) => {
+    t.assert.strictEqual(req.headers['x-secret'], undefined)
+    t.assert.strictEqual(req.headers['x-keep'], 'yes')
+
+    res.end('ok')
+  })
+
+  t.after(() => target.close())
+
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
+
+  instance.get('/', (_request, reply) => {
+    reply.from(`http://localhost:${target.address().port}`, {
+      rewriteRequestHeaders: (_request, headers) => ({
+        ...headers,
+        connection: 'x-secret',
+        'x-secret': 'secret',
+        'x-keep': 'yes'
+      })
+    })
+  })
+
+  await instance.listen({ port: 0 })
+
+  const result = await require('undici').request(
+    `http://localhost:${instance.server.address().port}`
+  )
+
+  t.assert.strictEqual(result.statusCode, 200)
+})

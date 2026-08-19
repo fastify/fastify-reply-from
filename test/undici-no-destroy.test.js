@@ -49,3 +49,45 @@ test('destroyAgent default false', async (t) => {
   await instance.ready()
   await instance.close()
 })
+
+test('destroyAgent true', async (t) => {
+  const mockAgent = new undici.Agent()
+
+  let destroyed = false
+  mockAgent.destroy = () => {
+    destroyed = true
+  }
+
+  const instance = Fastify()
+
+  instance.get('/', (_request, reply) => {
+    reply.from()
+  })
+
+  instance.register(From, {
+    base: 'http://localhost:4242',
+    undici: mockAgent,
+    destroyAgent: true
+  })
+
+  await instance.ready()
+  await instance.close()
+
+  t.assert.strictEqual(destroyed, true)
+})
+
+test('destroyAgent true destroys the undici agent', async (t) => {
+  const instance = Fastify()
+
+  instance.get('/', (_request, reply) => {
+    reply.from()
+  })
+
+  instance.register(From, {
+    base: 'http://localhost:4242',
+    destroyAgent: true
+  })
+
+  await instance.ready()
+  await instance.close()
+})
