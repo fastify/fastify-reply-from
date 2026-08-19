@@ -58,7 +58,7 @@
     }
   ],
   "devDependencies": {
-    "@fastify/formbody": "^8.0.0",
+    "@fastify/formbody": "^9.0.0",
     "@fastify/multipart": "^10.0.0",
     "@sinonjs/fake-timers": "^15.0.0",
     "@types/node": "^26.0.0",
