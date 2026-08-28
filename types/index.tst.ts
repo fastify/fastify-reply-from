@@ -12,8 +12,10 @@ import * as https from 'node:https'
 import { Agent, Client, Dispatcher, Pool } from 'undici'
 import replyFrom, {
   type FastifyReplyFromOptions,
-  type RawServerResponse
+  type FastifyReplyFromResponse
 } from '.'
+import { type IncomingHttpHeaders as Http1IncomingHttpHeaders } from 'node:http'
+import { type Readable } from 'node:stream'
 
 const fullOptions: FastifyReplyFromOptions = {
   base: 'http://example2.com',
@@ -83,8 +85,10 @@ app.get('/v3', (_request, reply) => {
     onResponse (request, reply, res) {
       expect(request).type.toBe<FastifyRequest<RequestGenericInterface, RawServerBase>>()
       expect(reply).type.toBe<FastifyReply<RouteGenericInterface, RawServerBase>>()
-      expect(res).type.toBe<RawServerResponse<RawServerBase>>()
+      expect(res).type.toBe<FastifyReplyFromResponse>()
       expect(res.statusCode).type.toBe<number>()
+      expect(res.headers).type.toBe<Http1IncomingHttpHeaders | IncomingHttpHeaders>()
+      expect(res.stream).type.toBe<Readable>()
     }
   })
 })
