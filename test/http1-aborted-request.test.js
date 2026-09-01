@@ -2,60 +2,64 @@
 
 const t = require('node:test')
 const Fastify = require('fastify')
-const From = require('..')
 const http = require('node:http')
-const { once } = require('node:events')
+const proxyquire = require('proxyquire')
 
 // See https://github.com/fastify/fastify-reply-from/issues/419
 // When a client aborts an HTTP/1 request before the upstream target responds,
-// reply-from must not attempt to forward the (late) upstream response: it should
-// neither invoke the onResponse callback nor pipe the upstream body to the
-// already-closed reply. The equivalent HTTP/2 path was already handled; this
-// covers the HTTP/1 path.
+// reply-from must destroy the late upstream stream instead of forwarding it.
 t.test('does not forward the upstream response when the HTTP/1 request was aborted', async (t) => {
-  t.plan(1)
+  t.plan(2)
 
-  // Target that delays its response long enough for the client to abort first.
-  const target = http.createServer((_req, res) => {
-    setTimeout(() => {
-      res.statusCode = 200
-      res.end('hello world')
-    }, 500)
+  const upstreamStream = {
+    destroy: t.mock.fn()
+  }
+  const From = proxyquire('..', {
+    './lib/request': function () {
+      return {
+        request: (_opts, callback) => {
+          setImmediate(() => {
+            callback(null, {
+              headers: {},
+              statusCode: 200,
+              stream: upstreamStream
+            })
+          })
+        },
+        close: () => {}
+      }
+    }
   })
-  t.after(() => target.close())
-  target.listen({ port: 0 })
-  await once(target, 'listening')
 
   const instance = Fastify()
   t.after(() => instance.close())
 
   let onResponseCalled = false
-  instance.register(From)
+  instance.register(From, { base: 'http://upstream.invalid' })
   instance.get('/', (_request, reply) => {
-    reply.from(`http://localhost:${target.address().port}`, {
-      onResponse (_req, replyInner, res) {
+    reply.from('/', {
+      rewriteRequestHeaders (request, headers) {
+        request.raw.destroy()
+        return headers
+      },
+      onResponse () {
         onResponseCalled = true
-        replyInner.send(res.stream)
       }
     })
   })
 
-  instance.listen({ port: 0 })
-  await once(instance.server, 'listening')
+  await instance.listen({ port: 0 })
 
   await new Promise((resolve) => {
-    const req = http.request({
+    const req = http.get({
       host: 'localhost',
       port: instance.server.address().port,
       path: '/'
-    }, (res) => { res.resume() })
-    req.on('error', () => {})
-    req.end()
-    // Abort well before the target responds.
-    setTimeout(() => req.destroy(), 50)
-    // Wait past the target's response so any (buggy) forwarding would have happened.
-    setTimeout(resolve, 800)
+    })
+    req.on('error', resolve)
+    req.on('close', resolve)
   })
 
+  t.assert.strictEqual(upstreamStream.destroy.mock.callCount(), 1)
   t.assert.strictEqual(onResponseCalled, false, 'onResponse must not run for an aborted request')
 })
