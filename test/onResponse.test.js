@@ -40,3 +40,38 @@ t.test('onResponse', async (t) => {
   t.assert.strictEqual(result.statusCode, 200)
   t.assert.strictEqual(await result.body.text(), 'hello world')
 })
+
+t.test('async onResponse', async (t) => {
+  t.plan(6)
+
+  const instance = Fastify()
+  instance.register(From)
+  t.after(() => instance.close())
+
+  const target = http.createServer((req, res) => {
+    t.assert.ok('request proxied')
+    t.assert.strictEqual(req.method, 'GET')
+    res.statusCode = 200
+    res.end('hello world')
+  })
+
+  instance.get('/async', (request1, reply) => {
+    reply.from(`http://localhost:${target.address().port}`, {
+      async onResponse (request2, reply, res) {
+        await Promise.resolve()
+        t.assert.strictEqual(res.statusCode, 200)
+        t.assert.strictEqual(request1.raw, request2.raw)
+        reply.send(res.stream)
+      }
+    })
+  })
+
+  t.after(() => target.close())
+
+  await instance.listen({ port: 0 })
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
+
+  const result = await request(`http://localhost:${instance.server.address().port}/async`)
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(await result.body.text(), 'hello world')
+})
