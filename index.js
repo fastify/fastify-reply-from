@@ -11,7 +11,6 @@ const {
   filterPseudoHeaders,
   copyHeaders,
   stripHttp1ConnectionHeaders,
-  getConnectionHeaders,
   buildURL
 } = require('./lib/utils')
 
@@ -89,18 +88,18 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     }
 
     const sourceHttp2 = req.httpVersionMajor === 2
-    const headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : { ...req.headers }
 
-    // Strip client-supplied Connection header and all header names listed in it
-    // before rewriteRequestHeaders runs. This prevents clients from stripping
-    // headers added by the proxy itself.
-    const connectionHeaderNames = getConnectionHeaders(headers)
-    if (headers.connection || connectionHeaderNames.length > 0) {
-      delete headers.connection
-      for (let i = 0; i < connectionHeaderNames.length; i++) {
-        delete headers[connectionHeaderNames[i]]
-      }
-    }
+    // Strip hop-by-hop headers (RFC 7230 Section 6.1) and every header name
+    // listed in the client's Connection header, before rewriteRequestHeaders
+    // runs. This removes the same set regardless of the upstream transport: the
+    // http2 request path already did it via stripHttp1ConnectionHeaders, but the
+    // default (undici) path only dropped Connection-listed names, so hop-by-hop
+    // headers such as `te`, `proxy-connection`, `keep-alive` and `upgrade` were
+    // forwarded to the upstream over the default transport. Doing it here also
+    // keeps preventing clients from stripping headers the proxy itself adds.
+    const headers = stripHttp1ConnectionHeaders(
+      sourceHttp2 ? filterPseudoHeaders(req.headers) : req.headers
+    )
 
     headers.host = url.host
     const qs = getQueryString(url.search, req.url, opts, this.request)

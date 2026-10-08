@@ -436,3 +436,110 @@ t.test('strips headers listed in Connection header before undici request', async
 
   t.assert.strictEqual(result.statusCode, 200)
 })
+
+// RFC 7230 Section 6.1 - hop-by-hop headers are consumed by the proxy and must
+// not be forwarded to the upstream. The http2 request path already dropped
+// these via stripHttp1ConnectionHeaders; these cover the default (undici) and
+// core-http transports, where they used to leak.
+
+t.test('strips hop-by-hop headers (undici)', async (t) => {
+  t.plan(6)
+  const instance = Fastify()
+  instance.register(From)
+
+  t.after(() => instance.close())
+
+  const target = http.createServer((req, res) => {
+    t.assert.ok('request proxied')
+    t.assert.strictEqual(req.headers.te, undefined, 'TE should be stripped')
+    t.assert.strictEqual(req.headers['keep-alive'], undefined, 'Keep-Alive should be stripped')
+    t.assert.strictEqual(req.headers['proxy-connection'], undefined, 'Proxy-Connection should be stripped')
+    t.assert.strictEqual(req.headers['x-keep'], 'keep-me', 'a normal header should be preserved')
+    res.statusCode = 200
+    res.end('ok')
+  })
+
+  instance.get('/', (_request, reply) => {
+    reply.from(`http://localhost:${target.address().port}`)
+  })
+
+  t.after(() => target.close())
+
+  await new Promise((resolve) => instance.listen({ port: 0 }, resolve))
+  await new Promise((resolve) => target.listen({ port: 0 }, resolve))
+
+  const result = await makeRequest(instance.server.address().port, {
+    TE: 'gzip',
+    'Keep-Alive': 'timeout=5',
+    'Proxy-Connection': 'keep-alive',
+    'X-Keep': 'keep-me'
+  })
+
+  t.assert.strictEqual(result.statusCode, 200)
+})
+
+t.test('strips hop-by-hop headers (http)', async (t) => {
+  t.plan(6)
+  const instance = Fastify()
+  instance.register(From, { undici: false })
+
+  t.after(() => instance.close())
+
+  const target = http.createServer((req, res) => {
+    t.assert.ok('request proxied')
+    t.assert.strictEqual(req.headers.te, undefined, 'TE should be stripped')
+    t.assert.strictEqual(req.headers['keep-alive'], undefined, 'Keep-Alive should be stripped')
+    t.assert.strictEqual(req.headers['proxy-connection'], undefined, 'Proxy-Connection should be stripped')
+    t.assert.strictEqual(req.headers['x-keep'], 'keep-me', 'a normal header should be preserved')
+    res.statusCode = 200
+    res.end('ok')
+  })
+
+  instance.get('/', (_request, reply) => {
+    reply.from(`http://localhost:${target.address().port}`)
+  })
+
+  t.after(() => target.close())
+
+  await new Promise((resolve) => instance.listen({ port: 0 }, resolve))
+  await new Promise((resolve) => target.listen({ port: 0 }, resolve))
+
+  const result = await makeRequest(instance.server.address().port, {
+    TE: 'gzip',
+    'Keep-Alive': 'timeout=5',
+    'Proxy-Connection': 'keep-alive',
+    'X-Keep': 'keep-me'
+  })
+
+  t.assert.strictEqual(result.statusCode, 200)
+})
+
+t.test('preserves TE: trailers, which is not hop-by-hop (undici)', async (t) => {
+  // Node treats `TE: trailers` as legal to forward (see stripHttp1ConnectionHeaders),
+  // so it must survive while other TE values are dropped.
+  t.plan(3)
+  const instance = Fastify()
+  instance.register(From)
+
+  t.after(() => instance.close())
+
+  const target = http.createServer((req, res) => {
+    t.assert.strictEqual(req.headers.te, 'trailers', 'TE: trailers should be preserved')
+    res.statusCode = 200
+    res.end('ok')
+  })
+
+  instance.get('/', (_request, reply) => {
+    reply.from(`http://localhost:${target.address().port}`)
+  })
+
+  t.after(() => target.close())
+
+  await new Promise((resolve) => instance.listen({ port: 0 }, resolve))
+  await new Promise((resolve) => target.listen({ port: 0 }, resolve))
+
+  const result = await makeRequest(instance.server.address().port, { TE: 'trailers' })
+
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(result.body, 'ok')
+})
