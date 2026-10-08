@@ -217,7 +217,12 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
           this
         )
       } else {
-        copyHeaders(rewriteHeaders(res.headers, this.request), this)
+        // Strip hop-by-hop response headers (RFC 7230 Section 6.1) before
+        // forwarding to the downstream client, the same way the http2 branch
+        // already does. Otherwise the upstream's keep-alive, proxy-connection,
+        // transfer-encoding and any header named in its own Connection header
+        // leak to the client on the http1 path.
+        copyHeaders(rewriteHeaders(stripHttp1ConnectionHeaders(res.headers), this.request), this)
         // An HTTP/1 connection cannot be reused until its request body has
         // been consumed. Close it if the upstream responds before that point.
         if (!req.complete) {
