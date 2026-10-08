@@ -8,14 +8,20 @@ const https = require('node:https')
 const fs = require('node:fs')
 const path = require('node:path')
 const certs = {
-  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.key')),
-  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))
+  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.key')),
+  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.cert'))
 }
 
 const instance = Fastify({
   https: certs
 })
-instance.register(From)
+instance.register(From, {
+  undici: {
+    tls: {
+      ca: certs.cert.toString()
+    }
+  }
+})
 
 t.test('full-https-get', async (t) => {
   t.plan(6)

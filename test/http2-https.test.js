@@ -10,8 +10,8 @@ const fs = require('node:fs')
 const path = require('node:path')
 const certs = {
   allowHTTP1: true, // fallback support for HTTP1
-  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.key')),
-  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))
+  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.key')),
+  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.cert'))
 }
 
 const instance = Fastify({
@@ -39,7 +39,11 @@ async function run (t) {
 
   instance.register(From, {
     base: `https://localhost:${target.server.address().port}`,
-    rejectUnauthorized: false
+    undici: {
+      tls: {
+        ca: certs.cert.toString()
+      }
+    }
   })
 
   await instance.listen({ port: 0 })

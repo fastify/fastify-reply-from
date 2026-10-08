@@ -10,8 +10,8 @@ const { Agent } = require('undici')
 const fs = require('node:fs')
 const path = require('node:path')
 const certs = {
-  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.key')),
-  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))
+  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.key')),
+  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.cert'))
 }
 
 test('https global agent is used, but not destroyed', async (t) => {
@@ -41,6 +41,9 @@ test('https global agent is used, but not destroyed', async (t) => {
     base: `https://localhost:${target.address().port}`,
     globalAgent: true,
     http: {
+      requestOptions: {
+        ca: certs.cert
+      }
     }
   })
 
