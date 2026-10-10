@@ -30,6 +30,7 @@ import {
   RequestOptions as SecureRequestOptions
 } from 'node:https'
 import { Pool, ProxyAgent, Dispatcher } from 'undici'
+import { Readable } from 'node:stream'
 
 declare module 'fastify' {
   interface FastifyReply {
@@ -66,6 +67,12 @@ declare namespace fastifyReplyFrom {
     stream: IncomingMessage
   }
 
+  export interface FastifyReplyFromResponse {
+    statusCode: number
+    headers: IncomingHttpHeaders
+    stream: Readable
+  }
+
   export interface FastifyReplyFromHooks {
     queryString?: { [key: string]: unknown } | QueryStringFunction;
     contentType?: string;
@@ -74,7 +81,7 @@ declare namespace fastifyReplyFrom {
     onResponse?: (
       request: FastifyRequest<RequestGenericInterface, RawServerBase>,
       reply: FastifyReply<RouteGenericInterface, RawServerBase>,
-      res: RawServerResponse<RawServerBase>
+      res: FastifyReplyFromResponse
     ) => void;
     onError?: (
       reply: FastifyReply<RouteGenericInterface, RawServerBase>,
