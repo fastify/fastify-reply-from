@@ -18,6 +18,7 @@ import {
   IncomingMessage,
   RequestOptions,
 } from 'node:http'
+import { Readable } from 'node:stream'
 import {
   ClientSessionOptions,
   ClientSessionRequestOptions,
@@ -66,6 +67,12 @@ declare namespace fastifyReplyFrom {
     stream: IncomingMessage
   }
 
+  export interface FastifyReplyFromResponse {
+    statusCode: number
+    headers: IncomingHttpHeaders | Http2IncomingHttpHeaders
+    stream: Readable
+  }
+
   export interface FastifyReplyFromHooks {
     queryString?: { [key: string]: unknown } | QueryStringFunction;
     contentType?: string;
@@ -74,7 +81,7 @@ declare namespace fastifyReplyFrom {
     onResponse?: (
       request: FastifyRequest<RequestGenericInterface, RawServerBase>,
       reply: FastifyReply<RouteGenericInterface, RawServerBase>,
-      res: RawServerResponse<RawServerBase>
+      res: FastifyReplyFromResponse
     ) => void;
     onError?: (
       reply: FastifyReply<RouteGenericInterface, RawServerBase>,
