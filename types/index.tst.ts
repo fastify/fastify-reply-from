@@ -12,7 +12,8 @@ import * as https from 'node:https'
 import { Agent, Client, Dispatcher, Pool } from 'undici'
 import replyFrom, {
   type FastifyReplyFromOptions,
-  type FastifyReplyFromResponse
+  type FastifyReplyFromResponse,
+  type RawServerResponse
 } from '.'
 import { type IncomingHttpHeaders as Http1IncomingHttpHeaders } from 'node:http'
 import { type Readable } from 'node:stream'
@@ -89,6 +90,7 @@ app.get('/v3', (_request, reply) => {
       expect(res.statusCode).type.toBe<number>()
       expect(res.headers).type.toBe<Http1IncomingHttpHeaders | IncomingHttpHeaders>()
       expect(res.stream).type.toBe<Readable>()
+      expect<RawServerResponse<RawServerBase>>().type.toBe<RawServerResponse<RawServerBase>>()
     }
   })
 })
