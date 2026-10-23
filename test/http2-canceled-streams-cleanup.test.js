@@ -8,8 +8,8 @@ const path = require('node:path')
 const http2 = require('node:http2')
 const { once } = require('events')
 const certs = {
-  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.key')),
-  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))
+  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.key')),
+  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.cert'))
 }
 const { HTTP2_HEADER_STATUS, HTTP2_HEADER_PATH } = http2.constants
 
@@ -97,8 +97,11 @@ t.test('http2 -> http2', async (t) => {
 
   instance.register(From, {
     base: `https://localhost:${target.address().port}`,
-    http2: true,
-    rejectUnauthorized: false
+    http2: {
+      sessionOptions: {
+        ca: certs.cert
+      }
+    }
   })
 
   const url = await instance.listen({ port: 0 })

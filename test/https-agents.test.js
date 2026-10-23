@@ -11,8 +11,8 @@ const { Agent } = require('undici')
 const fs = require('node:fs')
 const path = require('node:path')
 const certs = {
-  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.key')),
-  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))
+  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.key')),
+  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.cert'))
 }
 
 const instance = Fastify({
@@ -47,6 +47,9 @@ t.test('https agents', async (t) => {
       agents: {
         'http:': new http.Agent({}),
         'https:': new https.Agent({})
+      },
+      requestOptions: {
+        ca: certs.cert
       }
     }
   })

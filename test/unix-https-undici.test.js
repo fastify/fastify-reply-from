@@ -4,6 +4,7 @@ const t = require('node:test')
 const Fastify = require('fastify')
 const From = require('..')
 const https = require('node:https')
+const tls = require('node:tls')
 const fs = require('node:fs')
 const os = require('node:os')
 const { request, Agent } = require('undici')
@@ -11,8 +12,8 @@ const querystring = require('node:querystring')
 const path = require('node:path')
 
 const certs = {
-  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.key')),
-  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))
+  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.key')),
+  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.cert'))
 }
 
 const socketPath = `${os.tmpdir()}/fastify-reply-from-${process.pid}.socket`
@@ -27,7 +28,13 @@ const instance = Fastify({
 })
 
 instance.register(From, {
-  base: `unix+https://${querystring.escape(socketPath)}`
+  base: `unix+https://${querystring.escape(socketPath)}`,
+  undici: {
+    tls: {
+      ca: certs.cert.toString(),
+      checkServerIdentity: (_hostname, cert) => tls.checkServerIdentity('localhost', cert)
+    }
+  }
 })
 
 t.test('unix https undici', { skip: process.platform === 'win32' }, async (t) => {
