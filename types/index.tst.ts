@@ -116,6 +116,10 @@ app.get('/http2', (_request, reply) => {
     onError (reply: FastifyReply<RouteGenericInterface, RawServerBase>, error) {
       return reply.send(error.error)
     },
+    async getUpstream (req, base) {
+      expect(req).type.toBe<FastifyRequest<RequestGenericInterface, RawServerBase>>()
+      return base
+    },
     queryString (search, reqUrl, request) {
       expect(search).type.toBe<string | undefined>()
       expect(reqUrl).type.toBe<string>()

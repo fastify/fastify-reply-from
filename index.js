@@ -77,17 +77,6 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       source = queryIndex >= 0 ? requestUrl.substring(0, queryIndex) : requestUrl
     }
 
-    // we leverage caching to avoid parsing the destination URL
-    const dest = getUpstream(this.request, base)
-    let url
-    if (cache) {
-      const cacheKey = JSON.stringify([dest, source])
-      url = cache.get(cacheKey) || buildURL(source, dest)
-      cache.set(cacheKey, url)
-    } else {
-      url = buildURL(source, dest)
-    }
-
     const sourceHttp2 = req.httpVersionMajor === 2
     const headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : { ...req.headers }
 
@@ -102,8 +91,6 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       }
     }
 
-    headers.host = url.host
-    const qs = getQueryString(url.search, req.url, opts, this.request)
     let body = ''
 
     if (opts.body !== undefined) {
@@ -159,95 +146,120 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       }
     }
 
-    !disableRequestLogging && this.request.log.info({ source }, 'fetching from remote server')
+    const handleUpstream = (dest) => {
+      // we leverage caching to avoid parsing the destination URL
+      let url
+      if (cache) {
+        const cacheKey = JSON.stringify([dest, source])
+        url = cache.get(cacheKey) || buildURL(source, dest)
+        cache.set(cacheKey, url)
+      } else {
+        url = buildURL(source, dest)
+      }
 
-    const requestHeaders = rewriteRequestHeaders(this.request, headers)
-    const contentLength = requestHeaders['content-length']
-    let requestImpl
+      headers.host = url.host
+      const qs = getQueryString(url.search, req.url, opts, this.request)
 
-    const getDefaultDelay = (req, res, err, retries) => {
-      if (retryMethods.has(method) && !contentLength) {
-        // Magic number, so why not 42? We might want to make this configurable.
-        let retryAfter = 42 * Math.random() * (retries + 1)
+      !disableRequestLogging && this.request.log.info({ source }, 'fetching from remote server')
 
-        if (res?.headers['retry-after']) {
-          retryAfter = res.headers['retry-after']
-        }
-        if (res && res.statusCode === 503 && req.method === 'GET') {
-          if (retriesCount === 0 && retries < maxRetriesOn503) {
+      const requestHeaders = rewriteRequestHeaders(this.request, headers)
+      const contentLength = requestHeaders['content-length']
+      let requestImpl
+
+      const getDefaultDelay = (req, res, err, retries) => {
+        if (retryMethods.has(method) && !contentLength) {
+          // Magic number, so why not 42? We might want to make this configurable.
+          let retryAfter = 42 * Math.random() * (retries + 1)
+
+          if (res?.headers['retry-after']) {
+            retryAfter = res.headers['retry-after']
+          }
+          if (res && res.statusCode === 503 && req.method === 'GET') {
+            if (retriesCount === 0 && retries < maxRetriesOn503) {
+              return retryAfter
+            }
+          } else if (retriesCount > retries && err && err.code === retryOnError) {
             return retryAfter
           }
-        } else if (retriesCount > retries && err && err.code === retryOnError) {
-          return retryAfter
         }
+        return null
       }
-      return null
-    }
 
-    if (retryDelay) {
-      requestImpl = createRequestRetry(request, this, (req, res, err, retries) => retryDelay({ err, req, res, attempt: retries, getDefaultDelay, retriesCount }))
-    } else {
-      requestImpl = createRequestRetry(request, this, getDefaultDelay)
-    }
+      if (retryDelay) {
+        requestImpl = createRequestRetry(request, this, (req, res, err, retries) => retryDelay({ err, req, res, attempt: retries, getDefaultDelay, retriesCount }))
+      } else {
+        requestImpl = createRequestRetry(request, this, getDefaultDelay)
+      }
 
-    requestImpl({ method, url, qs, headers: requestHeaders, body, timeout }, (err, res) => {
-      if (err) {
-        this.request.log.warn(err, 'response errored')
-        if (!this.sent) {
-          if (err.code === 'ERR_HTTP2_STREAM_CANCEL' || err.code === 'ENOTFOUND') {
-            onError(this, { error: ServiceUnavailableError({ cause: err }) })
-          } else if (err instanceof TimeoutError || err.code === 'UND_ERR_HEADERS_TIMEOUT') {
-            onError(this, { error: new GatewayTimeoutError({ cause: err }) })
-          } else if (err.code === 'ECONNRESET') {
-            onError(this, { error: new ConnectionResetError({ cause: err }) })
-          } else if (err.code === 'UND_ERR_SOCKET') {
-            onError(this, { error: new UndiciSocketError({ cause: err }) })
-          } else if (err.code === 'UND_ERR_CONNECT_TIMEOUT') {
-            onError(this, { error: new ConnectTimeoutError({ cause: err }) })
-          } else {
-            onError(this, { error: new InternalServerError(err.message, { cause: err }) })
+      requestImpl({ method, url, qs, headers: requestHeaders, body, timeout }, (err, res) => {
+        if (err) {
+          this.request.log.warn(err, 'response errored')
+          if (!this.sent) {
+            if (err.code === 'ERR_HTTP2_STREAM_CANCEL' || err.code === 'ENOTFOUND') {
+              onError(this, { error: ServiceUnavailableError({ cause: err }) })
+            } else if (err instanceof TimeoutError || err.code === 'UND_ERR_HEADERS_TIMEOUT') {
+              onError(this, { error: new GatewayTimeoutError({ cause: err }) })
+            } else if (err.code === 'ECONNRESET') {
+              onError(this, { error: new ConnectionResetError({ cause: err }) })
+            } else if (err.code === 'UND_ERR_SOCKET') {
+              onError(this, { error: new UndiciSocketError({ cause: err }) })
+            } else if (err.code === 'UND_ERR_CONNECT_TIMEOUT') {
+              onError(this, { error: new ConnectTimeoutError({ cause: err }) })
+            } else {
+              onError(this, { error: new InternalServerError(err.message, { cause: err }) })
+            }
+          }
+          return
+        }
+        !disableRequestLogging && this.request.log.info('response received')
+        if (sourceHttp2) {
+          copyHeaders(
+            rewriteHeaders(stripHttp1ConnectionHeaders(res.headers), this.request),
+            this
+          )
+        } else {
+          copyHeaders(rewriteHeaders(res.headers, this.request), this)
+          // An HTTP/1 connection cannot be reused until its request body has
+          // been consumed. Close it if the upstream responds before that point.
+          if (!req.complete) {
+            this.header('connection', 'close')
           }
         }
-        return
-      }
-      !disableRequestLogging && this.request.log.info('response received')
-      if (sourceHttp2) {
-        copyHeaders(
-          rewriteHeaders(stripHttp1ConnectionHeaders(res.headers), this.request),
-          this
-        )
-      } else {
-        copyHeaders(rewriteHeaders(res.headers, this.request), this)
-        // An HTTP/1 connection cannot be reused until its request body has
-        // been consumed. Close it if the upstream responds before that point.
-        if (!req.complete) {
-          this.header('connection', 'close')
+        try {
+          this.code(res.statusCode)
+        } catch (err) {
+          // Since we know `FST_ERR_BAD_STATUS_CODE` will be recieved
+          onError(this, { error: new BadGatewayError() })
+          this.request.log.warn(err, 'response has invalid status code')
         }
-      }
-      try {
-        this.code(res.statusCode)
-      } catch (err) {
-        // Since we know `FST_ERR_BAD_STATUS_CODE` will be recieved
-        onError(this, { error: new BadGatewayError() })
-        this.request.log.warn(err, 'response has invalid status code')
-      }
-      if (this.request.raw.aborted) {
-        // the request could have been canceled before we got a response from the target
-        // clean up the upstream stream to prevent leaks and skip sending a reply
-        if (isHttp2) {
-          res.stream.close(NGHTTP2_CANCEL)
+        if (this.request.raw.aborted) {
+          // the request could have been canceled before we got a response from the target
+          // clean up the upstream stream to prevent leaks and skip sending a reply
+          if (isHttp2) {
+            res.stream.close(NGHTTP2_CANCEL)
+          } else {
+            res.stream.destroy()
+          }
+          // no need to send a reply for aborted requests or call the onResponse callback
+          return
+        }
+        if (onResponse) {
+          onResponse(this.request, this, res)
         } else {
-          res.stream.destroy()
+          this.send(res.stream)
         }
-        // no need to send a reply for aborted requests or call the onResponse callback
-        return
-      }
-      if (onResponse) {
-        onResponse(this.request, this, res)
-      } else {
-        this.send(res.stream)
-      }
-    })
+      })
+    }
+
+    const dest = getUpstream(this.request, base)
+    if (typeof dest?.then === 'function') {
+      dest.then(handleUpstream, (err) => {
+        onError(this, { error: err })
+      })
+    } else {
+      handleUpstream(dest)
+    }
+
     return this
   })
 
