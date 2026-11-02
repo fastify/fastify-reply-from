@@ -177,3 +177,33 @@ test('we handle our retries based on the retryCount', async (t) => {
   t.assert.strictEqual(res.statusCode, 205)
   t.assert.strictEqual(await res.body.text(), 'Hello World 5!')
 })
+
+test('supports retryDelay configured in plugin options', async (t) => {
+  const target = serverWithCustomError(2, 500, false)
+  await target.listen({ port: 0 })
+  t.after(() => target.close())
+
+  const customRetryLogic = ({ req, res }) => {
+    if (res && res.statusCode === 500 && req.method === 'GET') {
+      return 0.1
+    }
+    return null
+  }
+
+  const instance = Fastify()
+  instance.register(From, {
+    base: `http://localhost:${target.address().port}`,
+    retryDelay: customRetryLogic
+  })
+
+  instance.get('/', (_request, reply) => {
+    reply.from('/')
+  })
+
+  t.after(() => instance.close())
+  await instance.listen({ port: 0 })
+
+  const res = await request(`http://localhost:${instance.server.address().port}`)
+  t.assert.strictEqual(res.statusCode, 205)
+  t.assert.strictEqual(await res.body.text(), 'Hello World 3!')
+})

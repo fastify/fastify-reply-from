@@ -78,6 +78,7 @@ declare namespace fastifyReplyFrom {
     contentType?: string;
     retryDelay?: (details: RetryDetails) => number | null;
     retriesCount?: number;
+    maxRetriesOn503?: number;
     onResponse?: (
       request: FastifyRequest<RequestGenericInterface, RawServerBase>,
       reply: FastifyReply<RouteGenericInterface, RawServerBase>,
@@ -127,6 +128,8 @@ declare namespace fastifyReplyFrom {
     balancedPoolOptions?: Pool.Options & Record<string, unknown>;
     contentTypesToEncode?: string[];
     retryMethods?: (HTTPMethods | 'TRACE')[];
+    retriesCount?: number;
+    retryDelay?: (details: RetryDetails) => number | null;
     maxRetriesOn503?: number;
     disableRequestLogging?: boolean;
     globalAgent?: boolean;
