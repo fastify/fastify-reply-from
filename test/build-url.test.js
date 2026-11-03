@@ -78,7 +78,7 @@ test('should throw when trying to override base', async (t) => {
 })
 
 test('should allow safe path characters and encoded values outside the path', (t) => {
-  t.plan(12)
+  t.plan(14)
   // Next.js catch-all routes like [...slug] appear percent-encoded in static chunk URLs.
   // These contain '...' as a substring but are not path traversal.
   // See: https://github.com/fastify/fastify-reply-from/issues/460
@@ -94,6 +94,10 @@ test('should allow safe path characters and encoded values outside the path', (t
   t.assert.doesNotThrow(() => buildURL('/foo#value=%0a', 'http://localhost'))
   t.assert.doesNotThrow(() => buildURL('/foo?next=/../admin', 'http://localhost'))
   t.assert.doesNotThrow(() => buildURL('/foo#next=/../admin', 'http://localhost'))
+  // Legitimate matrix parameters (RFC 3986 §3.3) must still be allowed and
+  // forwarded unchanged. See GHSA-6mph-mjg3-f943.
+  t.assert.doesNotThrow(() => buildURL('/foo;param=1/bar', 'http://localhost'))
+  t.assert.doesNotThrow(() => buildURL('/foo;jsessionid=abc/bar', 'http://localhost'))
 })
 
 test('should throw on path traversal attempts', (t) => {
@@ -136,6 +140,27 @@ test('should throw on path traversal attempts', (t) => {
     '/foo/%09..%09/bar',
     ' /foo/bar',
     '/foo/bar '
+  ]) {
+    t.assert.throws(
+      () => buildURL(source, 'http://localhost'),
+      new Error('source/request contain invalid characters')
+    )
+  }
+})
+
+// Java-based upstreams (Tomcat, Jetty, WildFly, Spring Boot) treat `;` as a
+// path-parameter delimiter and strip it during normalization, so `..;` is
+// effectively `..`. See GHSA-6mph-mjg3-f943.
+test('should throw on semicolon dot-segment path traversal', (t) => {
+  for (const source of [
+    '/foo/bar/..;/baz',
+    '/foo/bar/..;jsessionid=abc/baz',
+    '/foo/bar/..;x=1;y=2/baz',
+    '/foo/bar/..%3b/baz',
+    '/foo/bar/..%3B/baz',
+    '/foo/bar/%2e%2e%3b/baz',
+    '/foo/bar/.;baz',
+    '/foo/bar/%2e%3b/baz'
   ]) {
     t.assert.throws(
       () => buildURL(source, 'http://localhost'),
