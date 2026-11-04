@@ -101,10 +101,7 @@ proxy.register(require('@fastify/reply-from'), {
   undici: {
     connections: 128,
     pipelining: 1,
-    keepAliveTimeout: 60 * 1000,
-    tls: {
-      rejectUnauthorized: false
-    }
+    keepAliveTimeout: 60 * 1000
   }
 })
 ```
@@ -202,6 +199,26 @@ proxy.register(require('@fastify/reply-from'), {
   }
 })
 ```
+
+#### TLS verification
+
+HTTPS upstream certificates are verified by default using Node.js and undici's
+standard trust stores. A private certificate authority can be configured for
+each transport:
+
+```js
+proxy.register(require('@fastify/reply-from'), {
+  base: 'https://localhost:3001/',
+  undici: { tls: { ca } }
+})
+```
+
+When using Node's HTTP transport, pass the CA as
+`http.requestOptions.ca`. For HTTP/2, use `http2.sessionOptions.ca`.
+Certificate verification can be disabled by setting `rejectUnauthorized: false`
+in `undici.tls`, `http.requestOptions`, or `http2.sessionOptions`. This permits
+man-in-the-middle attacks and should only be used when the upstream connection
+is secured by other means.
 
 #### `disableRequestLogging`
 

@@ -77,13 +77,23 @@ test('should throw when trying to override base', async (t) => {
   await Promise.all(promises)
 })
 
-test('should not throw on URLs containing "..." (e.g. Next.js catch-all routes)', (t) => {
-  t.plan(2)
+test('should allow safe path characters and encoded values outside the path', (t) => {
+  t.plan(12)
   // Next.js catch-all routes like [...slug] appear percent-encoded in static chunk URLs.
   // These contain '...' as a substring but are not path traversal.
   // See: https://github.com/fastify/fastify-reply-from/issues/460
   t.assert.doesNotThrow(() => buildURL('/_next/static/chunks/pages/%5B...slug%5D.js', 'http://localhost'))
   t.assert.doesNotThrow(() => buildURL('/_next/static/chunks/pages/%5B%5B...slug%5D%5D.js', 'http://localhost'))
+  t.assert.doesNotThrow(() => buildURL('/foo/.../bar', 'http://localhost'))
+  t.assert.doesNotThrow(() => buildURL('/foo/..bar', 'http://localhost'))
+  t.assert.doesNotThrow(() => buildURL('/foo?path=C%3A%5Ctemp', 'http://localhost'))
+  t.assert.doesNotThrow(() => buildURL('/foo#path=C:\\temp', 'http://localhost'))
+  t.assert.doesNotThrow(() => buildURL('/foo ?query', 'http://localhost'))
+  t.assert.doesNotThrow(() => buildURL('/foo #fragment', 'http://localhost'))
+  t.assert.doesNotThrow(() => buildURL('/foo?value=%09', 'http://localhost'))
+  t.assert.doesNotThrow(() => buildURL('/foo#value=%0a', 'http://localhost'))
+  t.assert.doesNotThrow(() => buildURL('/foo?next=/../admin', 'http://localhost'))
+  t.assert.doesNotThrow(() => buildURL('/foo#next=/../admin', 'http://localhost'))
 })
 
 test('should throw on path traversal attempts', (t) => {
@@ -116,4 +126,20 @@ test('should throw on path traversal attempts', (t) => {
     () => buildURL('/foo/bar/%2e%2e%2f', 'http://localhost'),
     new Error('source/request contain invalid characters')
   )
+
+  for (const source of [
+    '/foo\\..\\bar',
+    '/foo%5c..%5cbar',
+    '/foo/./bar',
+    '/foo/%2e/bar',
+    '/foo/\t..\t/bar',
+    '/foo/%09..%09/bar',
+    ' /foo/bar',
+    '/foo/bar '
+  ]) {
+    t.assert.throws(
+      () => buildURL(source, 'http://localhost'),
+      new Error('source/request contain invalid characters')
+    )
+  }
 })

@@ -9,15 +9,20 @@ const fs = require('node:fs')
 const querystring = require('node:querystring')
 const path = require('node:path')
 const certs = {
-  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.key')),
-  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'fastify.cert'))
+  key: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.key')),
+  cert: fs.readFileSync(path.join(__dirname, 'fixtures', 'localhost.cert'))
 }
 
 const instance = Fastify({
   https: certs
 })
 instance.register(From, {
-  http: true
+  http: {
+    requestOptions: {
+      ca: certs.cert,
+      servername: 'localhost'
+    }
+  }
 })
 
 t.test('unix https', { skip: process.platform === 'win32' }, async (t) => {
