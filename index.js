@@ -250,6 +250,17 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       if (onResponse) {
         onResponse(this.request, this, res)
       } else {
+        if (isHttp2) {
+          // If the client goes away mid-response, Fastify destroys the upstream
+          // stream, which resets it with NO_ERROR. On some Node.js versions
+          // that reset is never sent and the upstream stream leaks, so cancel
+          // it explicitly, as we do above for requests aborted earlier.
+          this.raw.once('close', () => {
+            if (!res.stream.closed) {
+              res.stream.close(NGHTTP2_CANCEL)
+            }
+          })
+        }
         this.send(res.stream)
       }
     })
