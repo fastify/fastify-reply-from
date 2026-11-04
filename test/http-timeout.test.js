@@ -138,3 +138,41 @@ test('http sse removes timeout test', async (t) => {
   })
   t.assert.strictEqual(statusCode, 200)
 })
+
+test('http sse removes timeout when content-type has parameters', async (t) => {
+  // A media type is case-insensitive and may carry parameters (RFC 9110 §8.3.1).
+  // `text/event-stream; charset=utf-8` is what Starlette's EventSourceResponse
+  // and Spring emit, and it must be treated as SSE just the same. The parsing
+  // itself is covered deterministically in test/sse-content-type.test.js; this
+  // test only confirms such a response flows through the proxy end to end, the
+  // same shape as the sibling above — no timers, no clock race.
+  const target = Fastify()
+  t.after(() => target.close())
+
+  target.get('/', (_request, reply) => {
+    t.assert.ok('request arrives')
+
+    reply.header('content-type', 'text/event-stream; charset=utf-8').status(200).send('data: hello\n\n')
+  })
+
+  await target.listen({ port: 0 })
+
+  const instance = Fastify()
+  t.after(() => instance.close())
+
+  instance.register(From, { http: { requestOptions: { timeout: 100 } } })
+
+  instance.get('/', (_request, reply) => {
+    reply.from(`http://localhost:${target.server.address().port}/`)
+  })
+
+  await instance.listen({ port: 0 })
+
+  const { statusCode, body } = await request(`http://localhost:${instance.server.address().port}/`, {
+    dispatcher: new Agent({
+      pipelining: 0
+    })
+  })
+  t.assert.strictEqual(statusCode, 200)
+  t.assert.strictEqual(await body.text(), 'data: hello\n\n')
+})
