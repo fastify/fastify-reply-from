@@ -48,6 +48,10 @@ const fullOptions: FastifyReplyFromOptions = {
   contentTypesToEncode: ['application/x-www-form-urlencoded'],
   retryMethods: ['GET', 'HEAD', 'OPTIONS', 'TRACE'],
   maxRetriesOn503: 10,
+  retriesCount: 3,
+  retryDelay: ({ req, res, err, attempt, getDefaultDelay }) => {
+    return null
+  },
   disableRequestLogging: false,
   globalAgent: false,
   destroyAgent: true
@@ -98,6 +102,8 @@ app.get('/v3', (_request, reply) => {
 app.get('/http2', (_request, reply) => {
   reply.from('/', {
     method: 'POST',
+    retriesCount: 2,
+    maxRetriesOn503: 5,
     retryDelay: ({ req, res, err, attempt, getDefaultDelay }) => {
       const defaultDelay = getDefaultDelay(req, res, err, attempt)
       expect(defaultDelay).type.toBe<number | null>()
