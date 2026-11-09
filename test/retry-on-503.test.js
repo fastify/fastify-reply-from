@@ -100,3 +100,52 @@ test('Should abort if server is always returning 503', async function (t) {
   t.assert.strictEqual(result.statusCode, 503)
   t.assert.strictEqual(await result.body.text(), 'This Service is Unavailable')
 })
+
+test('Should not retry on 503 HTTP error when maxRetriesOn503 is 0 at plugin level', async function (t) {
+  t.plan(2)
+  const target = createTargetServer(false, 1)
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
+  t.after(() => target.close())
+
+  const instance = Fastify()
+
+  instance.register(From, {
+    base: `http://localhost:${target.address().port}`,
+    maxRetriesOn503: 0
+  })
+
+  instance.get('/', (_request, reply) => {
+    reply.from()
+  })
+
+  t.after(() => instance.close())
+  await instance.listen({ port: 0 })
+
+  const res = await request(`http://localhost:${instance.server.address().port}`)
+  t.assert.strictEqual(res.statusCode, 503)
+  t.assert.strictEqual(await res.body.text(), 'This Service is Unavailable')
+})
+
+test('Should not retry on 503 HTTP error when maxRetriesOn503 is 0 at reply.from level', async function (t) {
+  t.plan(2)
+  const target = createTargetServer(false, 1)
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
+  t.after(() => target.close())
+
+  const instance = Fastify()
+
+  instance.register(From, {
+    base: `http://localhost:${target.address().port}`
+  })
+
+  instance.get('/', (_request, reply) => {
+    reply.from('', { maxRetriesOn503: 0 })
+  })
+
+  t.after(() => instance.close())
+  await instance.listen({ port: 0 })
+
+  const res = await request(`http://localhost:${instance.server.address().port}`)
+  t.assert.strictEqual(res.statusCode, 503)
+  t.assert.strictEqual(await res.body.text(), 'This Service is Unavailable')
+})
