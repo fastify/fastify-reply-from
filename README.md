@@ -424,7 +424,7 @@ It must return the new headers object.
 Called to get upstream destination, before the request is sent. Useful when you want to decide which target server to call based on the request data.
 Helpful for a gradual rollout of new services.
 Parameters are the Fastify request and the base string from the plugin options.
-It must return the upstream destination.
+It must return the upstream destination, or a Promise resolving to it.
 
 Only http1! As http2 uses one connection for the whole session only the base upstream is used. If you want to
 have different upstreams based on the request you can add multiple Fastify.register's with different
