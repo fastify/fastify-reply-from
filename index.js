@@ -77,182 +77,203 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       source = queryIndex >= 0 ? requestUrl.substring(0, queryIndex) : requestUrl
     }
 
-    // we leverage caching to avoid parsing the destination URL
-    const dest = getUpstream(this.request, base)
-    let url
-    if (cache) {
-      const cacheKey = JSON.stringify([dest, source])
-      url = cache.get(cacheKey) || buildURL(source, dest)
-      cache.set(cacheKey, url)
-    } else {
-      url = buildURL(source, dest)
-    }
-
-    const sourceHttp2 = req.httpVersionMajor === 2
-    const headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : { ...req.headers }
-
-    // Strip client-supplied Connection header and all header names listed in it
-    // before rewriteRequestHeaders runs. This prevents clients from stripping
-    // headers added by the proxy itself.
-    const connectionHeaderNames = getConnectionHeaders(headers)
-    if (headers.connection || connectionHeaderNames.length > 0) {
-      delete headers.connection
-      for (let i = 0; i < connectionHeaderNames.length; i++) {
-        delete headers[connectionHeaderNames[i]]
+    const handleDest = (dest) => {
+      // we leverage caching to avoid parsing the destination URL
+      let url
+      if (cache) {
+        const cacheKey = JSON.stringify([dest, source])
+        url = cache.get(cacheKey) || buildURL(source, dest)
+        cache.set(cacheKey, url)
+      } else {
+        url = buildURL(source, dest)
       }
-    }
 
-    headers.host = url.host
-    const qs = getQueryString(url.search, req.url, opts, this.request)
-    let body = ''
+      const sourceHttp2 = req.httpVersionMajor === 2
+      const headers = sourceHttp2 ? filterPseudoHeaders(req.headers) : { ...req.headers }
 
-    if (opts.body !== undefined) {
-      if (opts.body !== null) {
-        if (typeof opts.body.pipe === 'function') {
-          throw new Error('sending a new body as a stream is not supported yet')
+      // Strip client-supplied Connection header and all header names listed in it
+      // before rewriteRequestHeaders runs. This prevents clients from stripping
+      // headers added by the proxy itself.
+      const connectionHeaderNames = getConnectionHeaders(headers)
+      if (headers.connection || connectionHeaderNames.length > 0) {
+        delete headers.connection
+        for (let i = 0; i < connectionHeaderNames.length; i++) {
+          delete headers[connectionHeaderNames[i]]
         }
+      }
 
-        if (opts.contentType) {
-          body = opts.body
+      headers.host = url.host
+      const qs = getQueryString(url.search, req.url, opts, this.request)
+      let body = ''
+
+      if (opts.body !== undefined) {
+        if (opts.body !== null) {
+          if (typeof opts.body.pipe === 'function') {
+            throw new Error('sending a new body as a stream is not supported yet')
+          }
+
+          if (opts.contentType) {
+            body = opts.body
+          } else {
+            body = JSON.stringify(opts.body)
+            opts.contentType = 'application/json'
+          }
+
+          headers['content-length'] = Buffer.byteLength(body)
+          headers['content-type'] = opts.contentType
         } else {
-          body = JSON.stringify(opts.body)
-          opts.contentType = 'application/json'
+          body = undefined
+          headers['content-length'] = 0
+          delete headers['content-type']
         }
-
-        headers['content-length'] = Buffer.byteLength(body)
-        headers['content-type'] = opts.contentType
-      } else {
-        body = undefined
-        headers['content-length'] = 0
-        delete headers['content-type']
-      }
-    } else if (this.request.body) {
-      if (this.request.body instanceof Stream) {
-        body = this.request.body
-      } else {
+      } else if (this.request.body) {
+        if (this.request.body instanceof Stream) {
+          body = this.request.body
+        } else {
         // Per RFC 7231 §3.1.1.5 if this header is not present we MAY assume application/octet-stream
-        let contentType = 'application/octet-stream'
-        if (req.headers['content-type']) {
-          const plainContentType = fastContentTypeParse.parse(req.headers['content-type'])
-          contentType = plainContentType.type
+          let contentType = 'application/octet-stream'
+          if (req.headers['content-type']) {
+            const plainContentType = fastContentTypeParse.parse(req.headers['content-type'])
+            contentType = plainContentType.type
+          }
+
+          const shouldEncodeJSON = contentTypesToEncode.has(contentType)
+          // transparently support JSON encoding
+          body = shouldEncodeJSON ? JSON.stringify(this.request.body) : this.request.body
+          // update origin request headers after encoding
+          headers['content-length'] = Buffer.byteLength(body)
+          headers['content-type'] = contentType
         }
-
-        const shouldEncodeJSON = contentTypesToEncode.has(contentType)
-        // transparently support JSON encoding
-        body = shouldEncodeJSON ? JSON.stringify(this.request.body) : this.request.body
-        // update origin request headers after encoding
-        headers['content-length'] = Buffer.byteLength(body)
-        headers['content-type'] = contentType
       }
-    }
 
-    // according to https://datatracker.ietf.org/doc/html/rfc2616#section-4.3
-    // fastify ignore message body when it's a GET or HEAD request
-    // when proxy this request, we should reset the content-length to make it a valid http request
-    // discussion: https://github.com/fastify/fastify/issues/953
-    if (method === 'GET' || method === 'HEAD') {
+      // according to https://datatracker.ietf.org/doc/html/rfc2616#section-4.3
+      // fastify ignore message body when it's a GET or HEAD request
+      // when proxy this request, we should reset the content-length to make it a valid http request
+      // discussion: https://github.com/fastify/fastify/issues/953
+      if (method === 'GET' || method === 'HEAD') {
       // body will be populated here only if opts.body is passed.
       // if we are doing that with a GET or HEAD request is a programmer error
       // and as such we can throw immediately.
-      if (body) {
-        throw new Error(`Rewriting the body when doing a ${method} is not allowed`)
-      }
-    }
-
-    !disableRequestLogging && this.request.log.info({ source }, 'fetching from remote server')
-
-    const requestHeaders = rewriteRequestHeaders(this.request, headers)
-    const contentLength = requestHeaders['content-length']
-    let requestImpl
-
-    const getDefaultDelay = (req, res, err, retries) => {
-      if (retryMethods.has(method) && !contentLength) {
-        // Magic number, so why not 42? We might want to make this configurable.
-        let retryAfter = 42 * Math.random() * (retries + 1)
-
-        if (res?.headers['retry-after']) {
-          retryAfter = res.headers['retry-after']
+        if (body) {
+          throw new Error(`Rewriting the body when doing a ${method} is not allowed`)
         }
-        if (res && res.statusCode === 503 && req.method === 'GET') {
-          if (retriesCount === 0 && retries < maxRetriesOn503) {
+      }
+
+      !disableRequestLogging && this.request.log.info({ source }, 'fetching from remote server')
+
+      const requestHeaders = rewriteRequestHeaders(this.request, headers)
+      const contentLength = requestHeaders['content-length']
+      let requestImpl
+
+      const getDefaultDelay = (req, res, err, retries) => {
+        if (retryMethods.has(method) && !contentLength) {
+        // Magic number, so why not 42? We might want to make this configurable.
+          let retryAfter = 42 * Math.random() * (retries + 1)
+
+          if (res?.headers['retry-after']) {
+            retryAfter = res.headers['retry-after']
+          }
+          if (res && res.statusCode === 503 && req.method === 'GET') {
+            if (retriesCount === 0 && retries < maxRetriesOn503) {
+              return retryAfter
+            }
+          } else if (retriesCount > retries && err && err.code === retryOnError) {
             return retryAfter
           }
-        } else if (retriesCount > retries && err && err.code === retryOnError) {
-          return retryAfter
         }
+        return null
       }
-      return null
-    }
 
-    if (retryDelay) {
-      requestImpl = createRequestRetry(request, this, (req, res, err, retries) => retryDelay({ err, req, res, attempt: retries, getDefaultDelay, retriesCount }))
-    } else {
-      requestImpl = createRequestRetry(request, this, getDefaultDelay)
-    }
-
-    requestImpl({ method, url, qs, headers: requestHeaders, body, timeout }, (err, res) => {
-      if (err) {
-        this.request.log.warn(err, 'response errored')
-        if (!this.sent) {
-          if (err.code === 'ERR_HTTP2_STREAM_CANCEL' || err.code === 'ENOTFOUND') {
-            onError(this, { error: ServiceUnavailableError({ cause: err }) })
-          } else if (err instanceof TimeoutError || err.code === 'UND_ERR_HEADERS_TIMEOUT') {
-            onError(this, { error: new GatewayTimeoutError({ cause: err }) })
-          } else if (err.code === 'ECONNRESET') {
-            onError(this, { error: new ConnectionResetError({ cause: err }) })
-          } else if (err.code === 'UND_ERR_SOCKET') {
-            onError(this, { error: new UndiciSocketError({ cause: err }) })
-          } else if (err.code === 'UND_ERR_CONNECT_TIMEOUT') {
-            onError(this, { error: new ConnectTimeoutError({ cause: err }) })
-          } else {
-            onError(this, { error: new InternalServerError(err.message, { cause: err }) })
-          }
-        }
-        return
-      }
-      !disableRequestLogging && this.request.log.info('response received')
-      if (sourceHttp2) {
-        copyHeaders(
-          rewriteHeaders(stripHttp1ConnectionHeaders(res.headers), this.request),
-          this
-        )
+      if (retryDelay) {
+        requestImpl = createRequestRetry(request, this, (req, res, err, retries) => retryDelay({ err, req, res, attempt: retries, getDefaultDelay, retriesCount }))
       } else {
+        requestImpl = createRequestRetry(request, this, getDefaultDelay)
+      }
+
+      requestImpl({ method, url, qs, headers: requestHeaders, body, timeout }, (err, res) => {
+        if (err) {
+          this.request.log.warn(err, 'response errored')
+          if (!this.sent) {
+            if (err.code === 'ERR_HTTP2_STREAM_CANCEL' || err.code === 'ENOTFOUND') {
+              onError(this, { error: ServiceUnavailableError({ cause: err }) })
+            } else if (err instanceof TimeoutError || err.code === 'UND_ERR_HEADERS_TIMEOUT') {
+              onError(this, { error: new GatewayTimeoutError({ cause: err }) })
+            } else if (err.code === 'ECONNRESET') {
+              onError(this, { error: new ConnectionResetError({ cause: err }) })
+            } else if (err.code === 'UND_ERR_SOCKET') {
+              onError(this, { error: new UndiciSocketError({ cause: err }) })
+            } else if (err.code === 'UND_ERR_CONNECT_TIMEOUT') {
+              onError(this, { error: new ConnectTimeoutError({ cause: err }) })
+            } else {
+              onError(this, { error: new InternalServerError(err.message, { cause: err }) })
+            }
+          }
+          return
+        }
+        !disableRequestLogging && this.request.log.info('response received')
+        if (sourceHttp2) {
+          copyHeaders(
+            rewriteHeaders(stripHttp1ConnectionHeaders(res.headers), this.request),
+            this
+          )
+        } else {
         // Strip hop-by-hop response headers (RFC 7230 Section 6.1) before
         // forwarding to the downstream client, the same way the http2 branch
         // already does. Otherwise the upstream's keep-alive, proxy-connection,
         // transfer-encoding and any header named in its own Connection header
         // leak to the client on the http1 path.
-        copyHeaders(rewriteHeaders(stripHttp1ConnectionHeaders(res.headers), this.request), this)
-        // An HTTP/1 connection cannot be reused until its request body has
-        // been consumed. Close it if the upstream responds before that point.
-        if (!req.complete) {
-          this.header('connection', 'close')
+          copyHeaders(rewriteHeaders(stripHttp1ConnectionHeaders(res.headers), this.request), this)
+          // An HTTP/1 connection cannot be reused until its request body has
+          // been consumed. Close it if the upstream responds before that point.
+          if (!req.complete) {
+            this.header('connection', 'close')
+          }
         }
-      }
-      try {
-        this.code(res.statusCode)
-      } catch (err) {
+        try {
+          this.code(res.statusCode)
+        } catch (err) {
         // Since we know `FST_ERR_BAD_STATUS_CODE` will be recieved
-        onError(this, { error: new BadGatewayError() })
-        this.request.log.warn(err, 'response has invalid status code')
-      }
-      if (this.request.raw.aborted) {
+          onError(this, { error: new BadGatewayError() })
+          this.request.log.warn(err, 'response has invalid status code')
+        }
+        if (this.request.raw.aborted) {
         // the request could have been canceled before we got a response from the target
         // clean up the upstream stream to prevent leaks and skip sending a reply
-        if (isHttp2) {
-          res.stream.close(NGHTTP2_CANCEL)
-        } else {
-          res.stream.destroy()
+          if (isHttp2) {
+            res.stream.close(NGHTTP2_CANCEL)
+          } else {
+            res.stream.destroy()
+          }
+          // no need to send a reply for aborted requests or call the onResponse callback
+          return
         }
-        // no need to send a reply for aborted requests or call the onResponse callback
-        return
-      }
-      if (onResponse) {
-        onResponse(this.request, this, res)
-      } else {
-        this.send(res.stream)
-      }
-    })
+        if (onResponse) {
+          onResponse(this.request, this, res)
+        } else {
+          this.send(res.stream)
+        }
+      })
+    }
+
+    const dest = getUpstream(this.request, base)
+    if (dest && typeof dest.then === 'function') {
+      dest.then(
+        (resolvedDest) => {
+          try {
+            handleDest(resolvedDest)
+          } catch (err) {
+            onError(this, { error: err })
+          }
+        },
+        (err) => {
+          this.request.log.warn(err, 'getUpstream errored')
+          onError(this, { error: err })
+        }
+      )
+    } else {
+      handleDest(dest)
+    }
+
     return this
   })
 
