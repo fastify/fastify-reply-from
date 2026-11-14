@@ -100,3 +100,56 @@ test('will not retry unsupported method', async function (t) {
   const result = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
   t.assert.strictEqual(result.statusCode, 500)
 })
+
+test('Will retry when retriesCount is set at plugin level', async function (t) {
+  t.after(() => { retryNum = 1 })
+
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
+  t.after(() => target.close())
+
+  const instance = Fastify()
+
+  instance.register(From, { undici: true, retriesCount: 1 })
+
+  instance.get('/', (_request, reply) => {
+    reply.from(`http://localhost:${target.address().port}/`, {
+      onError: (reply, { error }) => {
+        t.assert.strictEqual(error.code, 'UND_ERR_SOCKET')
+        reply.send(error)
+      }
+    })
+  })
+
+  await instance.listen({ port: 0 })
+  t.after(() => instance.close())
+
+  const { statusCode } = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
+  t.assert.strictEqual(statusCode, 200)
+})
+
+test('Will override plugin-level retriesCount with 0 at reply.from level', async function (t) {
+  t.after(() => { retryNum = 1 })
+
+  await new Promise(resolve => target.listen({ port: 0 }, resolve))
+  t.after(() => target.close())
+
+  const instance = Fastify()
+
+  instance.register(From, { undici: true, retriesCount: 1 })
+
+  instance.get('/', (_request, reply) => {
+    reply.from(`http://localhost:${target.address().port}/`, {
+      retriesCount: 0,
+      onError: (reply, { error }) => {
+        t.assert.strictEqual(error.code, 'UND_ERR_SOCKET')
+        reply.send(error)
+      }
+    })
+  })
+
+  await instance.listen({ port: 0 })
+  t.after(() => instance.close())
+
+  const result = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
+  t.assert.strictEqual(result.statusCode, 500)
+})

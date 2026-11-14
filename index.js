@@ -55,6 +55,9 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   }
   const { request, close, retryOnError } = requestBuilt
   const disableRequestLogging = opts.disableRequestLogging || false
+  const defaultRetriesCount = opts.retriesCount || 0
+  const defaultMaxRetriesOn503 = opts.maxRetriesOn503 ?? 10
+  const defaultRetryDelay = opts.retryDelay || undefined
 
   fastify.decorateReply('from', function (source, opts) {
     opts = opts || {}
@@ -66,9 +69,9 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
     const getUpstream = opts.getUpstream || upstreamNoOp
     const onError = opts.onError || onErrorDefault
-    const retriesCount = opts.retriesCount || 0
-    const maxRetriesOn503 = opts.maxRetriesOn503 || 10
-    const retryDelay = opts.retryDelay || undefined
+    const retriesCount = opts.retriesCount ?? defaultRetriesCount
+    const maxRetriesOn503 = opts.maxRetriesOn503 ?? defaultMaxRetriesOn503
+    const retryDelay = opts.retryDelay || defaultRetryDelay
 
     if (!source) {
       const requestUrl = req.url
