@@ -184,9 +184,9 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     }
 
     if (retryDelay) {
-      requestImpl = createRequestRetry(request, this, (req, res, err, retries) => retryDelay({ err, req, res, attempt: retries, getDefaultDelay, retriesCount }))
+      requestImpl = createRequestRetry(request, this, (req, res, err, retries) => retryDelay({ err, req, res, attempt: retries, getDefaultDelay, retriesCount }), isHttp2)
     } else {
-      requestImpl = createRequestRetry(request, this, getDefaultDelay)
+      requestImpl = createRequestRetry(request, this, getDefaultDelay, isHttp2)
     }
 
     requestImpl({ method, url, qs, headers: requestHeaders, body, timeout }, (err, res) => {
@@ -238,11 +238,7 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
       if (this.request.raw.aborted) {
         // the request could have been canceled before we got a response from the target
         // clean up the upstream stream to prevent leaks and skip sending a reply
-        if (isHttp2) {
-          res.stream.close(NGHTTP2_CANCEL)
-        } else {
-          res.stream.destroy()
-        }
+        destroyUpstreamStream(res.stream, isHttp2)
         // no need to send a reply for aborted requests or call the onResponse callback
         return
       }
@@ -318,7 +314,15 @@ function isFastifyMultipartRegistered (fastify) {
   return fastify.hasPlugin('@fastify/multipart')
 }
 
-function createRequestRetry (requestImpl, reply, retryHandler) {
+function destroyUpstreamStream (stream, isHttp2) {
+  if (isHttp2) {
+    stream.close(NGHTTP2_CANCEL)
+  } else {
+    stream.destroy()
+  }
+}
+
+function createRequestRetry (requestImpl, reply, retryHandler, isHttp2) {
   function requestRetry (req, cb) {
     let retries = 0
 
@@ -326,6 +330,9 @@ function createRequestRetry (requestImpl, reply, retryHandler) {
       requestImpl(req, function (err, res) {
         const retryDelay = retryHandler(req, res, err, retries)
         if (!reply.sent && retryDelay) {
+          if (res) {
+            destroyUpstreamStream(res.stream, isHttp2)
+          }
           return retry(retryDelay)
         }
         cb(err, res)
