@@ -4,10 +4,13 @@ const { test } = require('node:test')
 const Fastify = require('fastify')
 const { request, Agent } = require('undici')
 const From = require('..')
-const FakeTimers = require('@sinonjs/fake-timers')
+
+// undici runs headersTimeout on its fast timers, which tick about every 500ms:
+// a 50-100ms timeout fires up to ~1s after it is set, and a 3000ms one no
+// earlier than ~2.5s. Keep the upstream delay clear of both.
+const UPSTREAM_DELAY = 1500
 
 test('undici request timeout', async (t) => {
-  const clock = FakeTimers.createClock()
   const target = Fastify()
   t.after(() => target.close())
 
@@ -16,9 +19,7 @@ test('undici request timeout', async (t) => {
 
     setTimeout(() => {
       reply.status(200).send('hello world')
-    }, 1000)
-
-    clock.tick(1000)
+    }, UPSTREAM_DELAY)
   })
 
   await target.listen({ port: 0 })
@@ -53,11 +54,9 @@ test('undici request timeout', async (t) => {
     error: 'Gateway Timeout',
     message: 'Gateway Timeout'
   })
-  clock.tick(1000)
 })
 
 test('undici request with specific timeout', async (t) => {
-  const clock = FakeTimers.createClock()
   const target = Fastify()
   t.after(() => target.close())
 
@@ -66,9 +65,7 @@ test('undici request with specific timeout', async (t) => {
 
     setTimeout(() => {
       reply.status(200).send('hello world')
-    }, 1000)
-
-    clock.tick(1000)
+    }, UPSTREAM_DELAY)
   })
 
   await target.listen({ port: 0 })
@@ -85,7 +82,7 @@ test('undici request with specific timeout', async (t) => {
 
   instance.get('/success', (_request, reply) => {
     reply.from('/', {
-      timeout: 1000
+      timeout: 3000
     })
   })
   instance.get('/fail', (_request, reply) => {
@@ -117,5 +114,4 @@ test('undici request with specific timeout', async (t) => {
     error: 'Gateway Timeout',
     message: 'Gateway Timeout'
   })
-  clock.tick(1000)
 })
