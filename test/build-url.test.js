@@ -168,3 +168,36 @@ test('should throw on semicolon dot-segment path traversal', (t) => {
     )
   }
 })
+
+// A source with the same special scheme as the base is parsed as a relative
+// path with the scheme dropped, so the dot-segments must be checked on the
+// path that is actually forwarded. See GHSA-2ccw-8rvh-6cmg.
+test('should throw on scheme-prefixed encoded dot-segment traversal', (t) => {
+  for (const [source, base] of [
+    ['http:%2e%2e%2fsecret.txt', 'http://localhost/v1/public/'],
+    ['http:%2E%2E%2Fsecret.txt', 'http://localhost/v1/public/'],
+    ['HTTP:%2e%2e%2fsecret.txt', 'http://localhost/v1/public/'],
+    ['http:..%2fsecret.txt', 'http://localhost/v1/public/'],
+    ['http:.%2e%2fsecret.txt', 'http://localhost/v1/public/'],
+    ['http:%2e%2fsecret.txt', 'http://localhost/v1/public/'],
+    ['https:%2e%2e%2fsecret.txt', 'https://localhost/v1/public/']
+  ]) {
+    t.assert.throws(
+      () => buildURL(source, base),
+      new Error('source/request contain invalid characters'),
+      source
+    )
+  }
+})
+
+test('should allow scheme-prefixed sources without dot-segments', (t) => {
+  t.plan(2)
+  t.assert.strictEqual(
+    buildURL('http:ok.txt', 'http://localhost/v1/public/').href,
+    'http://localhost/v1/public/ok.txt'
+  )
+  t.assert.strictEqual(
+    buildURL('http:foo%2fbar.txt', 'http://localhost/v1/public/').href,
+    'http://localhost/v1/public/foo%2fbar.txt'
+  )
+})
