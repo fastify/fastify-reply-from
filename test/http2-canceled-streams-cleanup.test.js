@@ -110,11 +110,16 @@ t.test('http2 -> http2', async (t) => {
     rejectUnauthorized: false,
   })
 
-  // see https://github.com/fastify/fastify-reply-from/issues/424
-  // without the bug fix this will fail after about 15 requests
-  for (let i = 0; i < 30; i++) { await makeRequest(client, i) }
+  try {
+    // see https://github.com/fastify/fastify-reply-from/issues/424
+    // without the bug fix this will fail after about 15 requests
+    for (let i = 0; i < 30; i++) { await makeRequest(client, i) }
+  } finally {
+    // close the client even if a request failed, otherwise instance.close()
+    // waits for this session and the test times out instead of failing
+    client.destroy()
+  }
 
-  client.close()
   instance.close()
   target.close()
 })
