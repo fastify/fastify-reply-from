@@ -15,7 +15,7 @@ const certs = {
 }
 const { HTTP2_HEADER_STATUS, HTTP2_HEADER_PATH, NGHTTP2_CANCEL } = http2.constants
 
-t.test('cancels the upstream http2 stream when the client aborts mid-response', async (t) => {
+async function run (t, replyFromOpts) {
   const target = http2.createSecureServer(certs)
   const upstreamClosed = new Promise((resolve) => {
     target.on('stream', (stream) => {
@@ -35,7 +35,7 @@ t.test('cancels the upstream http2 stream when the client aborts mid-response', 
     http2: { sessionOptions: { ca: certs.cert } }
   })
   instance.get('/', (_request, reply) => {
-    reply.from()
+    reply.from('/', replyFromOpts)
   })
   const url = await instance.listen({ port: 0 })
 
@@ -51,6 +51,22 @@ t.test('cancels the upstream http2 stream when the client aborts mid-response', 
   await once(req, 'data')
   req.close(NGHTTP2_CANCEL)
 
-  const rstCode = await Promise.race([upstreamClosed, sleep(5000, 'upstream stream still open')])
+  const rstCode = await Promise.race([
+    upstreamClosed,
+    // unref so the timer does not keep the process alive once the race is won
+    sleep(5000, 'upstream stream still open', { ref: false })
+  ])
   t.assert.strictEqual(rstCode, NGHTTP2_CANCEL)
+}
+
+t.test('cancels the upstream http2 stream when the client aborts mid-response', async (t) => {
+  await run(t, {})
+})
+
+t.test('cancels the upstream http2 stream when the client aborts mid-response with a custom onResponse', async (t) => {
+  await run(t, {
+    onResponse (_request, reply, res) {
+      reply.send(res.stream)
+    }
+  })
 })
