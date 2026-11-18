@@ -260,7 +260,9 @@ function handleDest (reply, dest, source, opts, context) {
       headers['content-length'] = 0
       delete headers['content-type']
     }
-  } else if (reply.request.body) {
+  } else if (reply.request.body !== undefined) {
+    // Compare with undefined rather than test truthiness: a JSON body such
+    // as null, 0, false or "" was parsed and must be forwarded too.
     if (reply.request.body instanceof Stream) {
       body = reply.request.body
     } else {
@@ -282,7 +284,6 @@ function handleDest (reply, dest, source, opts, context) {
 
   // according to https://datatracker.ietf.org/doc/html/rfc2616#section-4.3
   // fastify ignore message body when it's a GET or HEAD request
-  // when proxy this request, we should reset the content-length to make it a valid http request
   // discussion: https://github.com/fastify/fastify/issues/953
   if (method === 'GET' || method === 'HEAD') {
     // body will be populated here only if opts.body is passed.
@@ -291,6 +292,17 @@ function handleDest (reply, dest, source, opts, context) {
     if (body) {
       throw new Error(`Rewriting the body when doing a ${method} is not allowed`)
     }
+  }
+
+  // The client's Content-Length describes the client's message, so it can
+  // only be forwarded when that message is streamed through as is: every
+  // other body had its length recomputed above. When nothing is written
+  // (Fastify does not read the body of GET, HEAD, TRACE and other bodyless
+  // methods), reset it. Otherwise the upstream waits for bytes that never
+  // come and reads the next request on that keep-alive connection as the
+  // rest of this body.
+  if (!body && headers['content-length'] !== undefined) {
+    headers['content-length'] = 0
   }
 
   !disableRequestLogging && reply.request.log.info({ source }, 'fetching from remote server')
