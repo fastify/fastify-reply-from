@@ -265,6 +265,16 @@ function handleDest (reply, dest, source, opts, context) {
     // as null, 0, false or "" was parsed and must be forwarded too.
     if (reply.request.body instanceof Stream) {
       body = reply.request.body
+      // The client's Content-Length describes the raw request. A preParsing
+      // hook (such as request decompression) can replace the body with a
+      // stream of a different length, so only the untouched raw request still
+      // matches that header. For any other stream the length is unknown: drop
+      // it and let the transport frame the body, otherwise the upstream is
+      // told a length that the written bytes do not satisfy and the keep-alive
+      // connection desyncs.
+      if (reply.request.body !== req && headers['content-length'] !== undefined) {
+        delete headers['content-length']
+      }
     } else {
       // Per RFC 7231 §3.1.1.5 if this header is not present we MAY assume application/octet-stream
       let contentType = 'application/octet-stream'
