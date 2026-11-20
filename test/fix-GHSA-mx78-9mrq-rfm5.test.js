@@ -8,6 +8,7 @@
 const t = require('node:test')
 const net = require('node:net')
 const http = require('node:http')
+const http2 = require('node:http2')
 const Fastify = require('fastify')
 const From = require('..')
 
@@ -100,16 +101,89 @@ for (const transport of transports) {
     const port = instance.server.address().port
 
     for (const c of cases) {
-      await t.test(c.name, async (t) => {
+      await t.test(c.name, (t) => checkForwarded(t, port, seen, c))
+    }
+  })
+}
+
+async function checkForwarded (t, port, seen, c) {
+  seen.length = 0
+  const { statusCode } = await send(port, c)
+  t.assert.strictEqual(statusCode, 200)
+  t.assert.strictEqual(seen.length, 1)
+  const [observed] = seen
+  t.assert.strictEqual(observed.method, c.method)
+  t.assert.strictEqual(observed.body, c.expected)
+  if (observed.contentLength !== null) {
+    t.assert.strictEqual(observed.contentLength, Buffer.byteLength(observed.body))
+  }
+}
+
+// HTTP/2 frames every message, so this transport cannot desync, but an
+// inherited content-length that the body does not match fails the request,
+// and falsy JSON bodies were dropped. HEAD is left out: the http2 transport
+// fails every HEAD request, with or without a body, for an unrelated reason.
+t.test('GHSA-mx78-9mrq-rfm5: content-length matches the forwarded body (http2)', async (t) => {
+  const seen = []
+  const target = http2.createServer((req, res) => {
+    let body = ''
+    req.setEncoding('latin1')
+    req.on('data', chunk => { body += chunk })
+    req.on('end', () => {
+      const contentLength = req.headers['content-length']
+      seen.push({ method: req.method, contentLength: contentLength === undefined ? null : Number(contentLength), body })
+      res.end('ok')
+    })
+  })
+  await new Promise(resolve => target.listen(0, resolve))
+  t.after(() => target.close())
+
+  const instance = Fastify()
+  t.after(() => instance.close())
+  instance.register(From, { base: `http://localhost:${target.address().port}`, http2: true })
+  instance.route({
+    method: ['GET', 'TRACE', 'POST'],
+    url: '/',
+    handler: (_request, reply) => { reply.from() }
+  })
+  await instance.listen({ port: 0 })
+  const port = instance.server.address().port
+
+  for (const c of cases.filter(c => c.method !== 'HEAD')) {
+    await t.test(c.name, (t) => checkForwarded(t, port, seen, c))
+  }
+})
+
+// A custom parser can turn a body into any value, including a falsy one for a
+// content type that is not JSON encoded. Whether such a body is forwarded or
+// the request is rejected, the upstream must never be told a length that it is
+// not sent.
+for (const transport of transports) {
+  t.test(`GHSA-mx78-9mrq-rfm5: a falsy body from a custom parser does not keep the client's content-length (${transport.name})`, async (t) => {
+    const { server: target, seen } = createRecordingTarget()
+    await new Promise(resolve => target.listen(0, resolve))
+    t.after(() => target.close())
+
+    const values = { 'application/x-null': null, 'application/x-zero': 0, 'application/x-false': false }
+    const instance = Fastify()
+    t.after(() => instance.close())
+    instance.register(From, { base: `http://localhost:${target.address().port}`, ...transport.opts })
+    instance.addContentTypeParser(Object.keys(values), { parseAs: 'string' }, (request, _body, done) => {
+      done(null, values[request.headers['content-type']])
+    })
+    instance.post('/', (_request, reply) => { reply.from() })
+    await instance.listen({ port: 0 })
+    const port = instance.server.address().port
+
+    for (const type of Object.keys(values)) {
+      await t.test(type, async (t) => {
         seen.length = 0
-        const { statusCode } = await send(port, c)
-        t.assert.strictEqual(statusCode, 200)
-        t.assert.strictEqual(seen.length, 1)
-        const [observed] = seen
-        t.assert.strictEqual(observed.method, c.method)
-        t.assert.strictEqual(observed.body, c.expected)
-        if (observed.contentLength !== null) {
-          t.assert.strictEqual(observed.contentLength, Buffer.byteLength(observed.body))
+        await send(port, { method: 'POST', type, body: 'a'.repeat(300) })
+        t.assert.ok(seen.length <= 1)
+        for (const observed of seen) {
+          if (observed.contentLength !== null) {
+            t.assert.strictEqual(observed.contentLength, Buffer.byteLength(observed.body))
+          }
         }
       })
     }
