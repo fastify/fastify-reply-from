@@ -55,6 +55,9 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   }
   const { request, close, retryOnError } = requestBuilt
   const disableRequestLogging = opts.disableRequestLogging || false
+  const defaultRetriesCount = opts.retriesCount || 0
+  const defaultMaxRetriesOn503 = opts.maxRetriesOn503 ?? 10
+  const defaultRetryDelay = opts.retryDelay || undefined
 
   const context = {
     cache,
@@ -64,7 +67,10 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     retryOnError,
     disableRequestLogging,
     contentTypesToEncode,
-    retryMethods
+    retryMethods,
+    defaultRetriesCount,
+    defaultMaxRetriesOn503,
+    defaultRetryDelay
   }
 
   fastify.decorateReply('from', function (source, opts) {
@@ -208,9 +214,9 @@ function handleDest (reply, dest, source, opts, context) {
   const rewriteHeaders = opts.rewriteHeaders || headersNoOp
   const rewriteRequestHeaders = opts.rewriteRequestHeaders || requestHeadersNoOp
   const onError = opts.onError || onErrorDefault
-  const retriesCount = opts.retriesCount || 0
-  const maxRetriesOn503 = opts.maxRetriesOn503 || 10
-  const retryDelay = opts.retryDelay || undefined
+  const retriesCount = opts.retriesCount ?? context.defaultRetriesCount
+  const maxRetriesOn503 = opts.maxRetriesOn503 ?? context.defaultMaxRetriesOn503
+  const retryDelay = opts.retryDelay || context.defaultRetryDelay
 
   // we leverage caching to avoid parsing the destination URL
   let url
