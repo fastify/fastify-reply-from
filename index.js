@@ -82,6 +82,9 @@ const fastifyReplyFrom = fp(function from (fastify, opts, next) {
     if (dest && typeof dest.then === 'function') {
       dest.then(
         (resolvedDest) => {
+          if (this.request.raw.aborted || this.raw.destroyed) {
+            return
+          }
           try {
             handleDest(this, resolvedDest, source, opts, context)
           } catch (err) {

@@ -5,6 +5,7 @@ const Fastify = require('fastify')
 const { request } = require('undici')
 const From = require('..')
 const http = require('node:http')
+const { once } = require('node:events')
 
 t.test('async getUpstream with undici', async (t) => {
   t.plan(4)
@@ -152,3 +153,48 @@ t.test('async getUpstream catch error thrown in handleDest', async (t) => {
   const result = await request(`http://localhost:${instance.server.address().port}/invalid-body`)
   t.assert.strictEqual(result.statusCode, 500)
 })
+
+t.test('does not forward to upstream when client disconnects while async getUpstream is pending', async (t) => {
+  t.plan(1)
+
+  let upstreamCalled = false
+  const target = http.createServer((_req, res) => {
+    upstreamCalled = true
+    res.statusCode = 200
+    res.end('hello world')
+  })
+  t.after(() => target.close())
+  target.listen({ port: 0 })
+  await once(target, 'listening')
+
+  const instance = Fastify()
+  t.after(() => instance.close())
+
+  instance.register(From)
+  instance.get('/', (_request, reply) => {
+    reply.from('/', {
+      getUpstream: async () => {
+        await new Promise(resolve => setTimeout(resolve, 300))
+        return `http://localhost:${target.address().port}`
+      }
+    })
+  })
+
+  instance.listen({ port: 0 })
+  await once(instance.server, 'listening')
+
+  await new Promise((resolve) => {
+    const req = http.request({
+      host: 'localhost',
+      port: instance.server.address().port,
+      path: '/'
+    }, (res) => { res.resume() })
+    req.on('error', () => {})
+    req.end()
+    setTimeout(() => req.destroy(), 50)
+    setTimeout(resolve, 500)
+  })
+
+  t.assert.strictEqual(upstreamCalled, false, 'upstream must not be called when request is aborted')
+})
+
