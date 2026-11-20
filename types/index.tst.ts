@@ -95,6 +95,15 @@ app.get('/v3', (_request, reply) => {
   })
 })
 
+app.get('/v4', (_request, reply) => {
+  reply.from('/v4', {
+    async getUpstream (req, base) {
+      expect(req).type.toBe<FastifyRequest<RequestGenericInterface, RawServerBase>>()
+      return base
+    }
+  })
+})
+
 app.get('/http2', (_request, reply) => {
   reply.from('/', {
     method: 'POST',

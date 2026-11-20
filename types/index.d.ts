@@ -99,7 +99,7 @@ declare namespace fastifyReplyFrom {
     getUpstream?: (
       request: FastifyRequest<RequestGenericInterface, RawServerBase>,
       base: string
-    ) => string;
+    ) => string | Promise<string>;
     method?: HTTPMethods;
     timeout?: number;
   }
