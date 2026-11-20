@@ -197,4 +197,3 @@ t.test('does not forward to upstream when client disconnects while async getUpst
 
   t.assert.strictEqual(upstreamCalled, false, 'upstream must not be called when request is aborted')
 })
-
