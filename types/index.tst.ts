@@ -108,6 +108,17 @@ app.get('/v4', (_request, reply) => {
   })
 })
 
+app.get('/v5', (_request, reply) => {
+  reply.from('/v5', {
+    async onResponse (request, reply, res) {
+      expect(request).type.toBe<FastifyRequest<RequestGenericInterface, RawServerBase>>()
+      expect(reply).type.toBe<FastifyReply<RouteGenericInterface, RawServerBase>>()
+      expect(res).type.toBe<FastifyReplyFromResponse>()
+      return reply.send('ok')
+    }
+  })
+})
+
 app.get('/http2', (_request, reply) => {
   reply.from('/', {
     method: 'POST',
