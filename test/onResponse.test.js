@@ -166,3 +166,29 @@ t.test('onResponse error when reply.sent is true does not double send', async (t
   t.assert.strictEqual(await result.body.text(), 'sent first')
   t.assert.strictEqual(onErrorCalled, false)
 })
+
+t.test('onResponse returning reply does not throw or treat reply as promise', async (t) => {
+  t.plan(2)
+  const app = Fastify()
+  app.register(From)
+  t.after(() => app.close())
+
+  const target = http.createServer((req, res) => {
+    res.statusCode = 200
+    res.end('hello concise')
+  })
+  t.after(() => target.close())
+
+  app.get('/', (_req, reply) => {
+    reply.from(`http://localhost:${target.address().port}`, {
+      onResponse: (_request, reply, res) => reply.send(res.stream)
+    })
+  })
+
+  await app.listen({ port: 0 })
+  await target.listen({ port: 0 })
+
+  const result = await request(`http://localhost:${app.server.address().port}`)
+  t.assert.strictEqual(result.statusCode, 200)
+  t.assert.strictEqual(await result.body.text(), 'hello concise')
+})
