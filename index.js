@@ -422,7 +422,20 @@ function handleDest (reply, dest, source, opts, context) {
       })
     }
     if (onResponse) {
-      onResponse(reply.request, reply, res)
+      const handleOnResponseError = (err) => {
+        reply.request.log.warn(err, 'onResponse errored')
+        if (!reply.sent) {
+          onError(reply, { error: err })
+        }
+      }
+      try {
+        const result = onResponse(reply.request, reply, res)
+        if (result && typeof result.then === 'function') {
+          result.catch(handleOnResponseError)
+        }
+      } catch (err) {
+        handleOnResponseError(err)
+      }
     } else {
       reply.send(res.stream)
     }
