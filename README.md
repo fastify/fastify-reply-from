@@ -534,19 +534,18 @@ will be returned to the client.
 
 ## Compatibility with @fastify/multipart
 
-`@fastify/reply-from` and [`@fastify/multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor should they be registered in plugins that have a parent-child relationship.
+`@fastify/reply-from` supports proxying `multipart/form-data` requests to the upstream server when the request body is forwarded unparsed. However, `@fastify/reply-from` and [`@fastify/multipart`](https://github.com/fastify/fastify-multipart) should not be registered as sibling plugins nor should they be registered in plugins that have a parent-child relationship.
 
-The two plugins are incompatible, in the sense that the behavior of `@fastify/reply-from` might not be the expected one when the above-mentioned conditions are not respected.
-This is due to the fact that `@fastify/multipart` consumes the multipart content by parsing it, hence this content is not forwarded to the target service by `@fastify/reply-from`.
+The two plugins are incompatible in the same encapsulation scope because `@fastify/multipart` consumes the multipart stream by parsing it, so the raw multipart body is no longer available for `@fastify/reply-from` to forward to the target service (and `@fastify/reply-from` logs a warning on startup when `@fastify/multipart` is detected).
 
-However, the two plugins may be used within the same fastify instance, at the condition that they belong to disjoint branches of the fastify plugins hierarchy tree.
+However, the two plugins may be used within the same Fastify instance, provided they belong to disjoint branches of the Fastify plugin encapsulation tree.
 
 ### Proxying specific content types without parsing
 
-If you need to proxy certain content types (like `multipart/form-data` or `text/event-stream`) without parsing them, you can use custom content type parsers:
+If you need to proxy certain content types (like `multipart/form-data` or `text/event-stream`) without parsing them, you can register custom content type parsers that forward the raw request stream through unchanged:
 
 ```js
-// Register custom content type parsers that pass raw body through
+// Register custom content type parsers that pass the raw stream body through
 fastify.addContentTypeParser('multipart/form-data', function (req, body, done) {
   done(null, body)
 })
@@ -568,7 +567,18 @@ fastify.post('/events', (request, reply) => {
 })
 ```
 
-This approach allows these content types to be proxied correctly while avoiding parsing that would consume the request body.
+Returning the raw `Stream` (`done(null, body)`) forwards the body directly and keeps the original `content-type` header (including `multipart/form-data` `boundary=...` parameters) intact. If you instead parse the payload into a non-stream value (such as `{ parseAs: 'buffer' }` or `{ parseAs: 'string' }`), `@fastify/reply-from` normalizes `headers['content-type']` to the base media type (`multipart/form-data`), dropping `boundary=...` unless you preserve the original header with [`rewriteRequestHeaders`](#rewriterequestheadersrequest-headers):
+
+```js
+fastify.post('/upload', (request, reply) => {
+  reply.from('http://upstream-server.com/upload', {
+    rewriteRequestHeaders: (req, headers) => ({
+      ...headers,
+      'content-type': req.headers['content-type']
+    })
+  })
+})
+```
 
 ## License
 
