@@ -83,7 +83,7 @@ declare namespace fastifyReplyFrom {
       request: FastifyRequest<RequestGenericInterface, RawServerBase>,
       reply: FastifyReply<RouteGenericInterface, RawServerBase>,
       res: FastifyReplyFromResponse
-    ) => void;
+    ) => void | Promise<unknown>;
     onError?: (
       reply: FastifyReply<RouteGenericInterface, RawServerBase>,
       error: { error: Error }

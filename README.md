@@ -385,6 +385,8 @@ Called when an HTTP response is received from the source. Passed the original so
 The default behavior is `reply.send(response.stream)`, which will be disabled if the
 option is specified.
 
+`onResponse` can be synchronous or `async` (return a `Promise`). If an error is thrown or the returned promise rejects, the error is forwarded to `onError`.
+
 When replying with a body of a different length it is necessary to remove
 the `content-length` header.
 
@@ -393,6 +395,18 @@ the `content-length` header.
   onResponse: (request, reply, res) => {
     reply.removeHeader('content-length');
     reply.send('New body of different length');
+  }
+}
+```
+
+Or with an async handler:
+
+```js
+{
+  onResponse: async (request, reply, res) => {
+    const text = await new Response(res.stream).text();
+    reply.removeHeader('content-length');
+    reply.send(text.toUpperCase());
   }
 }
 ```

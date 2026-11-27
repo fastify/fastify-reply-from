@@ -27,6 +27,8 @@ const {
 
 const { NGHTTP2_CANCEL } = http2.constants
 
+function noop () {}
+
 const fastifyReplyFrom = fp(function from (fastify, opts, next) {
   const contentTypesToEncode = new Set([
     'application/json',
@@ -422,7 +424,20 @@ function handleDest (reply, dest, source, opts, context) {
       })
     }
     if (onResponse) {
-      onResponse(reply.request, reply, res)
+      const handleOnResponseError = (err) => {
+        reply.request.log.warn(err, 'onResponse errored')
+        if (!reply.sent) {
+          onError(reply, { error: err })
+        }
+      }
+      try {
+        const result = onResponse(reply.request, reply, res)
+        if (result && result !== reply && typeof result.then === 'function') {
+          result.then(noop, handleOnResponseError)
+        }
+      } catch (err) {
+        handleOnResponseError(err)
+      }
     } else {
       reply.send(res.stream)
     }
