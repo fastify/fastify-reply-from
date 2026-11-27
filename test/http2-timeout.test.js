@@ -176,3 +176,45 @@ test('http2 sse removes request and session timeout test', async (t) => {
   instance.close()
   target.close()
 })
+
+test('http2 sse removes request and session timeout when content-type is uppercase and has parameters', async (t) => {
+  // A media type is case-insensitive and may carry parameters (RFC 9110 §8.3.1),
+  // so `Text/Event-Stream;charset=UTF-8` must be treated as SSE. The parsing is
+  // covered deterministically in test/sse-content-type.test.js; this only
+  // confirms it flows through the http2 path, the same shape as the sibling
+  // above — no timers, no clock race.
+  const target = Fastify({ http2: true, sessionTimeout: 0 })
+
+  target.get('/', (_request, reply) => {
+    t.assert.ok('request arrives')
+
+    reply.hijack()
+    reply.raw.writeHead(200, { 'content-type': 'Text/Event-Stream;charset=UTF-8' })
+    reply.raw.end('data: hello\n\n')
+  })
+
+  await target.listen({ port: 0 })
+
+  const instance = Fastify()
+
+  instance.register(From, {
+    base: `http://localhost:${target.server.address().port}`,
+    http2: { sessionTimeout: 100 }
+  })
+
+  instance.get('/', (_request, reply) => {
+    reply.from(`http://localhost:${target.server.address().port}/`)
+  })
+
+  await instance.listen({ port: 0 })
+
+  // instance must close before target: the SSE response disarms the plugin's
+  // http2 session timeout, and before Node 24 an http2 server waits in close()
+  // for open sessions — only instance.close() destroys that session.
+  t.after(() => instance.close())
+  t.after(() => target.close())
+
+  const { statusCode, body } = await request(`http://localhost:${instance.server.address().port}/`, { dispatcher: new Agent({ pipelining: 0 }) })
+  t.assert.strictEqual(statusCode, 200)
+  t.assert.strictEqual(await body.text(), 'data: hello\n\n')
+})
